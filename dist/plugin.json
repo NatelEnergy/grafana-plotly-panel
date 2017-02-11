@@ -1,0 +1,33 @@
+{
+  "type": "panel",
+  "name": "Plot.ly",
+  "id": "natel-plotly-panel",
+
+  "info": {
+    "description": "Plot.ly panel for grafana",
+    "author": {
+      "name": "ryantxu"
+    },
+    "keywords": ["plotly", "scatter", "panel"],
+    "logos": {
+      "small": "src/img/plotly_panel_logo.svg",
+      "large": "src/img/plotly_panel_logo.svg"
+    },
+    "links": [
+      {"name": "Project site", "url": "https://github.com/ryantxu/ajax-panel"},
+      {"name": "MIT License",  "url": "https://github.com/ryantxu/ajax-panel/blob/master/LICENSE"}
+    ],
+    "screenshots": [
+      {"name": "Scatter", "path": "src/img/screenshot-scatter.png"},
+      {"name": "Scatter 3D", "path": "src/img/screenshot-scatter-3d.png"},
+      {"name": "Options", "path": "src/img/screenshot-options.png"}
+    ],
+    "version": "0.0.1",
+    "updated": "2016-02-01"
+  },
+
+  "dependencies": {
+    "grafanaVersion": "3.x.x",
+    "plugins": [ ]
+  }
+}
