@@ -15,8 +15,8 @@
     },
     "links": [
       {"name": "Plot.ly", "url": "https://plot.ly/javascript/"},
-      {"name": "Project site", "url": "https://github.com/NatelEnergy/natel-plotly-panel"},
-      {"name": "MIT License",  "url": "https://github.com/NatelEnergy/natel-plotly-panel/blob/master/LICENSE"}
+      {"name": "Github", "url": "https://github.com/NatelEnergy/grafana-plotly-panel"},
+      {"name": "MIT License",  "url": "https://github.com/NatelEnergy/grafana-plotly-panel/blob/master/LICENSE"}
     ],
     "screenshots": [
       { "name": "Scatter",    "path": "src/img/screenshot-scatter.png"    },

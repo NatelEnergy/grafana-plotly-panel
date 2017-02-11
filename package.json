@@ -18,7 +18,7 @@
   "license": "MIT",
   "repository" : { 
     "type" : "git", 
-    "url" : "https://github.com/NatelEnergy/natel-plotly-panel.git"
+    "url" : "https://github.com/NatelEnergy/grafana-plotly-panel.git"
   },
   "devDependencies": {
     "babel": "~6.5.1",
