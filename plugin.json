@@ -1,26 +1,27 @@
 {
   "type": "panel",
-  "name": "Plot.ly",
+  "name": "Plotly",
   "id": "natel-plotly-panel",
 
   "info": {
-    "description": "Plot.ly panel for grafana",
+    "description": "Plotly panel for grafana",
     "author": {
-      "name": "ryantxu"
+      "name": "Natel Energy"
     },
-    "keywords": ["plotly", "scatter", "panel"],
+    "keywords": [ "plotly", "scatter", "panel" ],
     "logos": {
-      "small": "src/img/plotly_panel_logo.svg",
-      "large": "src/img/plotly_panel_logo.svg"
+      "small": "src/img/plotly_logo.svg",
+      "large": "src/img/plotly_logo.svg"
     },
     "links": [
-      {"name": "Project site", "url": "https://github.com/ryantxu/ajax-panel"},
-      {"name": "MIT License",  "url": "https://github.com/ryantxu/ajax-panel/blob/master/LICENSE"}
+      {"name": "Plot.ly", "url": "https://plot.ly/javascript/"},
+      {"name": "Project site", "url": "https://github.com/NatelEnergy/natel-plotly-panel"},
+      {"name": "MIT License",  "url": "https://github.com/NatelEnergy/natel-plotly-panel/blob/master/LICENSE"}
     ],
     "screenshots": [
-      {"name": "Scatter", "path": "src/img/screenshot-scatter.png"},
-      {"name": "Scatter 3D", "path": "src/img/screenshot-scatter-3d.png"},
-      {"name": "Options", "path": "src/img/screenshot-options.png"}
+      { "name": "Scatter",    "path": "src/img/screenshot-scatter.png"    },
+      { "name": "Scatter 3D", "path": "src/img/screenshot-scatter-3d.png" },
+      { "name": "Options",    "path": "src/img/screenshot-options.png"    }
     ],
     "version": "0.0.1",
     "updated": "2016-02-01"
