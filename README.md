@@ -3,11 +3,6 @@
 Render metrics using the plot.ly javascript framework
 
 
-### Options
-
-- **Method**:
-
-  ... TODO
 
 
 ### Screenshots
@@ -20,14 +15,13 @@ Render metrics using the plot.ly javascript framework
 
 ##### v0.0.1
 
-- Quick and Dirty, but it works!
+- First working version
 
 
 
 ### Roadmap... hopefully soon
- - Toggle the 'spinner' for panel
- - Get the panel width?
- - Error handling
- - avoid the 'Data source query result invalid, missing data field: undefined' error message
+ - Better metric resolution
+ - Map metric names to x,y (z), color, and text
+ - Support plotly timeseries
 
 
