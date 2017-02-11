@@ -1,0 +1,140 @@
+<div class="editor-row">
+
+
+    <div class="gf-form">
+      <label class="gf-form-label query-keyword width-6">Type:</label>
+      <div class="gf-form-select-wrapper">
+        <select class="gf-form-input gf-size-auto" ng-model="ctrl.panel.pconfig.settings.type" ng-change="ctrl.onConfigChanged()">
+          <option value="scatter">Scatter</option>
+          <option value="scatter3d">Scatter (3d)</option>
+        </select>
+      </div>
+
+      <label class="gf-form-label query-keyword width-6">Mode:</label>
+			<div class="gf-form-select-wrapper">
+				<select class="gf-form-input gf-size-auto" ng-model="ctrl.panel.pconfig.settings.mode" ng-change="ctrl.onConfigChanged()">
+					<option value="markers">Markers</option>
+					<option value="lines">Lines</option>
+					<option value="lines+markers">Lines + Markers</option>
+				</select>
+			</div>
+
+      <label class="gf-form-label query-keyword">Drag:</label>
+      <select class="gf-form-input gf-size-auto" ng-model="ctrl.panel.pconfig.layout.dragmode" ng-change="ctrl.onConfigChanged()">
+        <option value="zoom">zoom</option>
+        <option value="pan">pan</option>
+        <option value="lasso">lasso</option>
+        <option value="select">select</option>
+      </select>
+
+      <gf-form-switch class="gf-form" label="Show mode selection tool:" label-class="query-keyword" checked="ctrl.panel.pconfig.settings.displayModeBar" on-change="ctrl.onConfigChanged()"></gf-form-switch>
+
+    </div>
+
+
+    <h5>Markers</h5>
+    <div class="gf-form">
+      <label class="gf-form-label query-keyword width-6">Symbol:</label>
+      <metric-segment segment="ctrl.segs.symbol" get-options="ctrl.getSymbolSegs()" on-change="ctrl.onSegsChanged()"></metric-segment>
+      <label class="gf-form-label query-keyword width-6">Size:</label>
+      <input type="number" class="gf-form-input width-6" ng-model="ctrl.panel.pconfig.settings.marker.size" spellcheck="false" placeholder="5" ng-blur="ctrl.onConfigChanged()"/>
+
+      <gf-form-switch class="gf-form" label="Ramp color with time:" label-class="query-keyword" checked="ctrl.panel.pconfig.settings.color_ramp" on-change="ctrl.onConfigChanged()"></gf-form-switch>
+
+      <div class="gf-form" ng-show="ctrl.panel.pconfig.settings.color_ramp">
+        <label class="gf-form-label query-keyword">Color Scale:</label>
+        <select class="gf-form-input gf-size-auto" ng-model="ctrl.panel.pconfig.settings.marker.colorscale" ng-change="ctrl.onConfigChanged()">
+          <option value="xxx">Default</option>
+          <option value="RdBu">RdBu</option>
+          <option value="Earth">Earth</option>
+          <option value="Blackbody">Blackbody</option>
+          <option value="YIOrRd">YIOrRd</option>
+          <option value="YIGnBu">YIGnBu</option>
+          <option value="Bluered">Bluered</option>
+          <option value="Portland">Portland</option>
+          <option value="Electric">Electric</option>
+          <option value="Jet">Jet</option>
+          <option value="Hot">Hot</option>
+          <option value="Greys">Greys</option>
+          <option value="Greens">Greens</option>
+          <option value="Picnic">Picnic</option>
+        </select>
+      </div>
+
+      <gf-form-switch ng-show="ctrl.panel.pconfig.settings.color_ramp"
+        class="gf-form"
+        label="Show"
+        label-class="query-keyword"
+        checked="ctrl.panel.pconfig.settings.marker.showscale"
+        on-change="ctrl.onConfigChanged()"></gf-form-switch>
+
+      <label ng-show="!ctrl.panel.pconfig.settings.color_ramp" class="gf-form-label query-keyword">
+        Color: &nbsp;
+        <spectrum-picker ng-model="ctrl.panel.pconfig.settings.marker.color" ng-blur="ctrl.onConfigChanged()"/>
+      </label>
+
+    </div>
+
+    <h5>Line</h5>
+    <div class="gf-form">
+      <label class="gf-form-label query-keyword width-6">Width:</label>
+      <input type="number" class="gf-form-input width-6" ng-model="ctrl.panel.pconfig.settings.line.width" spellcheck="false" placeholder="2" ng-blur="ctrl.onConfigChanged()"/>
+
+      <label class="gf-form-label query-keyword">Shape:</label>
+      <select class="gf-form-input gf-size-auto" ng-model="ctrl.panel.pconfig.settings.line.shape" ng-change="ctrl.onConfigChanged()">
+        <option value="linear">linear</option>
+        <option value="spline">spline</option>
+        <option value="vhv">vhv</option>
+        <option value="hvh">hvh</option>
+        <option value="vh">vh</option>
+        <option value="hv">hv</option>
+      </select>
+
+      <label class="gf-form-label query-keyword">Dash:</label>
+      <select class="gf-form-input gf-size-auto" ng-model="ctrl.panel.pconfig.settings.line.dash" ng-change="ctrl.onConfigChanged()">
+        <option value="solid">solid</option>
+        <option value="dot">dot</option>
+        <option value="dash">dash</option>
+        <option value="longdash">longdash</option>
+        <option value="dashdot">dashdot</option>
+        <option value="longdashdot">longdashdot</option>
+      </select>
+
+      <label class="gf-form-label query-keyword">Color: &nbsp; <spectrum-picker ng-model="ctrl.panel.pconfig.settings.line.color" ng-blur="ctrl.onConfigChanged()"/></label>
+
+    </div>
+
+    <h5>X Axis</h5>
+    <div class="gf-form">
+      <label class="gf-form-label query-keyword">Type:</label>
+      <select class="gf-form-input gf-size-auto" ng-model="ctrl.panel.pconfig.layout.xaxis.type" ng-change="ctrl.onConfigChanged()">
+        <option value="-">auto</option>
+        <option value="linear">Linear</option>
+        <option value="log">Log</option>
+        <option value="date">Date</option>
+      </select>
+      <label class="gf-form-label query-keyword width-6">Range:</label>
+      <input type="number" class="gf-form-input width-6" ng-model="ctrl.panel.pconfig.layout.xaxis.range[0]" spellcheck="false" placeholder="auto" ng-blur="ctrl.onConfigChanged()"/>
+      <input type="number" class="gf-form-input width-6" ng-model="ctrl.panel.pconfig.layout.xaxis.range[1]" spellcheck="false" placeholder="auto" ng-blur="ctrl.onConfigChanged()"/>
+      <gf-form-switch class="gf-form" label="Show Grid:" label-class="query-keyword" checked="ctrl.panel.pconfig.layout.xaxis.showgrid" on-change="ctrl.onConfigChanged()"></gf-form-switch>
+      <gf-form-switch class="gf-form" label="Zero Line:" label-class="query-keyword" checked="ctrl.panel.pconfig.layout.xaxis.zeroline" on-change="ctrl.onConfigChanged()"></gf-form-switch>
+    </div>
+
+    <h5>Y Axis</h5>
+    <div class="gf-form">
+      <label class="gf-form-label query-keyword">Type:</label>
+      <select class="gf-form-input gf-size-auto" ng-model="ctrl.panel.pconfig.layout.yaxis.type" ng-change="ctrl.onConfigChanged()">
+        <option value="-">auto</option>
+        <option value="linear">Linear</option>
+        <option value="log">Log</option>
+        <option value="date">Date</option>
+      </select>
+      <label class="gf-form-label query-keyword width-6">Range:</label>
+      <input type="number" class="gf-form-input width-6" ng-model="ctrl.panel.pconfig.layout.yaxis.range[0]" spellcheck="false" placeholder="auto" ng-blur="ctrl.onConfigChanged()"/>
+      <input type="number" class="gf-form-input width-6" ng-model="ctrl.panel.pconfig.layout.yaxis.range[1]" spellcheck="false" placeholder="auto" ng-blur="ctrl.onConfigChanged()"/>
+      <gf-form-switch class="gf-form" label="Show Grid:" label-class="query-keyword" checked="ctrl.panel.pconfig.layout.yaxis.showgrid" on-change="ctrl.onConfigChanged()"></gf-form-switch>
+      <gf-form-switch class="gf-form" label="Zero Line:" label-class="query-keyword" checked="ctrl.panel.pconfig.layout.yaxis.zeroline" on-change="ctrl.onConfigChanged()"></gf-form-switch>
+    </div>
+
+
+</div>
