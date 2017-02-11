@@ -5,6 +5,8 @@ import _ from 'lodash';
 import moment from 'moment';
 import angular from 'angular';
 
+import * as Plotly from './external/plotly';
+
 class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   constructor($scope, $injector, $q, $rootScope, $timeout, $window, timeSrv, uiSegmentSrv) {

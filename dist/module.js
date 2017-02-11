@@ -1,9 +1,9 @@
 'use strict';
 
-System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular'], function (_export, _context) {
+System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/plotly'], function (_export, _context) {
   "use strict";
 
-  var MetricsPanelCtrl, _, moment, angular, _createClass, PlotlyPanelCtrl;
+  var MetricsPanelCtrl, _, moment, angular, Plotly, _createClass, PlotlyPanelCtrl;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -44,6 +44,8 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular'], function (_e
       moment = _moment.default;
     }, function (_angular) {
       angular = _angular.default;
+    }, function (_externalPlotly) {
+      Plotly = _externalPlotly;
     }],
     execute: function () {
       _createClass = function () {
