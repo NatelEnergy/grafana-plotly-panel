@@ -19,9 +19,10 @@
       {"name": "MIT License",  "url": "https://github.com/NatelEnergy/grafana-plotly-panel/blob/master/LICENSE"}
     ],
     "screenshots": [
-      { "name": "Scatter",    "path": "src/img/screenshot-scatter.png"    },
-      { "name": "Scatter 3D", "path": "src/img/screenshot-scatter-3d.png" },
-      { "name": "Options",    "path": "src/img/screenshot-options.png"    }
+      { "name": "Scatter",     "path": "src/img/screenshot-scatter.png"    },
+      { "name": "Scatter 2D",  "path": "src/img/screenshot-scatter-1.png"  },
+      { "name": "Scatter 3D",  "path": "src/img/screenshot-scatter-3d.png" },
+      { "name": "Options",     "path": "src/img/screenshot-options.png"    }
     ],
     "version": "0.0.1",
     "updated": "2016-02-01"
