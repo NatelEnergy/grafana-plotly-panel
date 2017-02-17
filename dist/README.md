@@ -12,6 +12,7 @@ are on the same point.
 ### Screenshots
 
 - [Screenshot of scatter plot](https://raw.githubusercontent.com/NatelEnergy/grafana-plotly-panel/master/src/img/screenshot-scatter.png)
+- [Screenshot of scatter plot](https://raw.githubusercontent.com/NatelEnergy/grafana-plotly-panel/master/src/img/screenshot-scatter-1.png)
 - [Screenshot of 3d scatter plot](https://raw.githubusercontent.com/NatelEnergy/grafana-plotly-panel/master/src/img/screenshot-scatter-3d.png)
 - [Screenshot of the options screen](https://raw.githubusercontent.com/NatelEnergy/grafana-plotly-panel/master/src/img/screenshot-options.png)
 
@@ -23,10 +24,10 @@ are on the same point.
 
 
 
-### Roadmap... hopefully soon
+### Roadmap
  - Better metric resolution
  - Map metric names to x,y (z), color, and text
  - Support plotly timeseries
- - load plotly.js from CDN?  (1.8mb! and grafana adds &bust=random to it)
+ - load plotly.js from CDN? 
 
 
