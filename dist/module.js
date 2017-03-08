@@ -1,8 +1,6 @@
 'use strict';
 
 System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/plotly'], function (_export, _context) {
-  "use strict";
-
   var MetricsPanelCtrl, _, moment, angular, Plotly, _createClass, PlotlyPanelCtrl;
 
   function _classCallCheck(instance, Constructor) {
@@ -106,7 +104,7 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
                 },
                 showscale: true
               },
-              color_ramp: true
+              color_option: 'ramp'
             },
             layout: {
               autosize: false,
@@ -331,6 +329,8 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
             } else {
               //   console.log( "plotly data", dataList);
 
+              var cfg = this.panel.pconfig;
+
               var srcX = dataList[0].datapoints;
               var srcY = dataList[1].datapoints;
 
@@ -339,7 +339,7 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
               }
 
               var srcZ = null;
-              if (dataList.length > 2) {
+              if (dataList.length > 2 && cfg.settings.type == 'scatter3d') {
                 srcZ = dataList[2].datapoints;
                 if (srcZ.length != srcY.length) {
                   throw "Metrics must have the same count! (z!=y)";
@@ -349,10 +349,18 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
               this.layout.xaxis.title = dataList[0].target;
               this.layout.yaxis.title = dataList[1].target;
 
-              var cfg = this.panel.pconfig;
+              var srcColor = null;
+              if (cfg.settings.color_option == 'data') {
+                var is3d = cfg.settings.type == 'scatter3d';
+                if (dataList.length < (is3d ? 4 : 3)) {
+                  throw "Need extra metric for color!";
+                }
+                srcColor = dataList[is3d ? 3 : 2].datapoints;
+              }
+
               this.trace.marker = $.extend(true, {}, cfg.settings.marker);
               this.trace.line = $.extend(true, {}, cfg.settings.line);
-              if (cfg.settings.color_ramp) {
+              if (cfg.settings.color_option == 'ramp' || cfg.settings.color_option == 'data') {
                 this.trace.marker.color = [];
               }
 
@@ -361,8 +369,10 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
                 this.trace.ts.push(srcX[i][1]);
                 this.trace.x.push(srcX[i][0]);
                 this.trace.y.push(srcY[i][0]);
-                if (cfg.settings.color_ramp) {
+                if (cfg.settings.color_option == 'ramp') {
                   this.trace.marker.color.push(i);
+                } else if (srcColor) {
+                  this.trace.marker.color.push(srcColor[i][0]);
                 }
                 if (srcZ) {
                   this.trace.z.push(srcZ[i][0]);

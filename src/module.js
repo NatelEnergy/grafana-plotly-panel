@@ -45,7 +45,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           },
           showscale: true
         },
-        color_ramp: true
+        color_option: 'ramp'
       },
       layout: {
         autosize: false,
@@ -262,6 +262,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     else {
    //   console.log( "plotly data", dataList);
 
+      var cfg = this.panel.pconfig;
+
       var srcX = dataList[0].datapoints;
       var srcY = dataList[1].datapoints;
       
@@ -271,7 +273,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
 
       var srcZ = null;
-      if(dataList.length>2) {
+      if(dataList.length>2 && cfg.settings.type == 'scatter3d') {
         srcZ = dataList[2].datapoints;
         if(srcZ.length != srcY.length) {
           throw "Metrics must have the same count! (z!=y)";
@@ -282,10 +284,18 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this.layout.yaxis.title = dataList[1].target;
 
 
-      var cfg = this.panel.pconfig;
+      var srcColor = null;
+      if (cfg.settings.color_option == 'data') {
+        var is3d = (cfg.settings.type == 'scatter3d');
+        if (dataList.length < (is3d ? 4 : 3)) {
+          throw "Need extra metric for color!";
+        }
+        srcColor = dataList[is3d ? 3 : 2].datapoints;
+      }
+
       this.trace.marker = $.extend(true, {}, cfg.settings.marker);
       this.trace.line = $.extend(true, {}, cfg.settings.line);
-      if(cfg.settings.color_ramp) {
+      if(cfg.settings.color_option == 'ramp' || cfg.settings.color_option == 'data') {
         this.trace.marker.color = [];
       }
 
@@ -294,8 +304,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         this.trace.ts.push( srcX[i][1] );
         this.trace.x.push( srcX[i][0] );
         this.trace.y.push( srcY[i][0] );
-        if(cfg.settings.color_ramp) {
+        if(cfg.settings.color_option == 'ramp') {
           this.trace.marker.color.push(i);
+        } else if (srcColor) {
+          this.trace.marker.color.push(srcColor[i][0]);
         }
         if( srcZ) {
           this.trace.z.push( srcZ[i][0] );
