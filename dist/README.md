@@ -18,6 +18,11 @@ are on the same point.
 
 #### Changelog
 
+##### v0.0.2
+
+- Added ability to set color from a metric query.  (#4, @lzgrablic01)
+
+
 ##### v0.0.1
 
 - First working version
@@ -25,8 +30,17 @@ are on the same point.
 
 
 ### Roadmap
+
+Right now, the metric order maps directly to their usage.  We should change things so that we explicily map the 
+metric values to:
+ - x
+ - y
+ - z
+ - color ramp
+ - text
+
+Other issues
  - Better metric resolution
- - Map metric names to x,y (z), color, and text
  - Support plotly timeseries
  - load plotly.js from CDN? 
 
