@@ -21,6 +21,7 @@ are on the same point.
 ##### v0.0.2
 
 - Added ability to set color from a metric query.  (#4, @lzgrablic01)
+- Show 3D axis names properly
 
 
 ##### v0.0.1

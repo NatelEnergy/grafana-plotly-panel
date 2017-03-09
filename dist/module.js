@@ -139,6 +139,11 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
                 type: 'linear',
                 gridcolor: '#444444',
                 range: [null, null]
+              },
+              scene: {
+                xaxis: { title: 'X AXIS' },
+                yaxis: { title: 'Y AXIS' },
+                zaxis: { title: 'Z AXIS' }
               }
             }
           };
@@ -341,15 +346,20 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
               }
 
               var srcZ = null;
-              if (dataList.length > 2 && cfg.settings.type == 'scatter3d') {
+              if (cfg.settings.type == 'scatter3d') {
                 srcZ = dataList[2].datapoints;
                 if (srcZ.length != srcY.length) {
                   throw "Metrics must have the same count! (z!=y)";
                 }
-              }
+                this.layout.scene.xaxis.title = dataList[0].target;
+                this.layout.scene.yaxis.title = dataList[1].target;
+                this.layout.scene.zaxis.title = dataList[2].target;
 
-              this.layout.xaxis.title = dataList[0].target;
-              this.layout.yaxis.title = dataList[1].target;
+                console.log("3D", this.layout);
+              } else {
+                this.layout.xaxis.title = dataList[0].target;
+                this.layout.yaxis.title = dataList[1].target;
+              }
 
               var srcColor = null;
               if (cfg.settings.color_option == 'data') {
@@ -380,10 +390,7 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
                   this.trace.z.push(srcZ[i][0]);
                 }
               }
-
-              // console.log( " >> trace", this.trace, srcZ);
             }
-
             this.render();
           }
         }, {
@@ -408,12 +415,9 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
 
             this.graph = elem.find('.plotly-spot')[0];
             this.initalized = false;
-
             elem.on('mousemove', function (evt) {
               _this3.mouse = evt;
             });
-
-            console.log("PLOTLY inside link", this.graph);
           }
         }, {
           key: 'getSymbolSegs',
