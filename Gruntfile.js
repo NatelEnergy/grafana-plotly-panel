@@ -30,7 +30,7 @@ module.exports = (grunt) => {
         cwd: 'src',
         expand: true,
         src: ['img/**/*'],
-        dest: 'dist/src/'
+        dest: 'dist'
       }
     },
 

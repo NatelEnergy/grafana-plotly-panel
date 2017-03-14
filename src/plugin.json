@@ -10,8 +10,8 @@
     },
     "keywords": [ "plotly", "scatter", "panel" ],
     "logos": {
-      "small": "src/img/plotly_logo.svg",
-      "large": "src/img/plotly_logo.svg"
+      "small": "img/plotly_logo.svg",
+      "large": "img/plotly_logo_with_name.svg"
     },
     "links": [
       {"name": "Plot.ly", "url": "https://plot.ly/javascript/"},
@@ -20,10 +20,10 @@
       {"name": "Natel Energy", "url": "http://www.natelenergy.com/"}
     ],
     "screenshots": [
-      { "name": "Scatter",     "path": "src/img/screenshot-scatter.png"    },
-      { "name": "Scatter 2D",  "path": "src/img/screenshot-scatter-1.png"  },
-      { "name": "Scatter 3D",  "path": "src/img/screenshot-scatter-3d.png" },
-      { "name": "Options",     "path": "src/img/screenshot-options.png"    }
+      { "name": "Scatter",     "path": "img/screenshot-scatter.png"    },
+      { "name": "Scatter 2D",  "path": "img/screenshot-scatter-1.png"  },
+      { "name": "Scatter 3D",  "path": "img/screenshot-scatter-3d.png" },
+      { "name": "Options",     "path": "img/screenshot-options.png"    }
     ],
     "version": "0.0.1",
     "updated": "2016-02-01"
