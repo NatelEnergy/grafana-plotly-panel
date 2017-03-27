@@ -112,7 +112,7 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
               autosize: false,
               showlegend: false,
               legend: { "orientation": "v" },
-              dragmode: 'lasso', // (enumerated: "zoom" | "pan" | "select" | "lasso" | "orbit" | "turntable" ) 
+              dragmode: 'lasso', // (enumerated: "zoom" | "pan" | "select" | "lasso" | "orbit" | "turntable" )
               hovermode: 'closest',
               plot_bgcolor: "#1f1d1d",
               paper_bgcolor: 'rgba(0,0,0,0)', // transparent?
@@ -167,8 +167,6 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
           _this.events.on('refresh', _this.onRefresh.bind(_this));
 
           angular.element($window).bind('resize', _this.onResize.bind(_this));
-
-          _this.onConfigChanged();
           return _this;
         }
 
@@ -214,7 +212,7 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
         }, {
           key: 'onPanelInitalized',
           value: function onPanelInitalized() {
-            console.log("onPanelInitalized()");
+            this.onConfigChanged();
           }
         }, {
           key: 'onRender',

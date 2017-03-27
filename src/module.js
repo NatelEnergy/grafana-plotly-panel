@@ -17,9 +17,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.uiSegmentSrv = uiSegmentSrv;
     this.q = $q;
 
-    this.sizeChanged = true; 
+    this.sizeChanged = true;
     this.initalized = false;
-    
+
     this.$tooltip = $('<div id="tooltip" class="graph-tooltip">');
 
 
@@ -51,13 +51,13 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         autosize: false,
         showlegend: false,
         legend: {"orientation": "v"},
-        dragmode: 'lasso', // (enumerated: "zoom" | "pan" | "select" | "lasso" | "orbit" | "turntable" ) 
+        dragmode: 'lasso', // (enumerated: "zoom" | "pan" | "select" | "lasso" | "orbit" | "turntable" )
         hovermode: 'closest',
         plot_bgcolor: "#1f1d1d",
         paper_bgcolor: 'rgba(0,0,0,0)', // transparent?
         font: {
           color: '#D8D9DA',
-          family: '"Open Sans", Helvetica, Arial, sans-serif' 
+          family: '"Open Sans", Helvetica, Arial, sans-serif'
         },
         margin: {
           t: 0,
@@ -105,10 +105,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.events.on('panel-initialized', this.onPanelInitalized.bind(this));
     this.events.on('refresh', this.onRefresh.bind(this));
 
-
     angular.element($window).bind('resize', this.onResize.bind(this) );
-
-    this.onConfigChanged();
   }
 
   onResize() {
@@ -146,7 +143,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   onPanelInitalized() {
-    console.log("onPanelInitalized()")
+    this.onConfigChanged();
   }
 
   onRender() {
@@ -155,7 +152,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       var s = this.panel.pconfig.settings;
 
       var options = {
-        showLink: false, 
+        showLink: false,
         displaylogo: false,
         displayModeBar: s.displayModeBar,
         modeBarButtonsToRemove: ['sendDataToCloud'] //, 'select2d', 'lasso2d']
@@ -200,7 +197,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
             this.$tooltip.html( body ).place_tt( this.mouse.pageX + 10, this.mouse.pageY );
           }
         }).on('plotly_unhover', (data) => {
-          this.$tooltip.detach(); 
+          this.$tooltip.detach();
         });
       }
 
@@ -228,7 +225,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
         var range = {from: moment.utc(min), to: moment.utc(max) };
 
-        console.log( 'SELECTED!!!', min, max, data.points.length, range ); 
+        console.log( 'SELECTED!!!', min, max, data.points.length, range );
 
         this.timeSrv.setTime(range);
 
@@ -250,7 +247,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       Plotly.Plots.resize(this.graph);
     }
 
-    this.sizeChanged = false; 
+    this.sizeChanged = false;
     this.initalized = true;
     console.log("onRender");
   }
@@ -271,7 +268,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
       var srcX = dataList[0].datapoints;
       var srcY = dataList[1].datapoints;
-      
+
       if(srcX.length != srcY.length) {
         throw "Metrics must have the same count! (x!=y)";
       }
