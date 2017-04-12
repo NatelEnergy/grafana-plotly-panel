@@ -120,9 +120,19 @@
         <option value="log">Log</option>
         <option value="date">Date</option>
       </select>
-      <label class="gf-form-label query-keyword width-6">Range:</label>
-      <input type="number" class="gf-form-input width-6" ng-model="ctrl.panel.pconfig.layout.xaxis.range[0]" spellcheck="false" placeholder="auto" ng-blur="ctrl.onConfigChanged()"/>
-      <input type="number" class="gf-form-input width-6" ng-model="ctrl.panel.pconfig.layout.xaxis.range[1]" spellcheck="false" placeholder="auto" ng-blur="ctrl.onConfigChanged()"/>
+
+      <label class="gf-form-label query-keyword">Range:</label>
+      <select class="gf-form-input gf-size-auto" ng-model="ctrl.panel.pconfig.layout.xaxis.rangemode" ng-change="ctrl.onConfigChanged()">
+        <option value="normal">Auto</option>
+        <option value="between">Between</option>
+        <option value="tozero">To Zero</option>
+        <option value="nonnegative">Non-Negative</option>
+      </select>
+      <div class="gf-form" ng-show="ctrl.panel.pconfig.layout.xaxis.rangemode === 'between'">
+        <input type="number" class="gf-form-input width-6" ng-model="ctrl.panel.pconfig.layout.xaxis.range[0]" spellcheck="false" placeholder="min" ng-blur="ctrl.onConfigChanged()"/>
+        <input type="number" class="gf-form-input width-6" ng-model="ctrl.panel.pconfig.layout.xaxis.range[1]" spellcheck="false" placeholder="max" ng-blur="ctrl.onConfigChanged()"/>
+      </div>
+
       <gf-form-switch class="gf-form" label="Show Grid:" label-class="query-keyword" checked="ctrl.panel.pconfig.layout.xaxis.showgrid" on-change="ctrl.onConfigChanged()"></gf-form-switch>
       <gf-form-switch class="gf-form" label="Zero Line:" label-class="query-keyword" checked="ctrl.panel.pconfig.layout.xaxis.zeroline" on-change="ctrl.onConfigChanged()"></gf-form-switch>
     </div>
@@ -136,9 +146,18 @@
         <option value="log">Log</option>
         <option value="date">Date</option>
       </select>
-      <label class="gf-form-label query-keyword width-6">Range:</label>
-      <input type="number" class="gf-form-input width-6" ng-model="ctrl.panel.pconfig.layout.yaxis.range[0]" spellcheck="false" placeholder="auto" ng-blur="ctrl.onConfigChanged()"/>
-      <input type="number" class="gf-form-input width-6" ng-model="ctrl.panel.pconfig.layout.yaxis.range[1]" spellcheck="false" placeholder="auto" ng-blur="ctrl.onConfigChanged()"/>
+      <label class="gf-form-label query-keyword">Range:</label>
+      <select class="gf-form-input gf-size-auto" ng-model="ctrl.panel.pconfig.layout.yaxis.rangemode" ng-change="ctrl.onConfigChanged()">
+        <option value="normal">Auto</option>
+        <option value="between">Between</option>
+        <option value="tozero">To Zero</option>
+        <option value="nonnegative">Non-Negative</option>
+      </select>
+      <div class="gf-form" ng-show="ctrl.panel.pconfig.layout.yaxis.rangemode === 'between'">
+        <input type="number" class="gf-form-input width-6" ng-model="ctrl.panel.pconfig.layout.yaxis.range[0]" spellcheck="false" placeholder="min" ng-blur="ctrl.onConfigChanged()"/>
+        <input type="number" class="gf-form-input width-6" ng-model="ctrl.panel.pconfig.layout.yaxis.range[1]" spellcheck="false" placeholder="max" ng-blur="ctrl.onConfigChanged()"/>
+      </div>
+
       <gf-form-switch class="gf-form" label="Show Grid:" label-class="query-keyword" checked="ctrl.panel.pconfig.layout.yaxis.showgrid" on-change="ctrl.onConfigChanged()"></gf-form-switch>
       <gf-form-switch class="gf-form" label="Zero Line:" label-class="query-keyword" checked="ctrl.panel.pconfig.layout.yaxis.zeroline" on-change="ctrl.onConfigChanged()"></gf-form-switch>
     </div>

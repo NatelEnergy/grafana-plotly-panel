@@ -131,14 +131,14 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
                 zeroline: false,
                 type: 'linear',
                 gridcolor: '#444444',
-                range: [null, null]
+                rangemode: 'normal' // (enumerated: "normal" | "tozero" | "nonnegative" )
               },
               yaxis: {
                 showgrid: true,
                 zeroline: false,
                 type: 'linear',
                 gridcolor: '#444444',
-                range: [null, null]
+                rangemode: 'normal' // (enumerated: "normal" | "tozero" | "nonnegative" )
               },
               scene: {
                 xaxis: { title: 'X AXIS' },
@@ -404,6 +404,17 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
             var cfg = this.panel.pconfig;
             this.trace.type = cfg.settings.type;
             this.trace.mode = cfg.settings.mode;
+
+            var axis = [this.panel.pconfig.layout.xaxis, this.panel.pconfig.layout.yaxis];
+            for (var i = 0; i < axis.length; i++) {
+              if (axis[i].rangemode === 'between') {
+                if (axis[i].range == null) {
+                  axis[i].range = [0, null];
+                }
+              } else {
+                axis[i].range = null;
+              }
+            }
             this.refresh();
           }
         }, {
