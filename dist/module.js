@@ -194,12 +194,15 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
         }, {
           key: 'onInitEditMode',
           value: function onInitEditMode() {
-            this.addEditorTab('Options', 'public/plugins/natel-plotly-panel/editor.html', 1);
-            this.editorTabIndex = 1;
+            this.addEditorTab('Display', 'public/plugins/natel-plotly-panel/tab_display.html', 2);
+            //  this.editorTabIndex = 1;
             this.refresh();
             this.segs = {
               symbol: this.uiSegmentSrv.newSegment({ value: this.panel.pconfig.settings.marker.symbol })
             };
+            this.subTabIndex = 0; // select the options
+
+            this.axis = [{ disp: 'X Axis', idx: 1, config: this.panel.pconfig.layout.xaxis }, { disp: 'Y Axis', idx: 2, config: this.panel.pconfig.layout.yaxis }];
           }
         }, {
           key: 'onSegsChanged',

@@ -22,6 +22,7 @@ are on the same point.
 ##### v0.0.3
 
 - Added range mode: "tozero" and "nonnegative"
+- Improve options UI
 
 
 ##### v0.0.2
