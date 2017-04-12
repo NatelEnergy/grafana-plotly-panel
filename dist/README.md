@@ -18,6 +18,12 @@ are on the same point.
 
 #### Changelog
 
+
+##### v0.0.3
+
+- Added range mode: "tozero" and "nonnegative"
+
+
 ##### v0.0.2
 
 - Added ability to set color from a metric query.  (#4, @lzgrablic01)

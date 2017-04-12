@@ -1,6 +1,6 @@
 {
   "name": "natel-plotly-panel",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Plot.ly Panel Plugin for Grafana",
   "main": "src/module.js",
   "scripts": {
@@ -16,8 +16,8 @@
   ],
   "author": "ryantxu",
   "license": "MIT",
-  "repository" : { 
-    "type" : "git", 
+  "repository" : {
+    "type" : "git",
     "url" : "https://github.com/NatelEnergy/grafana-plotly-panel.git"
   },
   "devDependencies": {
