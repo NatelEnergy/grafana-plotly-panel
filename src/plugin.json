@@ -11,7 +11,7 @@
     "keywords": [ "plotly", "scatter", "panel" ],
     "logos": {
       "small": "img/plotly_logo.svg",
-      "large": "img/plotly_logo_with_name.svg"
+      "large": "img/plotly_logo.svg"
     },
     "links": [
       {"name": "Plot.ly", "url": "https://plot.ly/javascript/"},
@@ -26,7 +26,7 @@
       { "name": "Options",     "path": "img/screenshot-options.png"    }
     ],
     "version": "0.0.3",
-    "updated": "2016-04-11"
+    "updated": "2016-04-17"
   },
 
   "dependencies": {
