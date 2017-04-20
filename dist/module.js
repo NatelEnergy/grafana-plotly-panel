@@ -85,6 +85,12 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
           _this.$tooltip = $('<div id="tooltip" class="graph-tooltip">');
 
           var dcfg = {
+            mapping: {
+              x: null,
+              y: null,
+              z: null,
+              color: null
+            },
             settings: {
               type: 'scatter',
               mode: 'lines+markers',
@@ -152,11 +158,7 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
           _this.panel.pconfig = $.extend(true, dcfg, _this.panel.pconfig);
 
           var cfg = _this.panel.pconfig;
-          _this.trace = {
-            x: [],
-            y: [],
-            z: []
-          };
+          _this.trace = {};
           _this.layout = $.extend(true, {}, _this.panel.pconfig.layout);
 
           _this.events.on('init-edit-mode', _this.onInitEditMode.bind(_this));
@@ -185,8 +187,6 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
         }, {
           key: 'onRefresh',
           value: function onRefresh() {
-            console.log("onRefresh()");
-
             if (this.graph && this.initalized) {
               Plotly.redraw(this.graph);
             }
@@ -202,7 +202,28 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
             };
             this.subTabIndex = 0; // select the options
 
-            this.axis = [{ disp: 'X Axis', idx: 1, config: this.panel.pconfig.layout.xaxis }, { disp: 'Y Axis', idx: 2, config: this.panel.pconfig.layout.yaxis }];
+            var cfg = this.panel.pconfig;
+            this.axis = [{ disp: 'X Axis', idx: 1, config: cfg.layout.xaxis, metric: function metric(name) {
+                if (name) {
+                  cfg.mapping.x = name;
+                }return cfg.mapping.x;
+              } }, { disp: 'Y Axis', idx: 2, config: cfg.layout.yaxis, metric: function metric(name) {
+                if (name) {
+                  cfg.mapping.y = name;
+                }return cfg.mapping.y;
+              } }, { disp: 'Z Axis', idx: 3, config: cfg.layout.yaxis, metric: function metric(name) {
+                if (name) {
+                  cfg.mapping.z = name;
+                }return cfg.mapping.z;
+              } }];
+          }
+        }, {
+          key: 'isAxisVisible',
+          value: function isAxisVisible(axis) {
+            if (axis.idx == 3) {
+              return this.panel.pconfig.settings.type === 'scatter3d';
+            }
+            return true;
           }
         }, {
           key: 'onSegsChanged',
@@ -319,10 +340,8 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
               this.layout.width = rect.width;
               Plotly.Plots.resize(this.graph);
             }
-
             this.sizeChanged = false;
             this.initalized = true;
-            console.log("onRender");
           }
         }, {
           key: 'onDataReceived',
@@ -330,66 +349,137 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
             this.trace.x = [];
             this.trace.y = [];
             this.trace.z = [];
-            this.trace.ts = [];
 
+            this.data = {};
             if (dataList.length < 2) {
               console.log("No data", dataList);
             } else {
+              var dmapping = {
+                x: null,
+                y: null,
+                z: null
+              };
+
               //   console.log( "plotly data", dataList);
-
               var cfg = this.panel.pconfig;
+              var mapping = cfg.mapping;
+              var key = {
+                name: "@time",
+                type: 'ms',
+                missing: 0,
+                idx: -1,
+                points: []
+              };
+              var idx = {
+                name: "@index",
+                type: 'number',
+                missing: 0,
+                idx: -1,
+                points: []
+              };
+              this.data[key.name] = key;
+              this.data[idx.name] = idx;
+              for (var i = 0; i < dataList.length; i++) {
+                var datapoints = dataList[i].datapoints;
+                if (datapoints.length > 0) {
+                  var val = {
+                    name: dataList[i].target,
+                    type: 'number',
+                    missing: 0,
+                    idx: i,
+                    points: []
+                  };
+                  if (_.isString(datapoints[0][0])) {
+                    val.type = 'string';
+                  } else if (_.isBoolean(datapoints[0][0])) {
+                    val.type = 'boolean';
+                  }
 
-              var srcX = dataList[0].datapoints;
-              var srcY = dataList[1].datapoints;
+                  // Set the default mapping values
+                  if (i == 0) {
+                    dmapping.x = val.name;
+                  } else if (i == 1) {
+                    dmapping.y = val.name;
+                  } else if (i == 2) {
+                    dmapping.z = val.name;
+                  }
 
-              if (srcX.length != srcY.length) {
-                throw "Metrics must have the same count! (x!=y)";
+                  this.data[val.name] = val;
+                  if (key.points.length == 0) {
+                    for (var j = 0; j < datapoints.length; j++) {
+                      key.points.push(datapoints[j][1]);
+                      val.points.push(datapoints[j][0]);
+                      idx.points.push(j);
+                    }
+                  } else {
+                    for (var j = 0; j < datapoints.length; j++) {
+                      if (j >= key.points.length) {
+                        break;
+                      }
+                      // Make sure it is from the same timestamp
+                      if (key.points[j] == datapoints[j][1]) {
+                        val.points.push(datapoints[j][0]);
+                      } else {
+                        val.missing = val.missing + 1;
+                      }
+                    }
+                  }
+                }
               }
 
-              var srcZ = null;
-              if (cfg.settings.type == 'scatter3d') {
-                srcZ = dataList[2].datapoints;
-                if (srcZ.length != srcY.length) {
-                  throw "Metrics must have the same count! (z!=y)";
-                }
-                this.layout.scene.xaxis.title = dataList[0].target;
-                this.layout.scene.yaxis.title = dataList[1].target;
-                this.layout.scene.zaxis.title = dataList[2].target;
+              // Maybe overwrite?
+              if (!mapping.x) mapping.x = dmapping.x;
+              if (!mapping.y) mapping.y = dmapping.y;
+              if (!mapping.z) mapping.z = dmapping.z;
 
+              // console.log( "GOT", this.data, mapping );
+
+              var dX = this.data[mapping.x];
+              var dY = this.data[mapping.y];
+              var dZ = null;
+              var dC = null;
+              var dT = null;
+
+              if (!dX) {
+                throw { message: "Unable to find X: " + mapping.x };
+              }
+              if (!dY) {
+                throw { message: "Unable to find Y: " + mapping.y };
+              }
+
+              this.trace.ts = key.points;
+              this.trace.x = dX.points;
+              this.trace.y = dY.points;
+
+              if (cfg.settings.type == 'scatter3d') {
+                dZ = this.data[mapping.z];
+                if (!dZ) {
+                  throw { message: "Unable to find Z: " + mapping.z };
+                }
+                this.layout.scene.xaxis.title = dX.name;
+                this.layout.scene.yaxis.title = dY.name;
+                this.layout.scene.zaxis.title = dZ.name;
+
+                this.trace.z = dZ.points;
                 console.log("3D", this.layout);
               } else {
-                this.layout.xaxis.title = dataList[0].target;
-                this.layout.yaxis.title = dataList[1].target;
-              }
-
-              var srcColor = null;
-              if (cfg.settings.color_option == 'data') {
-                var is3d = cfg.settings.type == 'scatter3d';
-                if (dataList.length < (is3d ? 4 : 3)) {
-                  throw "Need extra metric for color!";
-                }
-                srcColor = dataList[is3d ? 3 : 2].datapoints;
+                this.layout.xaxis.title = dX.name;
+                this.layout.yaxis.title = dY.name;
               }
 
               this.trace.marker = $.extend(true, {}, cfg.settings.marker);
               this.trace.line = $.extend(true, {}, cfg.settings.line);
-              if (cfg.settings.color_option == 'ramp' || cfg.settings.color_option == 'data') {
-                this.trace.marker.color = [];
-              }
 
-              var len = srcX.length;
-              for (var i = 0; i < len; i++) {
-                this.trace.ts.push(srcX[i][1]);
-                this.trace.x.push(srcX[i][0]);
-                this.trace.y.push(srcY[i][0]);
-                if (cfg.settings.color_option == 'ramp') {
-                  this.trace.marker.color.push(i);
-                } else if (srcColor) {
-                  this.trace.marker.color.push(srcColor[i][0]);
+              // Set the marker colors
+              if (cfg.settings.color_option == 'ramp') {
+                if (!mapping.color) {
+                  mapping.color = idx.name;
                 }
-                if (srcZ) {
-                  this.trace.z.push(srcZ[i][0]);
+                dC = this.data[mapping.color];
+                if (!dC) {
+                  throw { message: "Unable to find Color: " + mapping.color };
                 }
+                this.trace.marker.color = dC.points;
               }
             }
             this.render();

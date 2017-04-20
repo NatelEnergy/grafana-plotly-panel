@@ -21,8 +21,9 @@ are on the same point.
 
 ##### v0.0.3
 
-- Added range mode: "tozero" and "nonnegative"
 - Improve options UI
+- Added range mode: "tozero" and "nonnegative"
+- Map metrics to X,Y,Z and color
 
 
 ##### v0.0.2
@@ -37,20 +38,12 @@ are on the same point.
 - First working version
 
 
-
 ### Roadmap
 
-Right now, the metric order maps directly to their usage.  We should change things so that we explicily map the
-metric values to:
- - x
- - y
- - z
- - color ramp
- - text
-
-Other issues
- - Better metric resolution
- - Support plotly timeseries
+Nice things to have
+ - change marker size with response value
+ - support 'table' response format
+ - support text
  - load plotly.js from CDN?
 
 
