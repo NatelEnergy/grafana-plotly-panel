@@ -2,11 +2,6 @@
 
 Render metrics using the plot.ly javascript framework
 
-This is the first working version with some config but still needs a lot of work
-to to feel ready for prime time.  In particular it currently assumes the first three
-values it gets are x, y, anx z.  They must all be the same size and we assume they
-are on the same point.
-
 
 
 ### Screenshots
@@ -24,6 +19,7 @@ are on the same point.
 - Improve options UI
 - Added range mode: "tozero" and "nonnegative"
 - Map metrics to X,Y,Z and color
+- Can now select 'date' type for each axis to support time
 
 
 ##### v0.0.2
