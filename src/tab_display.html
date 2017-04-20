@@ -65,13 +65,46 @@
 
       <div class="gf-form">
         <label class="gf-form-label width-7">Size</label>
-        <input type="number" class="gf-form-input width-6" ng-model="ctrl.panel.pconfig.settings.marker.size" spellcheck="false" placeholder="5" ng-blur="ctrl.onConfigChanged()"/>
+        <div class="gf-form-select-wrapper max-width-14">
+          <select class="gf-form-input" ng-model="ctrl.panel.pconfig.mapping.size" ng-change="ctrl.onConfigChanged()">
+            <option value="">(fixed)</option>
+            <option ng-repeat="(key, value) in ctrl.data" value="{{key}}">{{key}}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="gf-form" ng-show="!ctrl.panel.pconfig.mapping.size">
+        <label class="gf-form-label width-7">- Pixels</label>
+        <input type="number" class="gf-form-input width-7" ng-model="ctrl.panel.pconfig.settings.marker.size" spellcheck="false" placeholder="5" ng-blur="ctrl.onConfigChanged()"/>
+      </div>
+
+      <div class="gf-form" ng-show="ctrl.panel.pconfig.mapping.size">
+        <label class="gf-form-label width-7">- Min</label>
+        <input type="number" class="gf-form-input width-7" ng-model="ctrl.panel.pconfig.settings.marker.sizemin" spellcheck="false" placeholder="5" ng-blur="ctrl.onConfigChanged()"/>
+        <a href="https://plot.ly/javascript/reference/#scatter-marker-sizemin"><i class="fa fa-external-link" aria-hidden="true"></i></a>
+      </div>
+
+      <div class="gf-form" ng-show="ctrl.panel.pconfig.mapping.size">
+        <label class="gf-form-label width-7">- Ref</label>
+        <input type="number" class="gf-form-input width-7" ng-model="ctrl.panel.pconfig.settings.marker.sizeref" spellcheck="false" placeholder="5" ng-blur="ctrl.onConfigChanged()"/>
+        <a href="https://plot.ly/javascript/reference/#scatter-marker-sizeref"><i class="fa fa-external-link" aria-hidden="true"></i></a>
+      </div>
+      <div class="gf-form" ng-show="ctrl.panel.pconfig.mapping.size">
+        <label class="gf-form-label width-7">- Mode</label>
+        <div class="gf-form-select-wrapper max-width-14">
+          <select class="gf-form-input" ng-model="ctrl.panel.pconfig.settings.marker.sizemode" ng-change="ctrl.onConfigChanged()">
+            <option value="diameter">Diameter</option>
+            <option value="area">Area</option>
+          </select>
+        </div>
+        <a href="https://plot.ly/javascript/reference/#scatter-marker-sizemode"><i class="fa fa-external-link" aria-hidden="true"></i></a>
       </div>
 
       <div class="gf-form">
         <label class="gf-form-label width-7">Color</label>
         <div class="gf-form-select-wrapper max-width-14">
-          <select class="gf-form-input gf-size-auto" ng-model="ctrl.panel.pconfig.settings.color_option" ng-change="ctrl.onConfigChanged()">
+          <select class="gf-form-input"
+            ng-model="ctrl.panel.pconfig.settings.color_option" ng-change="ctrl.onConfigChanged()">
             <option value="ramp">Ramp</option>
             <option value="solid">Solid</option>
           </select>
@@ -79,7 +112,7 @@
       </div>
 
       <div class="gf-form" ng-show="ctrl.panel.pconfig.settings.color_option == 'solid'">
-        <label class="gf-form-label width-7">Solid</label>
+        <label class="gf-form-label width-7">- Solid</label>
         <input type="text" placeholder="text" ng-model="ctrl.panel.pconfig.settings.marker.color" class="gf-form-input width-10" ng-blur="ctrl.onConfigChanged()"/>
         <span class="gf-form-label">
           <spectrum-picker ng-model="ctrl.panel.pconfig.settings.marker.color" ng-blur="ctrl.onConfigChanged()"/>
@@ -87,7 +120,7 @@
       </div>
 
       <div class="gf-form" ng-show="ctrl.panel.pconfig.settings.color_option == 'ramp'">
-        <label class="gf-form-label width-7">Metric</label>
+        <label class="gf-form-label width-7">- Metric</label>
         <div class="gf-form-select-wrapper max-width-14">
           <select class="gf-form-input" ng-model="ctrl.panel.pconfig.mapping.color" ng-change="ctrl.onConfigChanged()">
             <option ng-repeat="(key, value) in ctrl.data" value="{{key}}">{{key}}</option>
@@ -96,7 +129,7 @@
       </div>
 
       <div class="gf-form" ng-show="ctrl.panel.pconfig.settings.color_option != 'solid'">
-        <label class="gf-form-label width-7">Scale</label>
+        <label class="gf-form-label width-7">- Scale</label>
         <div class="gf-form-select-wrapper max-width-14">
           <select class="gf-form-input" ng-model="ctrl.panel.pconfig.settings.marker.colorscale" ng-change="ctrl.onConfigChanged()">
             <option value="xxx">Default</option>
@@ -119,7 +152,7 @@
       <gf-form-switch
         ng-show="ctrl.panel.pconfig.settings.color_option != 'solid'"
         class="gf-form"
-        label="Show"
+        label="- Show"
         label-class="gf-form-label width-7"
         checked="ctrl.panel.pconfig.settings.marker.showscale"
         on-change="ctrl.onConfigChanged()"></gf-form-switch>

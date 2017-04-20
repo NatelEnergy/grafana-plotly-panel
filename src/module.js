@@ -28,7 +28,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         x: null,
         y: null,
         z: null,
-        color: null
+        color: null,
+        size: null,
       },
       settings: {
         type: 'scatter',
@@ -45,6 +46,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           symbol: 'circle',
           color: '#33B5E5',
           colorscale: 'YIOrRd',
+          sizemode: 'diameter',
+          sizemin: 3,
+          sizeref: 0.2,
           line: {
             color: '#DDD',
             width: 0
@@ -364,6 +368,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       var dY = this.data[mapping.y];
       var dZ = null;
       var dC = null;
+      var dS = null;
       var dT = null;
 
       if(!dX) {
@@ -399,6 +404,14 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this.trace.marker = $.extend(true, {}, cfg.settings.marker);
       this.trace.line = $.extend(true, {}, cfg.settings.line);
 
+      if(mapping.size) {
+        dS = this.data[mapping.size];
+        if(!dS) {
+          throw { message: "Unable to find Size: "+mapping.size };
+        }
+        this.trace.marker.size = dS.points;
+      }
+
       // Set the marker colors
       if( cfg.settings.color_option == 'ramp' ) {
         if(!mapping.color) {
@@ -410,6 +423,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         }
         this.trace.marker.color = dC.points;
       }
+
+      console.log( "TRACE", this.trace );
     }
     this.render();
   }

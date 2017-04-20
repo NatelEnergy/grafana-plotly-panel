@@ -20,6 +20,7 @@ Render metrics using the plot.ly javascript framework
 - Added range mode: "tozero" and "nonnegative"
 - Map metrics to X,Y,Z and color
 - Can now select 'date' type for each axis to support time
+- basic support to size marker with data
 
 
 ##### v0.0.2
@@ -37,7 +38,7 @@ Render metrics using the plot.ly javascript framework
 ### Roadmap
 
 Nice things to have
- - change marker size with response value
+ - sizeref helper.  I think this depends on the data.  likely need to find the range and pick a good value?
  - support 'table' response format
  - support text
  - load plotly.js from CDN?

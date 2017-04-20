@@ -89,7 +89,8 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
               x: null,
               y: null,
               z: null,
-              color: null
+              color: null,
+              size: null
             },
             settings: {
               type: 'scatter',
@@ -106,6 +107,9 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
                 symbol: 'circle',
                 color: '#33B5E5',
                 colorscale: 'YIOrRd',
+                sizemode: 'diameter',
+                sizemin: 3,
+                sizeref: 0.2,
                 line: {
                   color: '#DDD',
                   width: 0
@@ -438,6 +442,7 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
               var dY = this.data[mapping.y];
               var dZ = null;
               var dC = null;
+              var dS = null;
               var dT = null;
 
               if (!dX) {
@@ -470,6 +475,14 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
               this.trace.marker = $.extend(true, {}, cfg.settings.marker);
               this.trace.line = $.extend(true, {}, cfg.settings.line);
 
+              if (mapping.size) {
+                dS = this.data[mapping.size];
+                if (!dS) {
+                  throw { message: "Unable to find Size: " + mapping.size };
+                }
+                this.trace.marker.size = dS.points;
+              }
+
               // Set the marker colors
               if (cfg.settings.color_option == 'ramp') {
                 if (!mapping.color) {
@@ -481,6 +494,8 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
                 }
                 this.trace.marker.color = dC.points;
               }
+
+              console.log("TRACE", this.trace);
             }
             this.render();
           }
