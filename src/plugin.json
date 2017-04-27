@@ -4,7 +4,7 @@
   "id": "natel-plotly-panel",
 
   "info": {
-    "description": "Plotly panel for grafana",
+    "description": "Scatter plots and more",
     "author": {
       "name": "Natel Energy"
     },
@@ -15,8 +15,7 @@
     },
     "links": [
       {"name": "Plot.ly", "url": "https://plot.ly/javascript/"},
-      {"name": "Github", "url": "https://github.com/NatelEnergy/grafana-plotly-panel"},
-      {"name": "MIT License",  "url": "https://github.com/NatelEnergy/grafana-plotly-panel/blob/master/LICENSE"},
+      {"name": "Project Page", "url": "https://github.com/NatelEnergy/grafana-plotly-panel"},
       {"name": "Natel Energy", "url": "http://www.natelenergy.com/"}
     ],
     "screenshots": [
@@ -25,12 +24,12 @@
       { "name": "Scatter 3D",  "path": "img/screenshot-scatter-3d.png" },
       { "name": "Options",     "path": "img/screenshot-options.png"    }
     ],
-    "version": "0.0.3",
-    "updated": "2016-04-17"
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
   },
 
   "dependencies": {
-    "grafanaVersion": "3.x.x",
+    "grafanaVersion": "4.x.x",
     "plugins": [ ]
   }
 }

@@ -1,18 +1,21 @@
-module.exports = (grunt) => {
+module.exports = function(grunt) {
+
   require('load-grunt-tasks')(grunt);
+  var pkgJson = require('./package.json');
 
   grunt.loadNpmTasks('grunt-execute');
   grunt.loadNpmTasks('grunt-contrib-clean');
 
   grunt.initConfig({
+    gitinfo: {},
 
-    clean: ['dist'],
+    clean: ["dist"],
 
     copy: {
       src_to_dist: {
         cwd: 'src',
         expand: true,
-        src: ['**/*', '!**/*.js', '!**/*.scss', '!img/**/*'],
+        src: ['**/*', '!**/*.js', '!**/*.scss', '!img/**/*', "!**/plugin.json"],
         dest: 'dist'
       },
       pluginDef: {
@@ -31,6 +34,26 @@ module.exports = (grunt) => {
         expand: true,
         src: ['img/**/*'],
         dest: 'dist'
+      }
+    },
+
+    'string-replace': {
+      dist: {
+        files: [{
+          cwd: 'src',
+          expand: true,
+          src: ["**/plugin.json"],
+          dest: 'dist'
+        }],
+        options: {
+          replacements: [{
+            pattern: '%VERSION%',
+            replacement: pkgJson.version
+          },{
+            pattern: '%TODAY%',
+            replacement: '<%= grunt.template.today("yyyy-mm-dd") %>'
+          }]
+        }
       }
     },
 
@@ -57,9 +80,10 @@ module.exports = (grunt) => {
           ext: '.js'
         }]
       },
-    },
-
+    }
   });
 
-  grunt.registerTask('default', ['clean', 'copy:src_to_dist', 'copy:pluginDef', 'copy:img_to_dist', 'copy:externals', 'babel']);
+  grunt.loadNpmTasks('grunt-gitinfo');
+  grunt.loadNpmTasks('grunt-string-replace');
+  grunt.registerTask('default', ['gitinfo', 'clean', 'string-replace', 'copy', 'babel']);
 };
