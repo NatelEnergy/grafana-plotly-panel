@@ -42,5 +42,6 @@ Nice things to have
  - support 'table' response format
  - support text
  - load plotly.js from CDN?
+ - nice to have: https://plot.ly/javascript/parallel-coordinates-plot/
 
 
