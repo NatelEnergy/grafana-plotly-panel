@@ -125,6 +125,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   onRefresh() {
+    // ignore fetching data if another panel is in fullscreen
+    if (this.otherPanelInFullscreenMode()) { return; }
+    
+
     if(this.graph && this.initalized) {
       Plotly.redraw(this.graph);
     }
@@ -166,6 +170,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   onRender() {
+    // ignore fetching data if another panel is in fullscreen
+    if (this.otherPanelInFullscreenMode()) { return; }
+    
 
     if(!this.initalized) {
       var s = this.panel.pconfig.settings;
