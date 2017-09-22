@@ -3,7 +3,6 @@
 Render metrics using the plot.ly javascript framework
 
 
-
 ### Screenshots
 
 ![Screenshot of scatter plot](https://raw.githubusercontent.com/NatelEnergy/grafana-plotly-panel/master/src/img/screenshot-scatter.png)
@@ -13,6 +12,8 @@ Render metrics using the plot.ly javascript framework
 
 #### Changelog
 
+##### v0.0.4
+- Update to plotly v1.28.2
 
 ##### v0.0.3
 
@@ -42,5 +43,6 @@ Nice things to have
  - support 'table' response format
  - support text
  - load plotly.js from CDN?
+ - nice to have: https://plot.ly/javascript/parallel-coordinates-plot/
 
 
