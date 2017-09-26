@@ -191,6 +191,11 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
         }, {
           key: 'onRefresh',
           value: function onRefresh() {
+            // ignore fetching data if another panel is in fullscreen
+            if (this.otherPanelInFullscreenMode()) {
+              return;
+            }
+
             if (this.graph && this.initalized) {
               Plotly.redraw(this.graph);
             }
@@ -246,6 +251,11 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
           key: 'onRender',
           value: function onRender() {
             var _this2 = this;
+
+            // ignore fetching data if another panel is in fullscreen
+            if (this.otherPanelInFullscreenMode()) {
+              return;
+            }
 
             if (!this.initalized) {
               var s = this.panel.pconfig.settings;
