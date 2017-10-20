@@ -13,7 +13,8 @@ Render metrics using the plot.ly javascript framework
 #### Changelog
 
 ##### v0.0.4  (not released yet)
-- Update to plotly v1.30.0
+- Load plotly form npm (1.31.1)
+
 
 ##### v0.0.3
 

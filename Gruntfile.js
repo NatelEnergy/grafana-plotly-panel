@@ -12,6 +12,12 @@ module.exports = function(grunt) {
     clean: ["dist"],
 
     copy: {
+      plotly: {
+        cwd: 'node_modules/plotly.js/dist',
+        expand: true,
+        src: ['plotly.min.js'],
+        dest: 'src/lib'
+      },
       src_to_dist: {
         cwd: 'src',
         expand: true,
@@ -23,10 +29,10 @@ module.exports = function(grunt) {
         src: ['README.md'],
         dest: 'dist',
       },
-      externals: {
+      lib: {
         cwd: 'src',
         expand: true,
-        src: ['**/external/*'],
+        src: ['**/lib/*'],
         dest: 'dist'
       },
       img_to_dist: {

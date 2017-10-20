@@ -5,7 +5,7 @@ import _ from 'lodash';
 import moment from 'moment';
 import angular from 'angular';
 
-import * as Plotly from './external/plotly';
+import * as Plotly from './lib/plotly';
 
 class PlotlyPanelCtrl extends MetricsPanelCtrl {
 

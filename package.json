@@ -43,6 +43,7 @@
     "load-grunt-tasks": "~3.2.0"
   },
   "dependencies": {
+    "plotly.js": "^1.31",
     "lodash": "^4.17.2",
     "moment": "^2.12.0"
   }
