@@ -25,7 +25,7 @@
       { "name": "Options",     "path": "img/screenshot-options.png"    }
     ],
     "version": "0.0.4",
-    "updated": "2017-10-20"
+    "updated": "2017-10-24"
   },
 
   "dependencies": {

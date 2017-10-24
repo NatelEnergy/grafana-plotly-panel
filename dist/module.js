@@ -1,6 +1,6 @@
 'use strict';
 
-System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './lib/plotly'], function (_export, _context) {
+System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './lib/plotly.min'], function (_export, _context) {
   "use strict";
 
   var MetricsPanelCtrl, _, moment, angular, Plotly, _createClass, PlotlyPanelCtrl;
@@ -44,8 +44,8 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './lib/plotly
       moment = _moment.default;
     }, function (_angular) {
       angular = _angular.default;
-    }, function (_libPlotly) {
-      Plotly = _libPlotly;
+    }, function (_libPlotlyMin) {
+      Plotly = _libPlotlyMin;
     }],
     execute: function () {
       _createClass = function () {
