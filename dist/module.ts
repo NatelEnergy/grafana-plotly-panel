@@ -1,29 +1,23 @@
+///<reference path="../node_modules/grafana-sdk-mocks/app/headers/common.d.ts" />
 
 import {MetricsPanelCtrl} from  'app/plugins/sdk';
 
 import _ from 'lodash';
 import moment from 'moment';
 import angular from 'angular';
+import $ from 'jquery';
 
 import * as Plotly from './lib/plotly.min';
 
 class PlotlyPanelCtrl extends MetricsPanelCtrl {
+  static templateUrl = 'partials/module.html';
 
-  constructor($scope, $injector, $q, $rootScope, $timeout, $window, timeSrv, uiSegmentSrv) {
-    super($scope, $injector);
+  sizeChanged: boolean;
+  initalized: boolean;
+  $tooltip: any;
 
-    this.$rootScope = $rootScope;
-    this.timeSrv = timeSrv;
-    this.uiSegmentSrv = uiSegmentSrv;
-    this.q = $q;
-
-    this.sizeChanged = true;
-    this.initalized = false;
-
-    this.$tooltip = $('<div id="tooltip" class="graph-tooltip">');
-
-
-    var dcfg = {
+  defaults = {
+    pconfig: {
       mapping: {
         x: null,
         y: null,
@@ -42,7 +36,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           shape : 'linear'
         },
         marker: {
-          size: 30,
+          size: 15,
           symbol: 'circle',
           color: '#33B5E5',
           colorscale: 'YIOrRd',
@@ -90,17 +84,39 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           rangemode: 'normal' // (enumerated: "normal" | "tozero" | "nonnegative" )
         },
         scene: {
-          xaxis:{title: 'X AXIS'},
-          yaxis:{title: 'Y AXIS'},
-          zaxis:{title: 'Z AXIS'},
+          xaxis: {title: 'X AXIS'},
+          yaxis: {title: 'Y AXIS'},
+          zaxis: {title: 'Z AXIS'},
         },
       }
-    };
+    }
+  };
 
-    // Make sure it has the default settings (may have more!)
-    this.panel.pconfig = $.extend(true, dcfg, this.panel.pconfig );
+  trace: any;
+  layout: any;
+  graph: any;
+  seriesList: Array<any>;
+  axis: Array<any>;
+  segs: any;
+  mouse: any;
+  data: any;
 
-    var cfg = this.panel.pconfig;
+  // Used for the editor control
+  subTabIndex: 0;
+
+  /** @ngInject **/
+  constructor($scope, $injector, $window, private $rootScope, private uiSegmentSrv) {
+    super($scope, $injector);
+
+    this.sizeChanged = true;
+    this.initalized = false;
+
+    this.$tooltip = $('<div id="tooltip" class="graph-tooltip">');
+
+    // defaults configs
+    _.defaultsDeep(this.panel, this.defaults);
+
+    let cfg = this.panel.pconfig;
     this.trace = { };
     this.layout = $.extend(true, {}, this.panel.pconfig.layout );
 
@@ -127,15 +143,15 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   onRefresh() {
     // ignore fetching data if another panel is in fullscreen
     if (this.otherPanelInFullscreenMode()) { return; }
-    
 
-    if(this.graph && this.initalized) {
+
+    if (this.graph && this.initalized) {
       Plotly.redraw(this.graph);
     }
   }
 
   onInitEditMode() {
-    this.addEditorTab('Display', 'public/plugins/natel-plotly-panel/tab_display.html',2);
+    this.addEditorTab('Display', 'public/plugins/natel-plotly-panel/partials/tab_display.html',2);
   //  this.editorTabIndex = 1;
     this.refresh();
     this.segs = {
@@ -143,16 +159,16 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     };
     this.subTabIndex = 0; // select the options
 
-    var cfg = this.panel.pconfig;
+    let cfg = this.panel.pconfig;
     this.axis = [
-      { disp: 'X Axis', idx: 1, config: cfg.layout.xaxis, metric: (name) => { if(name) { cfg.mapping.x=name; } return cfg.mapping.x; }},
-      { disp: 'Y Axis', idx: 2, config: cfg.layout.yaxis, metric: (name) => { if(name) { cfg.mapping.y=name; } return cfg.mapping.y; }},
-      { disp: 'Z Axis', idx: 3, config: cfg.layout.yaxis, metric: (name) => { if(name) { cfg.mapping.z=name; } return cfg.mapping.z; }}
+      { disp: 'X Axis', idx: 1, config: cfg.layout.xaxis, metric: (name) => { if (name) { cfg.mapping.x= name; } return cfg.mapping.x; }},
+      { disp: 'Y Axis', idx: 2, config: cfg.layout.yaxis, metric: (name) => { if (name) { cfg.mapping.y= name; } return cfg.mapping.y; }},
+      { disp: 'Z Axis', idx: 3, config: cfg.layout.yaxis, metric: (name) => { if (name) { cfg.mapping.z= name; } return cfg.mapping.z; }}
     ];
   }
 
   isAxisVisible(axis) {
-    if(axis.idx==3) {
+    if (axis.idx===3) {
       return this.panel.pconfig.settings.type === 'scatter3d';
     }
     return true;
@@ -172,26 +188,26 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   onRender() {
     // ignore fetching data if another panel is in fullscreen
     if (this.otherPanelInFullscreenMode()) { return; }
-    
 
-    if(!this.initalized) {
-      var s = this.panel.pconfig.settings;
 
-      var options = {
+    if (!this.initalized) {
+      let s = this.panel.pconfig.settings;
+
+      let options = {
         showLink: false,
         displaylogo: false,
         displayModeBar: s.displayModeBar,
         modeBarButtonsToRemove: ['sendDataToCloud'] //, 'select2d', 'lasso2d']
-      }
+      };
 
-      var data = [this.trace];
-      var rect = this.graph.getBoundingClientRect();
+      let data = [this.trace];
+      let rect = this.graph.getBoundingClientRect();
 
-      var old = this.layout;
+      let old = this.layout;
       this.layout = $.extend(true, {}, this.panel.pconfig.layout );
       this.layout.height = this.height;
       this.layout.width = rect.width;
-      if(old) {
+      if (old) {
         this.layout.xaxis.title = old.xaxis.title;
         this.layout.yaxis.title = old.yaxis.title;
       }
@@ -199,49 +215,49 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       Plotly.newPlot(this.graph, data, this.layout, options);
 
       this.graph.on('plotly_click', (data) => {
-        for(var i=0; i < data.points.length; i++){
-          var idx = data.points[i].pointNumber;
-          var ts = this.trace.ts[idx];
+        for (let i = 0; i < data.points.length; i++) {
+          let idx = data.points[i].pointNumber;
+          let ts = this.trace.ts[idx];
          // console.log( 'CLICK!!!', ts, data );
-          var msg = data.points[i].x.toPrecision(4) + ", "+data.points[i].y.toPrecision(4);
+          let msg = data.points[i].x.toPrecision(4) + ", "+data.points[i].y.toPrecision(4);
           this.$rootScope.appEvent('alert-success', [msg, '@ ' + this.dashboard.formatDate(moment(ts))]);
         }
       });
 
-      if(false) {
-        this.graph.on('plotly_hover', (data, xxx) => {
-          console.log( 'HOVER!!!', data, xxx, this.mouse );
-          if(data.points.length>0) {
-            var idx = 0;
-            var pt = data.points[idx];
+      // if(false) {
+      //   this.graph.on('plotly_hover', (data, xxx) => {
+      //     console.log( 'HOVER!!!', data, xxx, this.mouse );
+      //     if(data.points.length>0) {
+      //       var idx = 0;
+      //       var pt = data.points[idx];
 
-            var body = '<div class="graph-tooltip-time">'+ pt.pointNumber +'</div>';
-            body += "<center>";
-            body += pt.x + ', '+pt.y;
-            body += "</center>";
+      //       var body = '<div class="graph-tooltip-time">'+ pt.pointNumber +'</div>';
+      //       body += "<center>";
+      //       body += pt.x + ', '+pt.y;
+      //       body += "</center>";
 
-            this.$tooltip.html( body ).place_tt( this.mouse.pageX + 10, this.mouse.pageY );
-          }
-        }).on('plotly_unhover', (data) => {
-          this.$tooltip.detach();
-        });
-      }
+      //       this.$tooltip.html( body ).place_tt( this.mouse.pageX + 10, this.mouse.pageY );
+      //     }
+      //   }).on('plotly_unhover', (data) => {
+      //     this.$tooltip.detach();
+      //   });
+      // }
 
       this.graph.on('plotly_selected',  (data) => {
 
-        if(data.points.length == 0) {
-          console.log( "Nothign Selected", data)
+        if (data.points.length === 0) {
+          console.log( "Nothign Selected", data);
           return;
         }
 
-        console.log( "SELECTED", data)
+        console.log( "SELECTED", data);
 
-        var min = Number.MAX_SAFE_INTEGER;
-        var max = Number.MIN_SAFE_INTEGER;
+        let min = Number.MAX_SAFE_INTEGER;
+        let max = Number.MIN_SAFE_INTEGER;
 
-        for(var i=0; i < data.points.length; i++){
-          var idx = data.points[i].pointNumber;
-          var ts = this.trace.ts[idx];
+        for (let i = 0; i < data.points.length; i++) {
+          let idx = data.points[i].pointNumber;
+          let ts = this.trace.ts[idx];
           min = Math.min( min, ts);
           max = Math.max( max, ts);
         }
@@ -249,26 +265,25 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         min -= 1000;
         max += 1000;
 
-        var range = {from: moment.utc(min), to: moment.utc(max) };
+        let range = {from: moment.utc(min), to: moment.utc(max) };
 
         console.log( 'SELECTED!!!', min, max, data.points.length, range );
 
         this.timeSrv.setTime(range);
 
         // rebuild the graph after query
-        if(this.graph) {
+        if (this.graph) {
           Plotly.Plots.purge(this.graph);
           this.graph.innerHTML = '';
           this.initalized = false;
         }
       });
-    }
-    else {
+    }else {
       Plotly.redraw(this.graph);
     }
 
-    if(this.sizeChanged && this.graph && this.layout) {
-      var rect = this.graph.getBoundingClientRect();
+    if (this.sizeChanged && this.graph && this.layout) {
+      let rect = this.graph.getBoundingClientRect();
       this.layout.width = rect.width;
       Plotly.Plots.resize(this.graph);
     }
@@ -282,14 +297,13 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.trace.z = [];
 
     this.data = {};
-    if(dataList.length < 2) {
+    if (dataList.length < 1) {
       console.log( "No data", dataList );
-    }
-    else {
+    }else {
       let dmapping = {
-        x:null,
-        y:null,
-        z:null
+        x: null,
+        y: null,
+        z: null
       };
 
    //   console.log( "plotly data", dataList);
@@ -311,9 +325,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       };
       this.data[key.name] = key;
       this.data[idx.name] = idx;
-      for(let i=0; i<dataList.length; i++) {
-        let datapoints = dataList[i].datapoints;
-        if(datapoints.length > 0) {
+      for (let i = 0; i<dataList.length; i++) {
+        let datapoints: any[] = dataList[i].datapoints;
+        if (datapoints.length > 0) {
           let val = {
             name: dataList[i].target,
             type: 'number',
@@ -321,42 +335,37 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
             idx: i,
             points: []
           };
-          if(_.isString(datapoints[0][0])) {
+          if (_.isString(datapoints[0][0])) {
             val.type = 'string';
-          }
-          else if(_.isBoolean(datapoints[0][0])) {
+          }else if (_.isBoolean(datapoints[0][0])) {
             val.type = 'boolean';
           }
 
           // Set the default mapping values
-          if(i==0) {
+          if (i===0) {
             dmapping.x = val.name;
-          }
-          else if(i==1) {
+          }else if (i===1) {
             dmapping.y = val.name;
-          }
-          else if(i==2) {
+          }else if (i===2) {
             dmapping.z = val.name;
           }
 
           this.data[val.name] = val;
-          if(key.points.length==0) {
-            for(var j=0; j<datapoints.length; j++) {
+          if (key.points.length===0) {
+            for (let j = 0; j<datapoints.length; j++) {
               key.points.push( datapoints[j][1] );
               val.points.push( datapoints[j][0] );
               idx.points.push( j );
             }
-          }
-          else {
-            for(var j=0; j<datapoints.length; j++) {
-              if(j >= key.points.length ) {
+          }else {
+            for (let j = 0; j<datapoints.length; j++) {
+              if (j >= key.points.length ) {
                 break;
               }
               // Make sure it is from the same timestamp
-              if(key.points[j] == datapoints[j][1]) {
+              if (key.points[j] === datapoints[j][1]) {
                 val.points.push( datapoints[j][0] );
-              }
-              else {
+              }else {
                 val.missing = val.missing+1;
               }
             }
@@ -365,24 +374,25 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       }
 
       // Maybe overwrite?
-      if(!mapping.x) mapping.x = dmapping.x;
-      if(!mapping.y) mapping.y = dmapping.y;
-      if(!mapping.z) mapping.z = dmapping.z;
+      if (!mapping.x) { mapping.x = dmapping.x; }
+      if (!mapping.y) { mapping.y = dmapping.y; }
+      if (!mapping.z) { mapping.z = dmapping.z; }
 
      // console.log( "GOT", this.data, mapping );
 
-      var dX = this.data[mapping.x];
-      var dY = this.data[mapping.y];
-      var dZ = null;
-      var dC = null;
-      var dS = null;
-      var dT = null;
+      let dX = this.data[mapping.x];
+      let dY = this.data[mapping.y];
+      let dZ = null;
+      let dC = null;
+      let dS = null;
+      let dT = null;
 
-      if(!dX) {
+      if (!dX) {
         throw { message: "Unable to find X: "+mapping.x };
       }
-      if(!dY) {
-        throw { message: "Unable to find Y: "+mapping.y };
+      if (!dY) {
+        dY = dX;
+        dX = '@time';
       }
 
 
@@ -390,9 +400,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this.trace.x = dX.points;
       this.trace.y = dY.points;
 
-      if(cfg.settings.type == 'scatter3d') {
+      if (cfg.settings.type === 'scatter3d') {
         dZ = this.data[mapping.z];
-        if(!dZ) {
+        if (!dZ) {
           throw { message: "Unable to find Z: "+mapping.z };
         }
         this.layout.scene.xaxis.title = dX.name;
@@ -401,8 +411,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
         this.trace.z = dZ.points;
         console.log( "3D", this.layout);
-      }
-      else {
+      }else {
         this.layout.xaxis.title = dX.name;
         this.layout.yaxis.title = dY.name;
       }
@@ -411,21 +420,21 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this.trace.marker = $.extend(true, {}, cfg.settings.marker);
       this.trace.line = $.extend(true, {}, cfg.settings.line);
 
-      if(mapping.size) {
+      if (mapping.size) {
         dS = this.data[mapping.size];
-        if(!dS) {
+        if (!dS) {
           throw { message: "Unable to find Size: "+mapping.size };
         }
         this.trace.marker.size = dS.points;
       }
 
       // Set the marker colors
-      if( cfg.settings.color_option == 'ramp' ) {
-        if(!mapping.color) {
+      if ( cfg.settings.color_option === 'ramp' ) {
+        if (!mapping.color) {
           mapping.color = idx.name;
         }
         dC = this.data[mapping.color];
-        if(!dC) {
+        if (!dC) {
           throw { message: "Unable to find Color: "+mapping.color };
         }
         this.trace.marker.color = dC.points;
@@ -438,24 +447,23 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   onConfigChanged() {
     console.log( "Config changed...");
-    if(this.graph) {
+    if (this.graph) {
       Plotly.Plots.purge(this.graph);
       this.graph.innerHTML = '';
       this.initalized = false;
     }
 
-    var cfg = this.panel.pconfig;
+    let cfg = this.panel.pconfig;
     this.trace.type = cfg.settings.type;
     this.trace.mode = cfg.settings.mode;
 
-    var axis = [ this.panel.pconfig.layout.xaxis, this.panel.pconfig.layout.yaxis];
-    for(let i=0; i<axis.length; i++) {
-      if( axis[i].rangemode === 'between' ) {
-        if( axis[i].range == null) {
+    let axis = [ this.panel.pconfig.layout.xaxis, this.panel.pconfig.layout.yaxis];
+    for (let i = 0; i<axis.length; i++) {
+      if ( axis[i].rangemode === 'between' ) {
+        if ( axis[i].range == null) {
           axis[i].range = [0, null];
         }
-      }
-      else {
+      }else {
         axis[i].range = null;
       }
     }
@@ -473,9 +481,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   //---------------------------
 
 
-  getSymbolSegs()
-  {
-    var txt = [
+  getSymbolSegs() {
+    let txt = [
 "circle","circle-open","circle-dot","circle-open-dot",
 "square","square-open","square-dot","square-open-dot",
 "diamond","diamond-open",
@@ -607,14 +614,13 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 "line-nw-open"
     ];
 
-    var segs = [];
+    let segs = [];
     _.forEach(txt, (val) => {
       segs.push( this.uiSegmentSrv.newSegment( val ) );
     });
-    return this.q.when( segs );
+    return this.$q.when( segs );
   }
 }
-PlotlyPanelCtrl.templateUrl = 'module.html';
 
 export {
   PlotlyPanelCtrl as PanelCtrl

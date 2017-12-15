@@ -1,45 +1,95 @@
 module.exports = function(grunt) {
-
   require('load-grunt-tasks')(grunt);
+
   var pkgJson = require('./package.json');
 
-  grunt.loadNpmTasks('grunt-execute');
   grunt.loadNpmTasks('grunt-contrib-clean');
+  grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-string-replace');
+  grunt.loadNpmTasks("grunt-tslint");
 
   grunt.initConfig({
-    gitinfo: {},
-
-    clean: ["dist"],
+    clean: ['dist', 'src/lib'],
 
     copy: {
-      plotly: {
+
+      libs: {
         cwd: 'node_modules/plotly.js/dist',
         expand: true,
         src: ['plotly.min.js'],
         dest: 'src/lib'
       },
-      src_to_dist: {
-        cwd: 'src',
+      dist_js: {
         expand: true,
-        src: ['**/*', '!**/*.js', '!**/*.scss', '!img/**/*', "!**/plugin.json"],
+        cwd: 'src',
+        src: ['**/*.ts', '**/*.d.ts', 'lib/*'],
         dest: 'dist'
       },
-      pluginDef: {
+      dist_html: {
         expand: true,
-        src: ['README.md'],
-        dest: 'dist',
+        flatten: true,
+        cwd: 'src/partials',
+        src: ['*.html'],
+        dest: 'dist/partials/'
       },
-      lib: {
-        cwd: 'src',
+      dist_css: {
         expand: true,
-        src: ['**/lib/*'],
-        dest: 'dist'
+        flatten: true,
+        cwd: 'src/css',
+        src: ['*.css'],
+        dest: 'dist/css/'
       },
-      img_to_dist: {
-        cwd: 'src',
+      dist_img: {
         expand: true,
-        src: ['img/**/*'],
-        dest: 'dist'
+        flatten: true,
+        cwd: 'src/img',
+        src: ['*.*'],
+        dest: 'dist/img/'
+      },
+      dist_statics: {
+        expand: true,
+        flatten: true,
+        src: ['src/plugin.json', 'LICENSE', 'README.md'],
+        dest: 'dist/'
+      }
+    },
+
+    ts: {
+      build: {
+        src: ['src/**/*.ts', '!**/*.d.ts', '!**/*.min.js'],
+        outDir: 'dist',
+        options: {
+          rootDir: "src",
+          verbose: true,
+          declaration: false,
+
+          "target": "ES5",
+          "module": "system",
+          "sourceMap": true,
+          "emitDecoratorMetadata": true,
+          "experimentalDecorators": true,
+          "noImplicitAny": false,
+          "strictNullChecks": false,
+          "skipLibCheck": true
+        }
+      }
+    },
+
+    // NOT WORKING!
+    // this does: node_modules/tslint/bin/tslint -c tslint.json --fix 'src/**/*.ts'
+    tslint: {
+      options: {
+        // can be a configuration object or a filepath to tslint.json
+        configuration: "tslint.json",
+        // If set to true, tslint errors will be reported, but not fail the task
+        // If set to false, tslint errors will be reported, and the task will fail
+        force: false,
+        fix: false
+      },
+      default: {
+        files: {
+          src: ['src/**/*.ts', '!**/*.d.ts'],
+        }
       }
     },
 
@@ -64,32 +114,23 @@ module.exports = function(grunt) {
     },
 
     watch: {
-      rebuild_all: {
-        files: ['src/**/*'],
-        tasks: ['default'],
-        options: {spawn: false}
-      },
-    },
-
-    babel: {
+      files: ['src/**/*.ts', 'src/**/*.html', 'src/**/*.css', 'src/img/*.*', 'src/plugin.json', 'README.md'],
+      tasks: ['default'],
       options: {
-        sourceMap: true,
-        presets: ['es2015'],
-        plugins: ['transform-es2015-modules-systemjs', 'transform-es2015-for-of'],
-      },
-      dist: {
-        files: [{
-          cwd: 'src',
-          expand: true,
-          src: ['*.js'],
-          dest: 'dist',
-          ext: '.js'
-        }]
+        debounceDelay: 250,
       },
     }
   });
 
-  grunt.loadNpmTasks('grunt-gitinfo');
-  grunt.loadNpmTasks('grunt-string-replace');
-  grunt.registerTask('default', ['gitinfo', 'clean', 'string-replace', 'copy', 'babel']);
+  grunt.registerTask('default', [
+    'clean',
+    'copy:libs',
+    'copy:dist_js',
+    'ts:build',
+    'copy:dist_html',
+    'copy:dist_css',
+    'copy:dist_img',
+    'copy:dist_statics',
+    'string-replace'
+  ]);
 };
