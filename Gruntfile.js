@@ -61,11 +61,11 @@ module.exports = function(grunt) {
         options: {
           rootDir: "src",
           verbose: true,
-          declaration: false,
 
           "target": "ES5",
           "module": "system",
           "sourceMap": true,
+          "declaration": true,
           "emitDecoratorMetadata": true,
           "experimentalDecorators": true,
           "noImplicitAny": false,
