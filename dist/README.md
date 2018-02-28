@@ -21,7 +21,7 @@ grunt
 
 #### Changelog
 
-##### v0.0.4 (not released yet)
+##### v0.0.4
 
 * Load plotly from npm (v1.31.2+)
 * Convert to TypeScript
@@ -49,10 +49,11 @@ grunt
 
 ### Roadmap
 
+* support 'table' response format for more than one query.
+
 Nice things to have
 
 * sizeref helper. I think this depends on the data. likely need to find the range and pick a good value?
-* support 'table' response format
 * support text
 * load plotly.js from CDN?
 * nice to have: https://plot.ly/javascript/parallel-coordinates-plot/
