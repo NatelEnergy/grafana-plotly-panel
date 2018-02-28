@@ -324,10 +324,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     }
 
     if (this.sizeChanged && this.graph && this.layout) {
-      // TODO? in a promice?
       let rect = this.graph.getBoundingClientRect();
       this.layout.width = rect.width;
-      console.log('RESIZE', this.graph, this.layout);
       Plotly.Plots.resize(this.graph);
     }
     this.sizeChanged = false;
@@ -520,15 +518,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         }
         this.trace.marker.color = dC.points;
       }
-
-      console.log('TRACE', this.trace);
     }
     this.render();
   }
 
   onConfigChanged() {
-    console.log('Config changed...');
-    if (this.graph) {
+    if (this.graph && this.initalized) {
       Plotly.Plots.purge(this.graph);
       this.graph.innerHTML = '';
       this.initalized = false;
