@@ -224,7 +224,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   onRender() {
     // ignore fetching data if another panel is in fullscreen
-    if (this.otherPanelInFullscreenMode()) {
+    if (this.otherPanelInFullscreenMode() || !this.graph) {
       return;
     }
 
@@ -324,8 +324,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     }
 
     if (this.sizeChanged && this.graph && this.layout) {
+      // TODO? in a promice?
       let rect = this.graph.getBoundingClientRect();
       this.layout.width = rect.width;
+      console.log('RESIZE', this.graph, this.layout);
       Plotly.Plots.resize(this.graph);
     }
     this.sizeChanged = false;
@@ -367,47 +369,81 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this.data[key.name] = key;
       this.data[idx.name] = idx;
       for (let i = 0; i < dataList.length; i++) {
-        let datapoints: any[] = dataList[i].datapoints;
-        if (datapoints.length > 0) {
-          let val = {
-            name: dataList[i].target,
-            type: 'number',
-            missing: 0,
-            idx: i,
-            points: [],
-          };
-          if (_.isString(datapoints[0][0])) {
-            val.type = 'string';
-          } else if (_.isBoolean(datapoints[0][0])) {
-            val.type = 'boolean';
+        if ('table' === dataList[i].type) {
+          const table = dataList[i];
+          if (i > 0) {
+            throw {message: 'Multiple tables not (yet) supported'};
           }
 
-          // Set the default mapping values
-          if (i === 0) {
-            dmapping.x = val.name;
-          } else if (i === 1) {
-            dmapping.y = val.name;
-          } else if (i === 2) {
-            dmapping.z = val.name;
+          for (let k = 0; k < table.rows.length; k++) {
+            idx.points.push(k);
           }
 
-          this.data[val.name] = val;
-          if (key.points.length === 0) {
-            for (let j = 0; j < datapoints.length; j++) {
-              key.points.push(datapoints[j][1]);
-              val.points.push(datapoints[j][0]);
-              idx.points.push(j);
+          for (let j = 0; j < table.columns.length; j++) {
+            const col = table.columns[j];
+            let val = {
+              name: col.text,
+              type: col.type,
+              missing: 0,
+              idx: j,
+              points: [],
+            };
+            if (j == 0 && val.type === 'time') {
+              // InfluxDB time
+              val = key; // will overwrite the time field
             }
-          } else {
-            for (let j = 0; j < datapoints.length; j++) {
-              if (j >= key.points.length) {
-                break;
-              }
-              // Make sure it is from the same timestamp
-              if (key.points[j] === datapoints[j][1]) {
+
+            if (!val.type) {
+              val.type = 'number';
+            }
+            for (let k = 0; k < table.rows.length; k++) {
+              val.points.push(table.rows[k][j]);
+            }
+            this.data[val.name] = val;
+          }
+        } else {
+          let datapoints: any[] = dataList[i].datapoints;
+          if (datapoints.length > 0) {
+            let val = {
+              name: dataList[i].target,
+              type: 'number',
+              missing: 0,
+              idx: i,
+              points: [],
+            };
+            if (_.isString(datapoints[0][0])) {
+              val.type = 'string';
+            } else if (_.isBoolean(datapoints[0][0])) {
+              val.type = 'boolean';
+            }
+
+            // Set the default mapping values
+            if (i === 0) {
+              dmapping.x = val.name;
+            } else if (i === 1) {
+              dmapping.y = val.name;
+            } else if (i === 2) {
+              dmapping.z = val.name;
+            }
+
+            this.data[val.name] = val;
+            if (key.points.length === 0) {
+              for (let j = 0; j < datapoints.length; j++) {
+                key.points.push(datapoints[j][1]);
                 val.points.push(datapoints[j][0]);
-              } else {
-                val.missing = val.missing + 1;
+                idx.points.push(j);
+              }
+            } else {
+              for (let j = 0; j < datapoints.length; j++) {
+                if (j >= key.points.length) {
+                  break;
+                }
+                // Make sure it is from the same timestamp
+                if (key.points[j] === datapoints[j][1]) {
+                  val.points.push(datapoints[j][0]);
+                } else {
+                  val.missing = val.missing + 1;
+                }
               }
             }
           }
