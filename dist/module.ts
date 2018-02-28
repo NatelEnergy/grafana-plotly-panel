@@ -1,6 +1,6 @@
 ///<reference path="../node_modules/grafana-sdk-mocks/app/headers/common.d.ts" />
 
-import {MetricsPanelCtrl} from  'app/plugins/sdk';
+import {MetricsPanelCtrl} from 'app/plugins/sdk';
 
 import _ from 'lodash';
 import moment from 'moment';
@@ -30,10 +30,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         mode: 'lines+markers',
         displayModeBar: false,
         line: {
-          color : '#005f81',
-          width : 6,
-          dash  : 'solid',
-          shape : 'linear'
+          color: '#005f81',
+          width: 6,
+          dash: 'solid',
+          shape: 'linear',
         },
         marker: {
           size: 15,
@@ -45,23 +45,23 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           sizeref: 0.2,
           line: {
             color: '#DDD',
-            width: 0
+            width: 0,
           },
-          showscale: true
+          showscale: true,
         },
-        color_option: 'ramp'
+        color_option: 'ramp',
       },
       layout: {
         autosize: false,
         showlegend: false,
-        legend: {"orientation": "v"},
+        legend: {orientation: 'v'},
         dragmode: 'lasso', // (enumerated: "zoom" | "pan" | "select" | "lasso" | "orbit" | "turntable" )
         hovermode: 'closest',
-        plot_bgcolor: "#1f1d1d",
+        plot_bgcolor: '#1f1d1d',
         paper_bgcolor: 'rgba(0,0,0,0)', // transparent?
         font: {
           color: '#D8D9DA',
-          family: '"Open Sans", Helvetica, Arial, sans-serif'
+          family: '"Open Sans", Helvetica, Arial, sans-serif',
         },
         margin: {
           t: 0,
@@ -74,22 +74,22 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           zeroline: false,
           type: 'linear',
           gridcolor: '#444444',
-          rangemode: 'normal' // (enumerated: "normal" | "tozero" | "nonnegative" )
+          rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" )
         },
         yaxis: {
           showgrid: true,
           zeroline: false,
           type: 'linear',
           gridcolor: '#444444',
-          rangemode: 'normal' // (enumerated: "normal" | "tozero" | "nonnegative" )
+          rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" )
         },
         scene: {
           xaxis: {title: 'X AXIS'},
           yaxis: {title: 'Y AXIS'},
           zaxis: {title: 'Z AXIS'},
         },
-      }
-    }
+      },
+    },
   };
 
   trace: any;
@@ -117,8 +117,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     _.defaultsDeep(this.panel, this.defaults);
 
     let cfg = this.panel.pconfig;
-    this.trace = { };
-    this.layout = $.extend(true, {}, this.panel.pconfig.layout );
+    this.trace = {};
+    this.layout = $.extend(true, {}, this.panel.pconfig.layout);
 
     this.events.on('init-edit-mode', this.onInitEditMode.bind(this));
     this.events.on('render', this.onRender.bind(this));
@@ -127,7 +127,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.events.on('panel-initialized', this.onPanelInitalized.bind(this));
     this.events.on('refresh', this.onRefresh.bind(this));
 
-    angular.element($window).bind('resize', this.onResize.bind(this) );
+    angular.element($window).bind('resize', this.onResize.bind(this));
   }
 
   onResize() {
@@ -137,13 +137,14 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   onDataError(err) {
     this.seriesList = [];
     this.render([]);
-    console.log("onDataError", err);
+    console.log('onDataError', err);
   }
 
   onRefresh() {
     // ignore fetching data if another panel is in fullscreen
-    if (this.otherPanelInFullscreenMode()) { return; }
-
+    if (this.otherPanelInFullscreenMode()) {
+      return;
+    }
 
     if (this.graph && this.initalized) {
       Plotly.redraw(this.graph);
@@ -151,24 +152,60 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   onInitEditMode() {
-    this.addEditorTab('Display', 'public/plugins/natel-plotly-panel/partials/tab_display.html',2);
-  //  this.editorTabIndex = 1;
+    this.addEditorTab(
+      'Display',
+      'public/plugins/natel-plotly-panel/partials/tab_display.html',
+      2
+    );
+    //  this.editorTabIndex = 1;
     this.refresh();
     this.segs = {
-      symbol: this.uiSegmentSrv.newSegment({value: this.panel.pconfig.settings.marker.symbol })
+      symbol: this.uiSegmentSrv.newSegment({
+        value: this.panel.pconfig.settings.marker.symbol,
+      }),
     };
     this.subTabIndex = 0; // select the options
 
     let cfg = this.panel.pconfig;
     this.axis = [
-      { disp: 'X Axis', idx: 1, config: cfg.layout.xaxis, metric: (name) => { if (name) { cfg.mapping.x= name; } return cfg.mapping.x; }},
-      { disp: 'Y Axis', idx: 2, config: cfg.layout.yaxis, metric: (name) => { if (name) { cfg.mapping.y= name; } return cfg.mapping.y; }},
-      { disp: 'Z Axis', idx: 3, config: cfg.layout.yaxis, metric: (name) => { if (name) { cfg.mapping.z= name; } return cfg.mapping.z; }}
+      {
+        disp: 'X Axis',
+        idx: 1,
+        config: cfg.layout.xaxis,
+        metric: name => {
+          if (name) {
+            cfg.mapping.x = name;
+          }
+          return cfg.mapping.x;
+        },
+      },
+      {
+        disp: 'Y Axis',
+        idx: 2,
+        config: cfg.layout.yaxis,
+        metric: name => {
+          if (name) {
+            cfg.mapping.y = name;
+          }
+          return cfg.mapping.y;
+        },
+      },
+      {
+        disp: 'Z Axis',
+        idx: 3,
+        config: cfg.layout.yaxis,
+        metric: name => {
+          if (name) {
+            cfg.mapping.z = name;
+          }
+          return cfg.mapping.z;
+        },
+      },
     ];
   }
 
   isAxisVisible(axis) {
-    if (axis.idx===3) {
+    if (axis.idx === 3) {
       return this.panel.pconfig.settings.type === 'scatter3d';
     }
     return true;
@@ -178,7 +215,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.panel.pconfig.settings.marker.symbol = this.segs.symbol.value;
     this.onConfigChanged();
 
-    console.log( this.segs.symbol, this.panel.pconfig );
+    console.log(this.segs.symbol, this.panel.pconfig);
   }
 
   onPanelInitalized() {
@@ -187,8 +224,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   onRender() {
     // ignore fetching data if another panel is in fullscreen
-    if (this.otherPanelInFullscreenMode()) { return; }
-
+    if (this.otherPanelInFullscreenMode()) {
+      return;
+    }
 
     if (!this.initalized) {
       let s = this.panel.pconfig.settings;
@@ -197,14 +235,14 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         showLink: false,
         displaylogo: false,
         displayModeBar: s.displayModeBar,
-        modeBarButtonsToRemove: ['sendDataToCloud'] //, 'select2d', 'lasso2d']
+        modeBarButtonsToRemove: ['sendDataToCloud'], //, 'select2d', 'lasso2d']
       };
 
       let data = [this.trace];
       let rect = this.graph.getBoundingClientRect();
 
       let old = this.layout;
-      this.layout = $.extend(true, {}, this.panel.pconfig.layout );
+      this.layout = $.extend(true, {}, this.panel.pconfig.layout);
       this.layout.height = this.height;
       this.layout.width = rect.width;
       if (old) {
@@ -214,13 +252,17 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
       Plotly.newPlot(this.graph, data, this.layout, options);
 
-      this.graph.on('plotly_click', (data) => {
+      this.graph.on('plotly_click', data => {
         for (let i = 0; i < data.points.length; i++) {
           let idx = data.points[i].pointNumber;
           let ts = this.trace.ts[idx];
-         // console.log( 'CLICK!!!', ts, data );
-          let msg = data.points[i].x.toPrecision(4) + ", "+data.points[i].y.toPrecision(4);
-          this.$rootScope.appEvent('alert-success', [msg, '@ ' + this.dashboard.formatDate(moment(ts))]);
+          // console.log( 'CLICK!!!', ts, data );
+          let msg =
+            data.points[i].x.toPrecision(4) + ', ' + data.points[i].y.toPrecision(4);
+          this.$rootScope.appEvent('alert-success', [
+            msg,
+            '@ ' + this.dashboard.formatDate(moment(ts)),
+          ]);
         }
       });
 
@@ -243,14 +285,13 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       //   });
       // }
 
-      this.graph.on('plotly_selected',  (data) => {
-
+      this.graph.on('plotly_selected', data => {
         if (data.points.length === 0) {
-          console.log( "Nothign Selected", data);
+          console.log('Nothign Selected', data);
           return;
         }
 
-        console.log( "SELECTED", data);
+        console.log('SELECTED', data);
 
         let min = Number.MAX_SAFE_INTEGER;
         let max = Number.MIN_SAFE_INTEGER;
@@ -258,16 +299,16 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         for (let i = 0; i < data.points.length; i++) {
           let idx = data.points[i].pointNumber;
           let ts = this.trace.ts[idx];
-          min = Math.min( min, ts);
-          max = Math.max( max, ts);
+          min = Math.min(min, ts);
+          max = Math.max(max, ts);
         }
 
         min -= 1000;
         max += 1000;
 
-        let range = {from: moment.utc(min), to: moment.utc(max) };
+        let range = {from: moment.utc(min), to: moment.utc(max)};
 
-        console.log( 'SELECTED!!!', min, max, data.points.length, range );
+        console.log('SELECTED!!!', min, max, data.points.length, range);
 
         this.timeSrv.setTime(range);
 
@@ -278,7 +319,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           this.initalized = false;
         }
       });
-    }else {
+    } else {
       Plotly.redraw(this.graph);
     }
 
@@ -298,34 +339,34 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
     this.data = {};
     if (dataList.length < 1) {
-      console.log( "No data", dataList );
-    }else {
+      console.log('No data', dataList);
+    } else {
       let dmapping = {
         x: null,
         y: null,
-        z: null
+        z: null,
       };
 
-   //   console.log( "plotly data", dataList);
+      //   console.log( "plotly data", dataList);
       let cfg = this.panel.pconfig;
       let mapping = cfg.mapping;
       let key = {
-        name: "@time",
+        name: '@time',
         type: 'ms',
         missing: 0,
         idx: -1,
-        points: []
+        points: [],
       };
       let idx = {
-        name: "@index",
+        name: '@index',
         type: 'number',
         missing: 0,
         idx: -1,
-        points: []
+        points: [],
       };
       this.data[key.name] = key;
       this.data[idx.name] = idx;
-      for (let i = 0; i<dataList.length; i++) {
+      for (let i = 0; i < dataList.length; i++) {
         let datapoints: any[] = dataList[i].datapoints;
         if (datapoints.length > 0) {
           let val = {
@@ -333,40 +374,40 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
             type: 'number',
             missing: 0,
             idx: i,
-            points: []
+            points: [],
           };
           if (_.isString(datapoints[0][0])) {
             val.type = 'string';
-          }else if (_.isBoolean(datapoints[0][0])) {
+          } else if (_.isBoolean(datapoints[0][0])) {
             val.type = 'boolean';
           }
 
           // Set the default mapping values
-          if (i===0) {
+          if (i === 0) {
             dmapping.x = val.name;
-          }else if (i===1) {
+          } else if (i === 1) {
             dmapping.y = val.name;
-          }else if (i===2) {
+          } else if (i === 2) {
             dmapping.z = val.name;
           }
 
           this.data[val.name] = val;
-          if (key.points.length===0) {
-            for (let j = 0; j<datapoints.length; j++) {
-              key.points.push( datapoints[j][1] );
-              val.points.push( datapoints[j][0] );
-              idx.points.push( j );
+          if (key.points.length === 0) {
+            for (let j = 0; j < datapoints.length; j++) {
+              key.points.push(datapoints[j][1]);
+              val.points.push(datapoints[j][0]);
+              idx.points.push(j);
             }
-          }else {
-            for (let j = 0; j<datapoints.length; j++) {
-              if (j >= key.points.length ) {
+          } else {
+            for (let j = 0; j < datapoints.length; j++) {
+              if (j >= key.points.length) {
                 break;
               }
               // Make sure it is from the same timestamp
               if (key.points[j] === datapoints[j][1]) {
-                val.points.push( datapoints[j][0] );
-              }else {
-                val.missing = val.missing+1;
+                val.points.push(datapoints[j][0]);
+              } else {
+                val.missing = val.missing + 1;
               }
             }
           }
@@ -374,11 +415,17 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       }
 
       // Maybe overwrite?
-      if (!mapping.x) { mapping.x = dmapping.x; }
-      if (!mapping.y) { mapping.y = dmapping.y; }
-      if (!mapping.z) { mapping.z = dmapping.z; }
+      if (!mapping.x) {
+        mapping.x = dmapping.x;
+      }
+      if (!mapping.y) {
+        mapping.y = dmapping.y;
+      }
+      if (!mapping.z) {
+        mapping.z = dmapping.z;
+      }
 
-     // console.log( "GOT", this.data, mapping );
+      // console.log( "GOT", this.data, mapping );
 
       let dX = this.data[mapping.x];
       let dY = this.data[mapping.y];
@@ -388,13 +435,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       let dT = null;
 
       if (!dX) {
-        throw { message: "Unable to find X: "+mapping.x };
+        throw {message: 'Unable to find X: ' + mapping.x};
       }
       if (!dY) {
         dY = dX;
         dX = '@time';
       }
-
 
       this.trace.ts = key.points;
       this.trace.x = dX.points;
@@ -403,19 +449,18 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       if (cfg.settings.type === 'scatter3d') {
         dZ = this.data[mapping.z];
         if (!dZ) {
-          throw { message: "Unable to find Z: "+mapping.z };
+          throw {message: 'Unable to find Z: ' + mapping.z};
         }
         this.layout.scene.xaxis.title = dX.name;
         this.layout.scene.yaxis.title = dY.name;
         this.layout.scene.zaxis.title = dZ.name;
 
         this.trace.z = dZ.points;
-        console.log( "3D", this.layout);
-      }else {
+        console.log('3D', this.layout);
+      } else {
         this.layout.xaxis.title = dX.name;
         this.layout.yaxis.title = dY.name;
       }
-
 
       this.trace.marker = $.extend(true, {}, cfg.settings.marker);
       this.trace.line = $.extend(true, {}, cfg.settings.line);
@@ -423,30 +468,30 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       if (mapping.size) {
         dS = this.data[mapping.size];
         if (!dS) {
-          throw { message: "Unable to find Size: "+mapping.size };
+          throw {message: 'Unable to find Size: ' + mapping.size};
         }
         this.trace.marker.size = dS.points;
       }
 
       // Set the marker colors
-      if ( cfg.settings.color_option === 'ramp' ) {
+      if (cfg.settings.color_option === 'ramp') {
         if (!mapping.color) {
           mapping.color = idx.name;
         }
         dC = this.data[mapping.color];
         if (!dC) {
-          throw { message: "Unable to find Color: "+mapping.color };
+          throw {message: 'Unable to find Color: ' + mapping.color};
         }
         this.trace.marker.color = dC.points;
       }
 
-      console.log( "TRACE", this.trace );
+      console.log('TRACE', this.trace);
     }
     this.render();
   }
 
   onConfigChanged() {
-    console.log( "Config changed...");
+    console.log('Config changed...');
     if (this.graph) {
       Plotly.Plots.purge(this.graph);
       this.graph.innerHTML = '';
@@ -457,13 +502,13 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.trace.type = cfg.settings.type;
     this.trace.mode = cfg.settings.mode;
 
-    let axis = [ this.panel.pconfig.layout.xaxis, this.panel.pconfig.layout.yaxis];
-    for (let i = 0; i<axis.length; i++) {
-      if ( axis[i].rangemode === 'between' ) {
-        if ( axis[i].range == null) {
+    let axis = [this.panel.pconfig.layout.xaxis, this.panel.pconfig.layout.yaxis];
+    for (let i = 0; i < axis.length; i++) {
+      if (axis[i].rangemode === 'between') {
+        if (axis[i].range == null) {
           axis[i].range = [0, null];
         }
-      }else {
+      } else {
         axis[i].range = null;
       }
     }
@@ -473,157 +518,165 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   link(scope, elem, attrs, ctrl) {
     this.graph = elem.find('.plotly-spot')[0];
     this.initalized = false;
-    elem.on( 'mousemove', (evt) => {
+    elem.on('mousemove', evt => {
       this.mouse = evt;
     });
   }
 
   //---------------------------
 
-
   getSymbolSegs() {
     let txt = [
-"circle","circle-open","circle-dot","circle-open-dot",
-"square","square-open","square-dot","square-open-dot",
-"diamond","diamond-open",
-"diamond-dot","diamond-open-dot",
-"cross","cross-open",
-"cross-dot","cross-open-dot",
-"x","x-open","x-dot","x-open-dot",
-"triangle-up",
-"triangle-up-open",
-"triangle-up-dot",
-"triangle-up-open-dot",
-"triangle-down",
-"triangle-down-open",
-"triangle-down-dot",
-"triangle-down-open-dot",
-"triangle-left",
-"triangle-left-open",
-"triangle-left-dot",
-"triangle-left-open-dot",
-"triangle-right",
-"triangle-right-open",
-"triangle-right-dot",
-"triangle-right-open-dot",
-"triangle-ne",
-"triangle-ne-open",
-"triangle-ne-dot",
-"triangle-ne-open-dot",
-"triangle-se",
-"triangle-se-open",
-"triangle-se-dot",
-"triangle-se-open-dot",
-"triangle-sw",
-"triangle-sw-open",
-"triangle-sw-dot",
-"triangle-sw-open-dot",
-"triangle-nw",
-"triangle-nw-open",
-"triangle-nw-dot",
-"triangle-nw-open-dot",
-"pentagon",
-"pentagon-open",
-"pentagon-dot",
-"pentagon-open-dot",
-"hexagon",
-"hexagon-open",
-"hexagon-dot",
-"hexagon-open-dot",
-"hexagon2",
-"hexagon2-open",
-"hexagon2-dot",
-"hexagon2-open-dot",
-"octagon",
-"octagon-open",
-"octagon-dot",
-"octagon-open-dot",
-"star",
-"star-open",
-"star-dot",
-"star-open-dot",
-"hexagram",
-"hexagram-open",
-"hexagram-dot",
-"hexagram-open-dot",
-"star-triangle-up",
-"star-triangle-up-open",
-"star-triangle-up-dot",
-"star-triangle-up-open-dot",
-"star-triangle-down",
-"star-triangle-down-open",
-"star-triangle-down-dot",
-"star-triangle-down-open-dot",
-"star-square",
-"star-square-open",
-"star-square-dot",
-"star-square-open-dot",
-"star-diamond",
-"star-diamond-open",
-"star-diamond-dot",
-"star-diamond-open-dot",
-"diamond-tall",
-"diamond-tall-open",
-"diamond-tall-dot",
-"diamond-tall-open-dot",
-"diamond-wide",
-"diamond-wide-open",
-"diamond-wide-dot",
-"diamond-wide-open-dot",
-"hourglass",
-"hourglass-open",
-"bowtie",
-"bowtie-open",
-"circle-cross",
-"circle-cross-open",
-"circle-x",
-"circle-x-open",
-"square-cross",
-"square-cross-open",
-"square-x",
-"square-x-open",
-"diamond-cross",
-"diamond-cross-open",
-"diamond-x",
-"diamond-x-open",
-"cross-thin",
-"cross-thin-open",
-"x-thin",
-"x-thin-open",
-"asterisk",
-"asterisk-open",
-"hash",
-"hash-open",
-"hash-dot",
-"hash-open-dot",
-"y-up",
-"y-up-open",
-"y-down",
-"y-down-open",
-"y-left",
-"y-left-open",
-"y-right",
-"y-right-open",
-"line-ew",
-"line-ew-open",
-"line-ns",
-"line-ns-open",
-"line-ne",
-"line-ne-open",
-"line-nw",
-"line-nw-open"
+      'circle',
+      'circle-open',
+      'circle-dot',
+      'circle-open-dot',
+      'square',
+      'square-open',
+      'square-dot',
+      'square-open-dot',
+      'diamond',
+      'diamond-open',
+      'diamond-dot',
+      'diamond-open-dot',
+      'cross',
+      'cross-open',
+      'cross-dot',
+      'cross-open-dot',
+      'x',
+      'x-open',
+      'x-dot',
+      'x-open-dot',
+      'triangle-up',
+      'triangle-up-open',
+      'triangle-up-dot',
+      'triangle-up-open-dot',
+      'triangle-down',
+      'triangle-down-open',
+      'triangle-down-dot',
+      'triangle-down-open-dot',
+      'triangle-left',
+      'triangle-left-open',
+      'triangle-left-dot',
+      'triangle-left-open-dot',
+      'triangle-right',
+      'triangle-right-open',
+      'triangle-right-dot',
+      'triangle-right-open-dot',
+      'triangle-ne',
+      'triangle-ne-open',
+      'triangle-ne-dot',
+      'triangle-ne-open-dot',
+      'triangle-se',
+      'triangle-se-open',
+      'triangle-se-dot',
+      'triangle-se-open-dot',
+      'triangle-sw',
+      'triangle-sw-open',
+      'triangle-sw-dot',
+      'triangle-sw-open-dot',
+      'triangle-nw',
+      'triangle-nw-open',
+      'triangle-nw-dot',
+      'triangle-nw-open-dot',
+      'pentagon',
+      'pentagon-open',
+      'pentagon-dot',
+      'pentagon-open-dot',
+      'hexagon',
+      'hexagon-open',
+      'hexagon-dot',
+      'hexagon-open-dot',
+      'hexagon2',
+      'hexagon2-open',
+      'hexagon2-dot',
+      'hexagon2-open-dot',
+      'octagon',
+      'octagon-open',
+      'octagon-dot',
+      'octagon-open-dot',
+      'star',
+      'star-open',
+      'star-dot',
+      'star-open-dot',
+      'hexagram',
+      'hexagram-open',
+      'hexagram-dot',
+      'hexagram-open-dot',
+      'star-triangle-up',
+      'star-triangle-up-open',
+      'star-triangle-up-dot',
+      'star-triangle-up-open-dot',
+      'star-triangle-down',
+      'star-triangle-down-open',
+      'star-triangle-down-dot',
+      'star-triangle-down-open-dot',
+      'star-square',
+      'star-square-open',
+      'star-square-dot',
+      'star-square-open-dot',
+      'star-diamond',
+      'star-diamond-open',
+      'star-diamond-dot',
+      'star-diamond-open-dot',
+      'diamond-tall',
+      'diamond-tall-open',
+      'diamond-tall-dot',
+      'diamond-tall-open-dot',
+      'diamond-wide',
+      'diamond-wide-open',
+      'diamond-wide-dot',
+      'diamond-wide-open-dot',
+      'hourglass',
+      'hourglass-open',
+      'bowtie',
+      'bowtie-open',
+      'circle-cross',
+      'circle-cross-open',
+      'circle-x',
+      'circle-x-open',
+      'square-cross',
+      'square-cross-open',
+      'square-x',
+      'square-x-open',
+      'diamond-cross',
+      'diamond-cross-open',
+      'diamond-x',
+      'diamond-x-open',
+      'cross-thin',
+      'cross-thin-open',
+      'x-thin',
+      'x-thin-open',
+      'asterisk',
+      'asterisk-open',
+      'hash',
+      'hash-open',
+      'hash-dot',
+      'hash-open-dot',
+      'y-up',
+      'y-up-open',
+      'y-down',
+      'y-down-open',
+      'y-left',
+      'y-left-open',
+      'y-right',
+      'y-right-open',
+      'line-ew',
+      'line-ew-open',
+      'line-ns',
+      'line-ns-open',
+      'line-ne',
+      'line-ne-open',
+      'line-nw',
+      'line-nw-open',
     ];
 
     let segs = [];
-    _.forEach(txt, (val) => {
-      segs.push( this.uiSegmentSrv.newSegment( val ) );
+    _.forEach(txt, val => {
+      segs.push(this.uiSegmentSrv.newSegment(val));
     });
-    return this.$q.when( segs );
+    return this.$q.when(segs);
   }
 }
 
-export {
-  PlotlyPanelCtrl as PanelCtrl
-};
-
-
+export {PlotlyPanelCtrl as PanelCtrl};
