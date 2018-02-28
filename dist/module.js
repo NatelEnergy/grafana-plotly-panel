@@ -226,7 +226,7 @@ System.register(
           };
           PlotlyPanelCtrl.prototype.onRender = function() {
             var _this = this;
-            if (this.otherPanelInFullscreenMode()) {
+            if (this.otherPanelInFullscreenMode() || !this.graph) {
               return;
             }
             if (!this.initalized) {
@@ -333,43 +333,73 @@ System.register(
               this.data[key.name] = key;
               this.data[idx.name] = idx;
               for (var i = 0; i < dataList.length; i++) {
-                var datapoints = dataList[i].datapoints;
-                if (datapoints.length > 0) {
-                  var val = {
-                    name: dataList[i].target,
-                    type: 'number',
-                    missing: 0,
-                    idx: i,
-                    points: [],
-                  };
-                  if (lodash_1.default.isString(datapoints[0][0])) {
-                    val.type = 'string';
-                  } else if (lodash_1.default.isBoolean(datapoints[0][0])) {
-                    val.type = 'boolean';
+                if ('table' === dataList[i].type) {
+                  var table = dataList[i];
+                  if (i > 0) {
+                    throw {message: 'Multiple tables not (yet) supported'};
                   }
-                  if (i === 0) {
-                    dmapping.x = val.name;
-                  } else if (i === 1) {
-                    dmapping.y = val.name;
-                  } else if (i === 2) {
-                    dmapping.z = val.name;
+                  for (var k = 0; k < table.rows.length; k++) {
+                    idx.points.push(k);
                   }
-                  this.data[val.name] = val;
-                  if (key.points.length === 0) {
-                    for (var j = 0; j < datapoints.length; j++) {
-                      key.points.push(datapoints[j][1]);
-                      val.points.push(datapoints[j][0]);
-                      idx.points.push(j);
+                  for (var j = 0; j < table.columns.length; j++) {
+                    var col = table.columns[j];
+                    var val = {
+                      name: col.text,
+                      type: col.type,
+                      missing: 0,
+                      idx: j,
+                      points: [],
+                    };
+                    if (j == 0 && val.type === 'time') {
+                      val = key;
                     }
-                  } else {
-                    for (var j = 0; j < datapoints.length; j++) {
-                      if (j >= key.points.length) {
-                        break;
-                      }
-                      if (key.points[j] === datapoints[j][1]) {
+                    if (!val.type) {
+                      val.type = 'number';
+                    }
+                    for (var k = 0; k < table.rows.length; k++) {
+                      val.points.push(table.rows[k][j]);
+                    }
+                    this.data[val.name] = val;
+                  }
+                } else {
+                  var datapoints = dataList[i].datapoints;
+                  if (datapoints.length > 0) {
+                    var val = {
+                      name: dataList[i].target,
+                      type: 'number',
+                      missing: 0,
+                      idx: i,
+                      points: [],
+                    };
+                    if (lodash_1.default.isString(datapoints[0][0])) {
+                      val.type = 'string';
+                    } else if (lodash_1.default.isBoolean(datapoints[0][0])) {
+                      val.type = 'boolean';
+                    }
+                    if (i === 0) {
+                      dmapping.x = val.name;
+                    } else if (i === 1) {
+                      dmapping.y = val.name;
+                    } else if (i === 2) {
+                      dmapping.z = val.name;
+                    }
+                    this.data[val.name] = val;
+                    if (key.points.length === 0) {
+                      for (var j = 0; j < datapoints.length; j++) {
+                        key.points.push(datapoints[j][1]);
                         val.points.push(datapoints[j][0]);
-                      } else {
-                        val.missing = val.missing + 1;
+                        idx.points.push(j);
+                      }
+                    } else {
+                      for (var j = 0; j < datapoints.length; j++) {
+                        if (j >= key.points.length) {
+                          break;
+                        }
+                        if (key.points[j] === datapoints[j][1]) {
+                          val.points.push(datapoints[j][0]);
+                        } else {
+                          val.missing = val.missing + 1;
+                        }
                       }
                     }
                   }
@@ -433,13 +463,11 @@ System.register(
                 }
                 this.trace.marker.color = dC.points;
               }
-              console.log('TRACE', this.trace);
             }
             this.render();
           };
           PlotlyPanelCtrl.prototype.onConfigChanged = function() {
-            console.log('Config changed...');
-            if (this.graph) {
+            if (this.graph && this.initalized) {
               Plotly.Plots.purge(this.graph);
               this.graph.innerHTML = '';
               this.initalized = false;

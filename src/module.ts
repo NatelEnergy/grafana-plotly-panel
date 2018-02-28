@@ -303,6 +303,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           max = Math.max(max, ts);
         }
 
+        // At least 2 seconds
         min -= 1000;
         max += 1000;
 

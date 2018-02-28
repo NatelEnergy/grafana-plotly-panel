@@ -26,7 +26,8 @@ grunt
 * Load plotly from npm (v1.31.2+)
 * Convert to TypeScript
 * Reasonable behavior when adding single metric
-* Formatting with prettier,js
+* Formatting with prettier.js
+* Support for a single table query
 
 ##### v0.0.3
 
