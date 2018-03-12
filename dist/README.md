@@ -21,6 +21,10 @@ grunt
 
 #### Changelog
 
+##### v0.0.5 (not released yet)
+
+* TODO...
+
 ##### v0.0.4
 
 * Load plotly from npm (v1.31.2+)

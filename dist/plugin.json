@@ -27,8 +27,8 @@
       {"name": "Scatter 3D", "path": "img/screenshot-scatter-3d.png"},
       {"name": "Options", "path": "img/screenshot-options.png"}
     ],
-    "version": "0.0.4",
-    "updated": "2018-02-28"
+    "version": "0.0.5",
+    "updated": "2018-03-12"
   },
 
   "dependencies": {
