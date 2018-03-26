@@ -127,7 +127,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.events.on('panel-initialized', this.onPanelInitalized.bind(this));
     this.events.on('refresh', this.onRefresh.bind(this));
 
-    angular.element($window).bind('resize', this.onResize.bind(this));
+    this.events.on('panel-size-changed', this.onResize.bind(this));
   }
 
   onResize() {
@@ -327,6 +327,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     if (this.sizeChanged && this.graph && this.layout) {
       let rect = this.graph.getBoundingClientRect();
       this.layout.width = rect.width;
+      this.layout.height = this.height;
       Plotly.Plots.resize(this.graph);
     }
     this.sizeChanged = false;
