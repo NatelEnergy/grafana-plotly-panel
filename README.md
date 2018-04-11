@@ -23,7 +23,7 @@ grunt
 
 ##### v0.0.5 (not released yet)
 
-* TODO...
+* Better support for light theme. (#24, @cscheuermann81)
 
 ##### v0.0.4
 
