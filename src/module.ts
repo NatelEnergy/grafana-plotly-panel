@@ -57,8 +57,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         legend: {orientation: 'v'},
         dragmode: 'lasso', // (enumerated: "zoom" | "pan" | "select" | "lasso" | "orbit" | "turntable" )
         hovermode: 'closest',
-        plot_bgcolor: '#1f1d1d',
-        paper_bgcolor: 'rgba(0,0,0,0)', // transparent?
+        plot_bgcolor: 'transparent',
+        paper_bgcolor: 'transparent', // transparent?
         font: {
           color: '#D8D9DA',
           family: '"Open Sans", Helvetica, Arial, sans-serif',
@@ -116,6 +116,28 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     // defaults configs
     _.defaultsDeep(this.panel, this.defaults);
 
+    // Update existing configurations
+    this.panel.pconfig.layout.paper_bgcolor = 'transparent';
+    this.panel.pconfig.layout.plot_bgcolor = this.panel.pconfig.layout.paper_bgcolor;
+
+    // get the css rule of grafana graph axis text
+    const labelStyle = this.getCssRule('div.flot-text');
+    if (labelStyle) {
+      let color = labelStyle.style.color || this.panel.pconfig.layout.font.color;
+      // set the panel font color to grafana graph axis text color
+      this.panel.pconfig.layout.font.color = color;
+
+      // make color more transparent
+      color = $.color
+        .parse(color)
+        .scale('a', 0.22)
+        .toString();
+
+      // set gridcolor (like grafana graph)
+      this.panel.pconfig.layout.xaxis.gridcolor = color;
+      this.panel.pconfig.layout.yaxis.gridcolor = color;
+    }
+
     let cfg = this.panel.pconfig;
     this.trace = {};
     this.layout = $.extend(true, {}, this.panel.pconfig.layout);
@@ -128,6 +150,20 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.events.on('refresh', this.onRefresh.bind(this));
 
     this.events.on('panel-size-changed', this.onResize.bind(this));
+  }
+
+  getCssRule(selectorText) {
+    const styleSheets = document.styleSheets;
+    for (let idx = 0; idx < styleSheets.length; idx += 1) {
+      const styleSheet = styleSheets[idx] as CSSStyleSheet;
+      const rules = styleSheet.cssRules;
+      for (let ruleIdx = 0; ruleIdx < rules.length; ruleIdx += 1) {
+        const rule = rules[ruleIdx] as CSSStyleRule;
+        if (rule.selectorText === selectorText) {
+          return rule;
+        }
+      }
+    }
   }
 
   onResize() {
