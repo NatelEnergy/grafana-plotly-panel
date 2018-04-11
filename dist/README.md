@@ -23,7 +23,9 @@ grunt
 
 ##### v0.0.5 (not released yet)
 
-* Better support for light theme.  (#24, @cscheuermann81)
+* Upgrade plotly (v1.35+)
+* Better support for light theme. (#24, @cscheuermann81)
+* Support snapshots
 
 ##### v0.0.4
 

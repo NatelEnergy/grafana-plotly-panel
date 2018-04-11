@@ -137,8 +137,9 @@ System.register(["app/plugins/sdk", "lodash", "moment", "jquery", "./lib/plotly.
                     _this.events.on('data-received', _this.onDataReceived.bind(_this));
                     _this.events.on('data-error', _this.onDataError.bind(_this));
                     _this.events.on('panel-initialized', _this.onPanelInitalized.bind(_this));
-                    _this.events.on('refresh', _this.onRefresh.bind(_this));
                     _this.events.on('panel-size-changed', _this.onResize.bind(_this));
+                    _this.events.on('data-snapshot-load', _this.onDataSnapshotLoad.bind(_this));
+                    _this.events.on('refresh', _this.onRefresh.bind(_this));
                     return _this;
                 }
                 PlotlyPanelCtrl.prototype.getCssRule = function (selectorText) {
@@ -302,6 +303,9 @@ System.register(["app/plugins/sdk", "lodash", "moment", "jquery", "./lib/plotly.
                     }
                     this.sizeChanged = false;
                     this.initalized = true;
+                };
+                PlotlyPanelCtrl.prototype.onDataSnapshotLoad = function (snapshot) {
+                    this.onDataReceived(snapshot);
                 };
                 PlotlyPanelCtrl.prototype.onDataReceived = function (dataList) {
                     this.trace.x = [];

@@ -147,9 +147,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.events.on('data-received', this.onDataReceived.bind(this));
     this.events.on('data-error', this.onDataError.bind(this));
     this.events.on('panel-initialized', this.onPanelInitalized.bind(this));
-    this.events.on('refresh', this.onRefresh.bind(this));
-
     this.events.on('panel-size-changed', this.onResize.bind(this));
+    this.events.on('data-snapshot-load', this.onDataSnapshotLoad.bind(this));
+    this.events.on('refresh', this.onRefresh.bind(this));
   }
 
   getCssRule(selectorText) {
@@ -368,6 +368,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     }
     this.sizeChanged = false;
     this.initalized = true;
+  }
+
+  onDataSnapshotLoad(snapshot) {
+    this.onDataReceived(snapshot);
   }
 
   onDataReceived(dataList) {

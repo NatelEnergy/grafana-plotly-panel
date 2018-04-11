@@ -109,6 +109,7 @@ declare class PlotlyPanelCtrl extends MetricsPanelCtrl {
     onSegsChanged(): void;
     onPanelInitalized(): void;
     onRender(): void;
+    onDataSnapshotLoad(snapshot: any): void;
     onDataReceived(dataList: any): void;
     onConfigChanged(): void;
     link(scope: any, elem: any, attrs: any, ctrl: any): void;
