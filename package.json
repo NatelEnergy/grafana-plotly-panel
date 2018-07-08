@@ -1,6 +1,6 @@
 {
   "name": "natel-plotly-panel",
-  "version": "0.0.5",
+  "version": "0.0.5-dev",
   "description": "Plot.ly Panel Plugin for Grafana",
   "scripts": {
     "build": "grunt",
@@ -24,15 +24,15 @@
     "semi": true
   },
   "dependencies": {
-    "lodash": "^4.17.4",
-    "moment": "^2.18.1",
-    "plotly.js": "^1.35",
+    "lodash": "^4.17.10",
+    "moment": "^2.22.2",
     "q": "^1.5.0",
-    "systemjs": "^0.19.47"
+    "systemjs": "^0.21.4",
+    "plotly.js": "^1.38"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.74",
-    "@types/plotly.js": "^1.35.0",
+    "@types/plotly.js": "^1.38.0",
     "grafana-sdk-mocks": "github:grafana/grafana-sdk-mocks",
     "grunt": "^1.0.2",
     "grunt-contrib-clean": "^1.1.0",

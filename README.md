@@ -1,5 +1,9 @@
 ## Plot.ly Panel for Grafana
 
+[![CircleCI](https://circleci.com/gh/NatelEnergy/grafana-plotly-panel/tree/master.svg?style=svg)](https://circleci.com/gh/NatelEnergy/grafana-plotly-panel/tree/master)
+[![dependencies Status](https://david-dm.org/NatelEnergy/grafana-plotly-panel/status.svg)](https://david-dm.org/NatelEnergy/grafana-plotly-panel)
+[![devDependencies Status](https://david-dm.org/NatelEnergy/grafana-plotly-panel/dev-status.svg)](https://david-dm.org/NatelEnergy/grafana-plotly-panel?type=dev)
+
 Render metrics using the plot.ly javascript framework
 
 ### Screenshots
@@ -16,16 +20,17 @@ To complie, run:
 ```
 npm install -g yarn
 yarn install --pure-lockfile
-grunt
+yarn build
 ```
 
 #### Changelog
 
 ##### v0.0.5 (not released yet)
 
-* Upgrade plotly (v1.35+)
+* Upgrade plotly (v1.38+)
 * Better support for light theme. (#24, @cscheuermann81)
 * Support snapshots
+* Removing `dist` from master branch
 
 ##### v0.0.4
 
