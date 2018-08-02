@@ -98,6 +98,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   segs: any;
   mouse: any;
   data: any;
+  cfg: any;
 
   // Used for the editor control
   subTabIndex: 0;
@@ -114,16 +115,18 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     // defaults configs
     _.defaultsDeep(this.panel, this.defaults);
 
+    this.cfg = this.panel.pconfig;
+
     // Update existing configurations
-    this.panel.pconfig.layout.paper_bgcolor = 'transparent';
-    this.panel.pconfig.layout.plot_bgcolor = this.panel.pconfig.layout.paper_bgcolor;
+    this.cfg.layout.paper_bgcolor = 'transparent';
+    this.cfg.layout.plot_bgcolor = this.cfg.layout.paper_bgcolor;
 
     // get the css rule of grafana graph axis text
     const labelStyle = this.getCssRule('div.flot-text');
     if (labelStyle) {
-      let color = labelStyle.style.color || this.panel.pconfig.layout.font.color;
+      let color = labelStyle.style.color || this.cfg.layout.font.color;
       // set the panel font color to grafana graph axis text color
-      this.panel.pconfig.layout.font.color = color;
+      this.cfg.layout.font.color = color;
 
       // make color more transparent
       color = $.color
@@ -132,13 +135,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         .toString();
 
       // set gridcolor (like grafana graph)
-      this.panel.pconfig.layout.xaxis.gridcolor = color;
-      this.panel.pconfig.layout.yaxis.gridcolor = color;
+      this.cfg.layout.xaxis.gridcolor = color;
+      this.cfg.layout.yaxis.gridcolor = color;
     }
 
-    let cfg = this.panel.pconfig;
     this.traces = [{}];
-    this.layout = $.extend(true, {}, this.panel.pconfig.layout);
+    this.layout = $.extend(true, {}, this.cfg.layout);
 
     this.events.on('init-edit-mode', this.onInitEditMode.bind(this));
     this.events.on('render', this.onRender.bind(this));
@@ -194,7 +196,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.refresh();
     this.segs = {
       symbol: this.uiSegmentSrv.newSegment({
-        value: this.panel.pconfig.settings.marker.symbol,
+        value: this.cfg.settings.marker.symbol,
       }),
     };
     this.subTabIndex = 0; // select the options
@@ -207,10 +209,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   onSegsChanged() {
-    this.panel.pconfig.settings.marker.symbol = this.segs.symbol.value;
+    this.cfg.settings.marker.symbol = this.segs.symbol.value;
     this.onConfigChanged();
 
-    console.log(this.segs.symbol, this.panel.pconfig);
+    console.log(this.segs.symbol, this.cfg);
   }
 
   onPanelInitalized() {
@@ -224,7 +226,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     }
 
     if (!this.initalized) {
-      let s = this.panel.pconfig.settings;
+      let s = this.cfg.settings;
 
       let options = {
         showLink: false,
@@ -236,7 +238,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       let rect = this.graph.getBoundingClientRect();
 
       let old = this.layout;
-      this.layout = $.extend(true, {}, this.panel.pconfig.layout);
+      this.layout = $.extend(true, {}, this.cfg.layout);
       this.layout.height = this.height;
       this.layout.width = rect.width;
       if (old) {
@@ -349,8 +351,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       };
 
       //   console.log( "plotly data", dataList);
-      let cfg = this.panel.pconfig;
-      let mapping = cfg.mapping;
+      let mapping = this.cfg.mapping;
       let key = {
         name: '@time',
         type: 'ms',
@@ -481,7 +482,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this.traces[0].x = dX.points;
       this.traces[0].y = dY.points;
 
-      if (cfg.settings.type === 'scatter3d') {
+      if (this.cfg.settings.type === 'scatter3d') {
         dZ = this.data[mapping.z];
         if (!dZ) {
           throw {message: 'Unable to find Z: ' + mapping.z};
@@ -497,8 +498,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         this.layout.yaxis.title = dY.name;
       }
 
-      this.traces[0].marker = $.extend(true, {}, cfg.settings.marker);
-      this.traces[0].line = $.extend(true, {}, cfg.settings.line);
+      this.traces[0].marker = $.extend(true, {}, this.cfg.settings.marker);
+      this.traces[0].line = $.extend(true, {}, this.cfg.settings.line);
 
       if (mapping.size) {
         dS = this.data[mapping.size];
@@ -509,7 +510,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       }
 
       // Set the marker colors
-      if (cfg.settings.color_option === 'ramp') {
+      if (this.cfg.settings.color_option === 'ramp') {
         if (!mapping.color) {
           mapping.color = idx.name;
         }
@@ -524,7 +525,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   _updateSeries() {
-    let cfg = this.panel.pconfig;
     let idx = 0;
 
     this.series = _.map(this.panel.targets, target => {
@@ -534,24 +534,24 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         return {
           name: target.refId,
           idx,
-          config: cfg.layout.xaxis,
+          config: this.cfg.layout.xaxis,
           x: val => {
             if (val) {
-              cfg.mapping.x = val;
+              this.cfg.mapping.x = val;
             }
-            return cfg.mapping.x;
+            return this.cfg.mapping.x;
           },
           y: val => {
             if (val) {
-              cfg.mapping.y = val;
+              this.cfg.mapping.y = val;
             }
-            return cfg.mapping.y;
+            return this.cfg.mapping.y;
           },
           z: val => {
             if (val) {
-              cfg.mapping.z = val;
+              this.cfg.mapping.z = val;
             }
-            return cfg.mapping.z;
+            return this.cfg.mapping.z;
           },
         };
       }
@@ -565,11 +565,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this.initalized = false;
     }
 
-    let cfg = this.panel.pconfig;
-    this.traces[0].type = cfg.settings.type;
-    this.traces[0].mode = cfg.settings.mode;
+    this.traces[0].type = this.cfg.settings.type;
+    this.traces[0].mode = this.cfg.settings.mode;
 
-    let axis = [this.panel.pconfig.layout.xaxis, this.panel.pconfig.layout.yaxis];
+    let axis = [this.cfg.layout.xaxis, this.cfg.layout.yaxis];
     for (let i = 0; i < axis.length; i++) {
       if (axis[i].rangemode === 'between') {
         if (axis[i].range == null) {
@@ -583,7 +582,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   is3d() {
-    return this.panel.pconfig.settings.type === 'scatter3d';
+    return this.cfg.settings.type === 'scatter3d';
   }
 
   link(scope, elem, attrs, ctrl) {
