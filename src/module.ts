@@ -20,28 +20,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       settings: {
         type: 'scatter',
         mode: 'lines+markers',
-        displayModeBar: false,
-        line: {
-          color: '#005f81',
-          width: 6,
-          dash: 'solid',
-          shape: 'linear',
-        },
-        marker: {
-          size: 15,
-          symbol: 'circle',
-          color: '#33B5E5',
-          colorscale: 'YIOrRd',
-          sizemode: 'diameter',
-          sizemin: 3,
-          sizeref: 0.2,
-          line: {
-            color: '#DDD',
-            width: 0,
-          },
-          showscale: true,
-        },
-        color_option: 'ramp',
+        displayModeBar: false
       },
       layout: {
         autosize: false,
@@ -61,6 +40,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           l: 65,
           r: 20,
         },
+        // TODO: make xaxis and yaxis settings differ in traces
         xaxis: {
           showgrid: true,
           zeroline: false,
@@ -299,7 +279,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         min -= 1000;
         max += 1000;
 
-        let range = {from: moment.utc(min), to: moment.utc(max)};
+        let range = { from: moment.utc(min), to: moment.utc(max) };
 
         console.log('SELECTED!!!', min, max, data.points.length, range);
 
@@ -504,8 +484,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           this.layout.yaxis.title = dY.name;
         }
 
-        this.traces[i].marker = $.extend(true, {}, this.cfg.settings.marker);
-        this.traces[i].line = $.extend(true, {}, this.cfg.settings.line);
+        this.traces[i].marker = $.extend(true, {}, serieConfig.settings.marker);
+        this.traces[i].line = $.extend(true, {}, serieConfig.settings.line);
 
         if (mapping.size) {
           dS = this.data[mapping.size];
@@ -516,13 +496,13 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         }
 
         // Set the marker colors
-        if (this.cfg.settings.color_option === 'ramp') {
+        if (serieConfig.settings.color_option === 'ramp') {
           if (!mapping.color) {
             mapping.color = idx.name;
           }
           dC = this.data[mapping.color];
           if (!dC) {
-            throw {message: 'Unable to find Color: ' + mapping.color};
+            throw { message: 'Unable to find Color: ' + mapping.color };
           }
           this.traces[i].marker.color = dC.points;
         }
@@ -597,16 +577,41 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   getSerieConfig(name) {
     if (this.cfg[name] === undefined) {
-      this.cfg[name] = {
-        mapping: {
-          x: null,
-          y: null,
-          z: null,
-          color: null,
-          size: null
-        }
-      };
+      this.cfg[name] = {};
     }
+
+    this.cfg[name] = _.defaults(this.cfg[name], {
+      mapping: {
+        x: null,
+        y: null,
+        z: null,
+        color: null,
+        size: null
+      },
+      settings: {
+        line: {
+          color: '#005f81',
+          width: 6,
+          dash: 'solid',
+          shape: 'linear',
+        },
+        marker: {
+          size: 15,
+          symbol: 'circle',
+          color: '#33B5E5',
+          colorscale: 'YIOrRd',
+          sizemode: 'diameter',
+          sizemin: 3,
+          sizeref: 0.2,
+          line: {
+            color: '#DDD',
+            width: 0,
+          },
+          showscale: true,
+        },
+        color_option: 'ramp'
+      }
+    });
 
     return this.cfg[name];
   }
