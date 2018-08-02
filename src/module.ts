@@ -4,7 +4,6 @@ import {MetricsPanelCtrl} from 'app/plugins/sdk';
 
 import _ from 'lodash';
 import moment from 'moment';
-import angular from 'angular';
 import $ from 'jquery';
 
 import * as Plotly from './lib/plotly.min';
@@ -92,11 +91,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     },
   };
 
-  trace: any;
+  traces: Array<any>;
   layout: any;
   graph: any;
-  seriesList: Array<any>;
-  axis: Array<any>;
+  series: Array<any>;
   segs: any;
   mouse: any;
   data: any;
@@ -139,7 +137,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     }
 
     let cfg = this.panel.pconfig;
-    this.trace = {};
+    this.traces = [{}];
     this.layout = $.extend(true, {}, this.panel.pconfig.layout);
 
     this.events.on('init-edit-mode', this.onInitEditMode.bind(this));
@@ -171,7 +169,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   onDataError(err) {
-    this.seriesList = [];
     this.render([]);
     console.log('onDataError', err);
   }
@@ -201,50 +198,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       }),
     };
     this.subTabIndex = 0; // select the options
-
-    let cfg = this.panel.pconfig;
-    this.axis = [
-      {
-        disp: 'X Axis',
-        idx: 1,
-        config: cfg.layout.xaxis,
-        metric: name => {
-          if (name) {
-            cfg.mapping.x = name;
-          }
-          return cfg.mapping.x;
-        },
-      },
-      {
-        disp: 'Y Axis',
-        idx: 2,
-        config: cfg.layout.yaxis,
-        metric: name => {
-          if (name) {
-            cfg.mapping.y = name;
-          }
-          return cfg.mapping.y;
-        },
-      },
-      {
-        disp: 'Z Axis',
-        idx: 3,
-        config: cfg.layout.yaxis,
-        metric: name => {
-          if (name) {
-            cfg.mapping.z = name;
-          }
-          return cfg.mapping.z;
-        },
-      },
-    ];
   }
 
-  isAxisVisible(axis) {
-    if (axis.idx === 3) {
-      return this.panel.pconfig.settings.type === 'scatter3d';
-    }
-    return true;
+  isSerieVisible(serie) {
+    let target = _.find(this.panel.targets, target => target.refId === serie.name);
+
+    return !target.hide;
   }
 
   onSegsChanged() {
@@ -274,7 +233,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         modeBarButtonsToRemove: ['sendDataToCloud'], //, 'select2d', 'lasso2d']
       };
 
-      let data = [this.trace];
       let rect = this.graph.getBoundingClientRect();
 
       let old = this.layout;
@@ -285,13 +243,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         this.layout.xaxis.title = old.xaxis.title;
         this.layout.yaxis.title = old.yaxis.title;
       }
-
-      Plotly.newPlot(this.graph, data, this.layout, options);
+      Plotly.newPlot(this.graph, this.traces, this.layout, options);
 
       this.graph.on('plotly_click', data => {
         for (let i = 0; i < data.points.length; i++) {
           let idx = data.points[i].pointNumber;
-          let ts = this.trace.ts[idx];
+          let ts = this.traces[0].ts[idx];
           // console.log( 'CLICK!!!', ts, data );
           let msg =
             data.points[i].x.toPrecision(4) + ', ' + data.points[i].y.toPrecision(4);
@@ -334,7 +291,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
         for (let i = 0; i < data.points.length; i++) {
           let idx = data.points[i].pointNumber;
-          let ts = this.trace.ts[idx];
+          let ts = this.traces[0].ts[idx];
           min = Math.min(min, ts);
           max = Math.max(max, ts);
         }
@@ -375,14 +332,16 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   onDataReceived(dataList) {
-    this.trace.x = [];
-    this.trace.y = [];
-    this.trace.z = [];
+    this.traces[0].x = [];
+    this.traces[0].y = [];
+    this.traces[0].z = [];
 
     this.data = {};
     if (dataList.length < 1) {
       console.log('No data', dataList);
     } else {
+      this._updateSeries();
+
       let dmapping = {
         x: null,
         y: null,
@@ -518,9 +477,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         dX = '@time';
       }
 
-      this.trace.ts = key.points;
-      this.trace.x = dX.points;
-      this.trace.y = dY.points;
+      this.traces[0].ts = key.points;
+      this.traces[0].x = dX.points;
+      this.traces[0].y = dY.points;
 
       if (cfg.settings.type === 'scatter3d') {
         dZ = this.data[mapping.z];
@@ -531,22 +490,22 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         this.layout.scene.yaxis.title = dY.name;
         this.layout.scene.zaxis.title = dZ.name;
 
-        this.trace.z = dZ.points;
+        this.traces[0].z = dZ.points;
         console.log('3D', this.layout);
       } else {
         this.layout.xaxis.title = dX.name;
         this.layout.yaxis.title = dY.name;
       }
 
-      this.trace.marker = $.extend(true, {}, cfg.settings.marker);
-      this.trace.line = $.extend(true, {}, cfg.settings.line);
+      this.traces[0].marker = $.extend(true, {}, cfg.settings.marker);
+      this.traces[0].line = $.extend(true, {}, cfg.settings.line);
 
       if (mapping.size) {
         dS = this.data[mapping.size];
         if (!dS) {
           throw {message: 'Unable to find Size: ' + mapping.size};
         }
-        this.trace.marker.size = dS.points;
+        this.traces[0].marker.size = dS.points;
       }
 
       // Set the marker colors
@@ -558,10 +517,45 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         if (!dC) {
           throw {message: 'Unable to find Color: ' + mapping.color};
         }
-        this.trace.marker.color = dC.points;
+        this.traces[0].marker.color = dC.points;
       }
     }
     this.render();
+  }
+
+  _updateSeries() {
+    let cfg = this.panel.pconfig;
+    let idx = 0;
+
+    this.series = _.map(this.panel.targets, target => {
+      if (target.refId !== undefined) {
+        idx++;
+
+        return {
+          name: target.refId,
+          idx,
+          config: cfg.layout.xaxis,
+          x: val => {
+            if (val) {
+              cfg.mapping.x = val;
+            }
+            return cfg.mapping.x;
+          },
+          y: val => {
+            if (val) {
+              cfg.mapping.y = val;
+            }
+            return cfg.mapping.y;
+          },
+          z: val => {
+            if (val) {
+              cfg.mapping.z = val;
+            }
+            return cfg.mapping.z;
+          },
+        };
+      }
+    });
   }
 
   onConfigChanged() {
@@ -572,8 +566,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     }
 
     let cfg = this.panel.pconfig;
-    this.trace.type = cfg.settings.type;
-    this.trace.mode = cfg.settings.mode;
+    this.traces[0].type = cfg.settings.type;
+    this.traces[0].mode = cfg.settings.mode;
 
     let axis = [this.panel.pconfig.layout.xaxis, this.panel.pconfig.layout.yaxis];
     for (let i = 0; i < axis.length; i++) {
@@ -586,6 +580,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       }
     }
     this.refresh();
+  }
+
+  is3d() {
+    return this.panel.pconfig.settings.type === 'scatter3d';
   }
 
   link(scope, elem, attrs, ctrl) {
