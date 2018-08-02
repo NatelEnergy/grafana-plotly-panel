@@ -357,14 +357,14 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         type: 'ms',
         missing: 0,
         idx: -1,
-        points: [],
+        points: []
       };
       let idx = {
         name: '@index',
         type: 'number',
         missing: 0,
         idx: -1,
-        points: [],
+        points: []
       };
       this.data[key.name] = key;
       this.data[idx.name] = idx;
@@ -372,7 +372,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         if ('table' === dataList[i].type) {
           const table = dataList[i];
           if (i > 0) {
-            throw {message: 'Multiple tables not (yet) supported'};
+            throw { message: 'Multiple tables not (yet) supported' };
           }
 
           for (let k = 0; k < table.rows.length; k++) {
@@ -468,10 +468,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       let dZ = null;
       let dC = null;
       let dS = null;
-      let dT = null;
 
       if (!dX) {
-        throw {message: 'Unable to find X: ' + mapping.x};
+        throw { message: 'Unable to find X: ' + mapping.x };
       }
       if (!dY) {
         dY = dX;
