@@ -17,13 +17,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   defaults = {
     pconfig: {
-      mapping: {
-        x: null,
-        y: null,
-        z: null,
-        color: null,
-        size: null,
-      },
       settings: {
         type: 'scatter',
         mode: 'lines+markers',
@@ -140,6 +133,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     }
 
     this.traces = [{}];
+    this.series = [];
+    
     this.layout = $.extend(true, {}, this.cfg.layout);
 
     this.events.on('init-edit-mode', this.onInitEditMode.bind(this));
@@ -250,6 +245,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this.graph.on('plotly_click', data => {
         for (let i = 0; i < data.points.length; i++) {
           let idx = data.points[i].pointNumber;
+          // TODO: handle clicks on different traces
           let ts = this.traces[0].ts[idx];
           // console.log( 'CLICK!!!', ts, data );
           let msg =
@@ -293,6 +289,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
         for (let i = 0; i < data.points.length; i++) {
           let idx = data.points[i].pointNumber;
+          // TODO: handle different traces selection
           let ts = this.traces[0].ts[idx];
           min = Math.min(min, ts);
           max = Math.max(max, ts);
@@ -344,181 +341,192 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     } else {
       this._updateSeries();
 
-      let dmapping = {
-        x: null,
-        y: null,
-        z: null,
-      };
+      this.series.forEach((serie, i) => {
+        if (i + 1 > this.traces.length) {
+          this.traces.push({});
+        }
+        this.traces[i].x = [];
+        this.traces[i].y = [];
+        this.traces[i].z = [];
 
-      //   console.log( "plotly data", dataList);
-      let mapping = this.cfg.mapping;
-      let key = {
-        name: '@time',
-        type: 'ms',
-        missing: 0,
-        idx: -1,
-        points: []
-      };
-      let idx = {
-        name: '@index',
-        type: 'number',
-        missing: 0,
-        idx: -1,
-        points: []
-      };
-      this.data[key.name] = key;
-      this.data[idx.name] = idx;
-      for (let i = 0; i < dataList.length; i++) {
-        if ('table' === dataList[i].type) {
-          const table = dataList[i];
-          if (i > 0) {
-            throw { message: 'Multiple tables not (yet) supported' };
-          }
+        let dmapping = {
+          x: null,
+          y: null,
+          z: null,
+        };
 
-          for (let k = 0; k < table.rows.length; k++) {
-            idx.points.push(k);
-          }
+        let serieConfig = this.getSerieConfig(serie.name);
 
-          for (let j = 0; j < table.columns.length; j++) {
-            const col = table.columns[j];
-            let val = {
-              name: col.text,
-              type: col.type,
-              missing: 0,
-              idx: j,
-              points: [],
-            };
-            if (j == 0 && val.type === 'time') {
-              // InfluxDB time
-              val = key; // will overwrite the time field
+        //   console.log( "plotly data", dataList);
+        let mapping = serieConfig.mapping;
+        let key = {
+          name: '@time',
+          type: 'ms',
+          missing: 0,
+          idx: -1,
+          points: []
+        };
+        let idx = {
+          name: '@index',
+          type: 'number',
+          missing: 0,
+          idx: -1,
+          points: []
+        };
+        this.data[key.name] = key;
+        this.data[idx.name] = idx;
+        for (let i = 0; i < dataList.length; i++) {
+          if ('table' === dataList[i].type) {
+            const table = dataList[i];
+            if (i > 0) {
+              throw { message: 'Multiple tables not (yet) supported' };
             }
 
-            if (!val.type) {
-              val.type = 'number';
-            }
             for (let k = 0; k < table.rows.length; k++) {
-              val.points.push(table.rows[k][j]);
-            }
-            this.data[val.name] = val;
-          }
-        } else {
-          let datapoints: any[] = dataList[i].datapoints;
-          if (datapoints.length > 0) {
-            let val = {
-              name: dataList[i].target,
-              type: 'number',
-              missing: 0,
-              idx: i,
-              points: [],
-            };
-            if (_.isString(datapoints[0][0])) {
-              val.type = 'string';
-            } else if (_.isBoolean(datapoints[0][0])) {
-              val.type = 'boolean';
+              idx.points.push(k);
             }
 
-            // Set the default mapping values
-            if (i === 0) {
-              dmapping.x = val.name;
-            } else if (i === 1) {
-              dmapping.y = val.name;
-            } else if (i === 2) {
-              dmapping.z = val.name;
-            }
-
-            this.data[val.name] = val;
-            if (key.points.length === 0) {
-              for (let j = 0; j < datapoints.length; j++) {
-                key.points.push(datapoints[j][1]);
-                val.points.push(datapoints[j][0]);
-                idx.points.push(j);
+            for (let j = 0; j < table.columns.length; j++) {
+              const col = table.columns[j];
+              let val = {
+                name: col.text,
+                type: col.type,
+                missing: 0,
+                idx: j,
+                points: [],
+              };
+              if (j == 0 && val.type === 'time') {
+                // InfluxDB time
+                val = key; // will overwrite the time field
               }
-            } else {
-              for (let j = 0; j < datapoints.length; j++) {
-                if (j >= key.points.length) {
-                  break;
-                }
-                // Make sure it is from the same timestamp
-                if (key.points[j] === datapoints[j][1]) {
+
+              if (!val.type) {
+                val.type = 'number';
+              }
+              for (let k = 0; k < table.rows.length; k++) {
+                val.points.push(table.rows[k][j]);
+              }
+              this.data[val.name] = val;
+            }
+          } else {
+            let datapoints: any[] = dataList[i].datapoints;
+            if (datapoints.length > 0) {
+              let val = {
+                name: dataList[i].target,
+                type: 'number',
+                missing: 0,
+                idx: i,
+                points: [],
+              };
+              if (_.isString(datapoints[0][0])) {
+                val.type = 'string';
+              } else if (_.isBoolean(datapoints[0][0])) {
+                val.type = 'boolean';
+              }
+
+              // Set the default mapping values
+              if (i === 0) {
+                dmapping.x = val.name;
+              } else if (i === 1) {
+                dmapping.y = val.name;
+              } else if (i === 2) {
+                dmapping.z = val.name;
+              }
+
+              this.data[val.name] = val;
+              if (key.points.length === 0) {
+                for (let j = 0; j < datapoints.length; j++) {
+                  key.points.push(datapoints[j][1]);
                   val.points.push(datapoints[j][0]);
-                } else {
-                  val.missing = val.missing + 1;
+                  idx.points.push(j);
+                }
+              } else {
+                for (let j = 0; j < datapoints.length; j++) {
+                  if (j >= key.points.length) {
+                    break;
+                  }
+                  // Make sure it is from the same timestamp
+                  if (key.points[j] === datapoints[j][1]) {
+                    val.points.push(datapoints[j][0]);
+                  } else {
+                    val.missing = val.missing + 1;
+                  }
                 }
               }
             }
           }
         }
-      }
 
-      // Maybe overwrite?
-      if (!mapping.x) {
-        mapping.x = dmapping.x;
-      }
-      if (!mapping.y) {
-        mapping.y = dmapping.y;
-      }
-      if (!mapping.z) {
-        mapping.z = dmapping.z;
-      }
-
-      // console.log( "GOT", this.data, mapping );
-
-      let dX = this.data[mapping.x];
-      let dY = this.data[mapping.y];
-      let dZ = null;
-      let dC = null;
-      let dS = null;
-
-      if (!dX) {
-        throw { message: 'Unable to find X: ' + mapping.x };
-      }
-      if (!dY) {
-        dY = dX;
-        dX = '@time';
-      }
-
-      this.traces[0].ts = key.points;
-      this.traces[0].x = dX.points;
-      this.traces[0].y = dY.points;
-
-      if (this.cfg.settings.type === 'scatter3d') {
-        dZ = this.data[mapping.z];
-        if (!dZ) {
-          throw {message: 'Unable to find Z: ' + mapping.z};
+        // Maybe overwrite?
+        if (!mapping.x) {
+          mapping.x = dmapping.x;
         }
-        this.layout.scene.xaxis.title = dX.name;
-        this.layout.scene.yaxis.title = dY.name;
-        this.layout.scene.zaxis.title = dZ.name;
-
-        this.traces[0].z = dZ.points;
-        console.log('3D', this.layout);
-      } else {
-        this.layout.xaxis.title = dX.name;
-        this.layout.yaxis.title = dY.name;
-      }
-
-      this.traces[0].marker = $.extend(true, {}, this.cfg.settings.marker);
-      this.traces[0].line = $.extend(true, {}, this.cfg.settings.line);
-
-      if (mapping.size) {
-        dS = this.data[mapping.size];
-        if (!dS) {
-          throw {message: 'Unable to find Size: ' + mapping.size};
+        if (!mapping.y) {
+          mapping.y = dmapping.y;
         }
-        this.traces[0].marker.size = dS.points;
-      }
+        if (!mapping.z) {
+          mapping.z = dmapping.z;
+        }
 
-      // Set the marker colors
-      if (this.cfg.settings.color_option === 'ramp') {
-        if (!mapping.color) {
-          mapping.color = idx.name;
+        // console.log( "GOT", this.data, mapping );
+
+        let dX = this.data[mapping.x];
+        let dY = this.data[mapping.y];
+        let dZ = null;
+        let dC = null;
+        let dS = null;
+
+        if (!dX) {
+          throw { message: 'Unable to find X: ' + mapping.x };
         }
-        dC = this.data[mapping.color];
-        if (!dC) {
-          throw {message: 'Unable to find Color: ' + mapping.color};
+        if (!dY) {
+          dY = dX;
+          dX = '@time';
         }
-        this.traces[0].marker.color = dC.points;
-      }
+
+        this.traces[i].ts = key.points;
+        this.traces[i].x = dX.points;
+        this.traces[i].y = dY.points;
+
+        if (this.is3d()) {
+          dZ = this.data[mapping.z];
+          if (!dZ) {
+            throw { message: 'Unable to find Z: ' + mapping.z };
+          }
+          this.layout.scene.xaxis.title = dX.name;
+          this.layout.scene.yaxis.title = dY.name;
+          this.layout.scene.zaxis.title = dZ.name;
+
+          this.traces[i].z = dZ.points;
+          console.log('3D', this.layout);
+        } else {
+          this.layout.xaxis.title = dX.name;
+          this.layout.yaxis.title = dY.name;
+        }
+
+        this.traces[i].marker = $.extend(true, {}, this.cfg.settings.marker);
+        this.traces[i].line = $.extend(true, {}, this.cfg.settings.line);
+
+        if (mapping.size) {
+          dS = this.data[mapping.size];
+          if (!dS) {
+            throw { message: 'Unable to find Size: ' + mapping.size };
+          }
+          this.traces[i].marker.size = dS.points;
+        }
+
+        // Set the marker colors
+        if (this.cfg.settings.color_option === 'ramp') {
+          if (!mapping.color) {
+            mapping.color = idx.name;
+          }
+          dC = this.data[mapping.color];
+          if (!dC) {
+            throw {message: 'Unable to find Color: ' + mapping.color};
+          }
+          this.traces[i].marker.color = dC.points;
+        }
+      });
     }
     this.render();
   }
@@ -530,27 +538,28 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       if (target.refId !== undefined) {
         idx++;
 
+        let serieConfig = this.getSerieConfig(target.refId);
         return {
           name: target.refId,
           idx,
           config: this.cfg.layout.xaxis,
           x: val => {
             if (val) {
-              this.cfg.mapping.x = val;
+              serieConfig.mapping.x = val;
             }
-            return this.cfg.mapping.x;
+            return serieConfig.mapping.x;
           },
           y: val => {
             if (val) {
-              this.cfg.mapping.y = val;
+              serieConfig.mapping.y = val;
             }
-            return this.cfg.mapping.y;
+            return serieConfig.mapping.y;
           },
           z: val => {
             if (val) {
-              this.cfg.mapping.z = val;
+              serieConfig.mapping.z = val;
             }
-            return this.cfg.mapping.z;
+            return serieConfig.mapping.z;
           },
         };
       }
@@ -564,8 +573,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this.initalized = false;
     }
 
-    this.traces[0].type = this.cfg.settings.type;
-    this.traces[0].mode = this.cfg.settings.mode;
+    this.traces.forEach(trace => {
+      trace.type = this.cfg.settings.type;
+      trace.mode = this.cfg.settings.mode;
+    });
 
     let axis = [this.cfg.layout.xaxis, this.cfg.layout.yaxis];
     for (let i = 0; i < axis.length; i++) {
@@ -582,6 +593,22 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   is3d() {
     return this.cfg.settings.type === 'scatter3d';
+  }
+
+  getSerieConfig(name) {
+    if (this.cfg[name] === undefined) {
+      this.cfg[name] = {
+        mapping: {
+          x: null,
+          y: null,
+          z: null,
+          color: null,
+          size: null
+        }
+      };
+    }
+
+    return this.cfg[name];
   }
 
   link(scope, elem, attrs, ctrl) {

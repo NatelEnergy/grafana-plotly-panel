@@ -60,7 +60,7 @@
     <div class="section gf-form-group">
       <h5 class="section-heading">X</h5>
 
-      <div class="gf-form" ng-value="metric = ctrl.data[ctrl.panel.pconfig.mapping.x];">
+      <div class="gf-form" ng-value="metric = ctrl.data[ctrl.getSerieConfig(serie.name).mapping.x];">
         <label class="gf-form-label width-7">Metric</label>
         <div class="gf-form-select-wrapper max-width-14">
           <select class="gf-form-input"
@@ -113,7 +113,7 @@
     <div class="section gf-form-group">
       <h5 class="section-heading">Y</h5>
     
-      <div class="gf-form" ng-value="metric = ctrl.data[ctrl.panel.pconfig.mapping.y];">
+      <div class="gf-form" ng-value="metric = ctrl.data[ctrl.getSerieConfig(serie.name).mapping.y];">
         <label class="gf-form-label width-7">Metric</label>
         <div class="gf-form-select-wrapper max-width-14">
           <select class="gf-form-input" ng-model="serie.y" ng-model-options="{ getterSetter: true }" ng-change="ctrl.onConfigChanged()">
@@ -166,7 +166,7 @@
     <div class="section gf-form-group" ng-show="ctrl.is3d();">
       <h5 class="section-heading">Z</h5>
     
-      <div class="gf-form" ng-value="metric = ctrl.data[ctrl.panel.pconfig.mapping.z];">
+      <div class="gf-form" ng-value="metric = ctrl.data[ctrl.getSerieConfig(serie.name).mapping.z];">
         <label class="gf-form-label width-7">Metric</label>
         <div class="gf-form-select-wrapper max-width-14">
           <select class="gf-form-input" ng-model="serie.z" ng-model-options="{ getterSetter: true }" ng-change="ctrl.onConfigChanged()">
