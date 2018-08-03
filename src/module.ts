@@ -336,7 +336,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           z: null,
         };
 
-        let traceConfig = this.getSerieConfig(this.series[i].name);
+        let serieName = this.series[i].name;
+        let traceConfig = this.getSerieConfig(serieName);
+        trace.name = `${serieName}-series`;
 
         //   console.log( "plotly data", dataList);
         let mapping = traceConfig.mapping;
