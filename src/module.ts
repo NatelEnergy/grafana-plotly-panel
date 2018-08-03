@@ -311,34 +311,35 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   onDataReceived(dataList) {
-    this.traces[0].x = [];
-    this.traces[0].y = [];
-    this.traces[0].z = [];
+    this._updateSeries();
+
+    this.series.forEach((serie, i) => {
+      if (this.traces.length <= i) {
+        this.traces.push({});
+      }
+      this.traces[i].x = [];
+      this.traces[i].y = [];
+      this.traces[i].z = [];
+
+      this.traces[i].type = this.cfg.settings.type;
+      this.traces[i].mode = this.cfg.settings.mode;
+    });
 
     this.data = {};
     if (dataList.length < 1) {
       console.log('No data', dataList);
     } else {
-      this._updateSeries();
-
-      this.series.forEach((serie, i) => {
-        if (i + 1 > this.traces.length) {
-          this.traces.push({});
-        }
-        this.traces[i].x = [];
-        this.traces[i].y = [];
-        this.traces[i].z = [];
-
+      this.traces.forEach((trace, i) => {
         let dmapping = {
           x: null,
           y: null,
           z: null,
         };
 
-        let serieConfig = this.getSerieConfig(serie.name);
+        let traceConfig = this.getSerieConfig(this.series[i].name);
 
         //   console.log( "plotly data", dataList);
-        let mapping = serieConfig.mapping;
+        let mapping = traceConfig.mapping;
         let key = {
           name: '@time',
           type: 'ms',
@@ -355,6 +356,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         };
         this.data[key.name] = key;
         this.data[idx.name] = idx;
+        // TODO: maybe move dataList parsing to separate method?
         for (let i = 0; i < dataList.length; i++) {
           if ('table' === dataList[i].type) {
             const table = dataList[i];
@@ -464,9 +466,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           dX = '@time';
         }
 
-        this.traces[i].ts = key.points;
-        this.traces[i].x = dX.points;
-        this.traces[i].y = dY.points;
+        trace.ts = key.points;
+        trace.x = dX.points;
+        trace.y = dY.points;
 
         if (this.is3d()) {
           dZ = this.data[mapping.z];
@@ -477,26 +479,26 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           this.layout.scene.yaxis.title = dY.name;
           this.layout.scene.zaxis.title = dZ.name;
 
-          this.traces[i].z = dZ.points;
+          trace.z = dZ.points;
           console.log('3D', this.layout);
         } else {
           this.layout.xaxis.title = dX.name;
           this.layout.yaxis.title = dY.name;
         }
 
-        this.traces[i].marker = $.extend(true, {}, serieConfig.settings.marker);
-        this.traces[i].line = $.extend(true, {}, serieConfig.settings.line);
+        trace.marker = $.extend(true, {}, traceConfig.settings.marker);
+        trace.line = $.extend(true, {}, traceConfig.settings.line);
 
         if (mapping.size) {
           dS = this.data[mapping.size];
           if (!dS) {
             throw { message: 'Unable to find Size: ' + mapping.size };
           }
-          this.traces[i].marker.size = dS.points;
+          trace.marker.size = dS.points;
         }
 
         // Set the marker colors
-        if (serieConfig.settings.color_option === 'ramp') {
+        if (traceConfig.settings.color_option === 'ramp') {
           if (!mapping.color) {
             mapping.color = idx.name;
           }
@@ -504,7 +506,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           if (!dC) {
             throw { message: 'Unable to find Color: ' + mapping.color };
           }
-          this.traces[i].marker.color = dC.points;
+          trace.marker.color = dC.points;
         }
       });
     }
@@ -552,11 +554,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this.graph.innerHTML = '';
       this.initalized = false;
     }
-
-    this.traces.forEach(trace => {
-      trace.type = this.cfg.settings.type;
-      trace.mode = this.cfg.settings.mode;
-    });
 
     let axis = [this.cfg.layout.xaxis, this.cfg.layout.yaxis];
     for (let i = 0; i < axis.length; i++) {
