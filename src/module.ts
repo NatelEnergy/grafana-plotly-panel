@@ -121,7 +121,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.traces = [{}];
     this.series = [];
     this.segs = {};
-    
+
     this.layout = $.extend(true, {}, this.cfg.layout);
 
     this.events.on('init-edit-mode', this.onInitEditMode.bind(this));
@@ -264,7 +264,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         if (data === undefined || data.points === undefined) {
           return;
         }
-        
+
         if (data.points.length === 0) {
           console.log('Nothing Selected', data);
           return;

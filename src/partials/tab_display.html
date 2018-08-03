@@ -56,7 +56,7 @@
 
     <div class="section gf-form-group">
       <h5 class="section-heading">X</h5>
-    
+
       <div class="gf-form">
         <label class="gf-form-label width-7">Type</label>
         <div class="gf-form-select-wrapper max-width-14">
@@ -68,7 +68,7 @@
           </select>
         </div>
       </div>
-    
+
       <div class="gf-form">
         <label class="gf-form-label width-7">Range</label>
         <div class="gf-form-select-wrapper max-width-14">
@@ -80,7 +80,7 @@
           </select>
         </div>
       </div>
-    
+
       <div class="gf-form" ng-show="ctrl.cfg.layout.xaxis.rangemode === 'between'">
         <label class="gf-form-label width-7">Min</label>
         <input type="number" placeholder="min" ng-model="ctrl.cfg.layout.xaxis.range[0]" class="gf-form-input width-10" ng-blur="ctrl.onConfigChanged()"
@@ -91,7 +91,7 @@
         <input type="number" placeholder="max" ng-model="ctrl.cfg.layout.xaxis.range[1]" class="gf-form-input width-10" ng-blur="ctrl.onConfigChanged()"
         />
       </div>
-    
+
       <gf-form-switch class="gf-form" label="Show Grid:" label-class="gf-form-label width-7" checked="ctrl.cfg.layout.xaxis.showgrid" on-change="ctrl.onConfigChanged()"></gf-form-switch>
       <gf-form-switch class="gf-form" label="Zero Line:" label-class="gf-form-label width-7" checked="ctrl.cfg.layout.xaxis.zeroline" on-change="ctrl.onConfigChanged()"></gf-form-switch>
     </div>
@@ -110,7 +110,7 @@
           </select>
         </div>
       </div>
-    
+
       <div class="gf-form">
         <label class="gf-form-label width-7">Range</label>
         <div class="gf-form-select-wrapper max-width-14">
@@ -122,7 +122,7 @@
           </select>
         </div>
       </div>
-    
+
       <div class="gf-form" ng-show="ctrl.cfg.layout.yaxis.rangemode === 'between'">
         <label class="gf-form-label width-7">Min</label>
         <input type="number" placeholder="min" ng-model="ctrl.cfg.layout.yaxis.range[0]" class="gf-form-input width-10" ng-blur="ctrl.onConfigChanged()"
@@ -133,14 +133,14 @@
         <input type="number" placeholder="max" ng-model="ctrl.cfg.layout.yaxis.range[1]" class="gf-form-input width-10" ng-blur="ctrl.onConfigChanged()"
         />
       </div>
-    
+
       <gf-form-switch class="gf-form" label="Show Grid:" label-class="gf-form-label width-7" checked="ctrl.cfg.layout.yaxis.showgrid" on-change="ctrl.onConfigChanged()"></gf-form-switch>
       <gf-form-switch class="gf-form" label="Zero Line:" label-class="gf-form-label width-7" checked="ctrl.cfg.layout.yaxis.zeroline" on-change="ctrl.onConfigChanged()"></gf-form-switch>
     </div>
 
     <div class="section gf-form-group" ng-show="ctrl.is3d();">
       <h5 class="section-heading">Z</h5>
-    
+
       <div class="gf-form">
         <label class="gf-form-label width-7">Type</label>
         <div class="gf-form-select-wrapper max-width-14">
@@ -152,7 +152,7 @@
           </select>
         </div>
       </div>
-    
+
       <div class="gf-form">
         <label class="gf-form-label width-7">Range</label>
         <div class="gf-form-select-wrapper max-width-14">
@@ -164,7 +164,7 @@
           </select>
         </div>
       </div>
-    
+
       <div class="gf-form" ng-show="ctrl.cfg.layout.zaxis.rangemode === 'between'">
         <label class="gf-form-label width-7">Min</label>
         <input type="number" placeholder="min" ng-model="ctrl.cfg.layout.zaxis.range[0]" class="gf-form-input width-10" ng-blur="ctrl.onConfigChanged()"
@@ -175,7 +175,7 @@
         <input type="number" placeholder="max" ng-model="ctrl.cfg.layout.zaxis.range[1]" class="gf-form-input width-10" ng-blur="ctrl.onConfigChanged()"
         />
       </div>
-    
+
       <gf-form-switch class="gf-form" label="Show Grid:" label-class="gf-form-label width-7" checked="ctrl.cfg.layout.zaxis.showgrid"
         on-change="ctrl.onConfigChanged()"></gf-form-switch>
       <gf-form-switch class="gf-form" label="Zero Line:" label-class="gf-form-label width-7" checked="ctrl.cfg.layout.zaxis.zeroline"
@@ -211,7 +211,7 @@
         &nbsp; {{ yMetric.type }} &nbsp;&nbsp;
         <span ng-show="yMetric.missing > 0">Missing: {{ yMetric.missing }}</span>
       </div>
-    
+
       <div class="gf-form" ng-value="zMetric = ctrl.data[ctrl.getSerieConfig(serie.name).mapping.z];" ng-show="ctrl.is3d();">
         <label class="gf-form-label width-7">Z</label>
         <div class="gf-form-select-wrapper max-width-14">
@@ -226,13 +226,13 @@
 
     <div class="section gf-form-group" ng-show="ctrl.cfg.settings.mode !== 'lines'">
       <h5 class="section-heading">Markers</h5>
-    
+
       <div class="gf-form">
         <label class="gf-form-label width-7">Symbol</label>
         <metric-segment segment="ctrl.segs[serie.name].symbol" get-options="ctrl.getSymbolSegs()" on-change="ctrl.onSegsChanged(serie.name)"></metric-segment>
       </div>
-    
-    
+
+
       <div class="gf-form">
         <label class="gf-form-label width-7">Size</label>
         <div class="gf-form-select-wrapper max-width-14">
@@ -242,13 +242,13 @@
           </select>
         </div>
       </div>
-    
+
       <div class="gf-form" ng-show="!ctrl.cfg.mapping.size">
         <label class="gf-form-label width-7">- Pixels</label>
         <input type="number" class="gf-form-input width-7" ng-model="ctrl.getSerieConfig(serie.name).settings.marker.size" spellcheck="false"
           placeholder="5" ng-blur="ctrl.onConfigChanged()" />
       </div>
-    
+
       <div class="gf-form" ng-show="ctrl.cfg.mapping.size">
         <label class="gf-form-label width-7">- Min</label>
         <input type="number" class="gf-form-input width-7" ng-model="ctrl.getSerieConfig(serie.name).settings.marker.sizemin" spellcheck="false"
@@ -257,7 +257,7 @@
           <i class="fa fa-external-link" aria-hidden="true"></i>
         </a>
       </div>
-    
+
       <div class="gf-form" ng-show="ctrl.cfg.mapping.size">
         <label class="gf-form-label width-7">- Ref</label>
         <input type="number" class="gf-form-input width-7" ng-model="ctrl.getSerieConfig(serie.name).settings.marker.sizeref" spellcheck="false"
@@ -278,7 +278,7 @@
           <i class="fa fa-external-link" aria-hidden="true"></i>
         </a>
       </div>
-    
+
       <div class="gf-form">
         <label class="gf-form-label width-7">Color</label>
         <div class="gf-form-select-wrapper max-width-14">
@@ -288,7 +288,7 @@
           </select>
         </div>
       </div>
-    
+
       <div class="gf-form" ng-show="ctrl.getSerieConfig(serie.name).settings.color_option == 'solid'">
         <label class="gf-form-label width-7">- Solid</label>
         <input type="text" placeholder="text" ng-model="ctrl.getSerieConfig(serie.name).settings.marker.color" class="gf-form-input width-10"
@@ -297,7 +297,7 @@
           <spectrum-picker ng-model="ctrl.getSerieConfig(serie.name).settings.marker.color" ng-blur="ctrl.onConfigChanged()" />
         </span>
       </div>
-    
+
       <div class="gf-form" ng-show="ctrl.getSerieConfig(serie.name).settings.color_option == 'ramp'">
         <label class="gf-form-label width-7">- Metric</label>
         <div class="gf-form-select-wrapper max-width-14">
@@ -306,7 +306,7 @@
           </select>
         </div>
       </div>
-    
+
       <div class="gf-form" ng-show="ctrl.getSerieConfig(serie.name).settings.color_option != 'solid'">
         <label class="gf-form-label width-7">- Scale</label>
         <div class="gf-form-select-wrapper max-width-14">
@@ -331,10 +331,10 @@
       <gf-form-switch ng-show="ctrl.getSerieConfig(serie.name).settings.color_option != 'solid'" class="gf-form" label="- Show" label-class="gf-form-label width-7"
         checked="ctrl.getSerieConfig(serie.name).settings.marker.showscale" on-change="ctrl.onConfigChanged()"></gf-form-switch>
     </div>
-    
+
     <div class="section gf-form-group" ng-show="ctrl.cfg.settings.mode !== 'markers'">
       <h5 class="section-heading">Lines</h5>
-    
+
       <div class="gf-form">
         <label class="gf-form-label width-7">Size</label>
         <input type="number" class="gf-form-input width-6" ng-model="ctrl.getSerieConfig(serie.name).settings.line.width" spellcheck="false" placeholder="2"
@@ -366,7 +366,7 @@
           </select>
         </div>
       </div>
-    
+
       <div class="gf-form">
         <label class="gf-form-label width-7">Color</label>
         <input type="text" placeholder="text" ng-model="ctrl.getSerieConfig(serie.name).settings.line.color" class="gf-form-input width-10" ng-blur="ctrl.onConfigChanged()"
@@ -375,7 +375,7 @@
           <spectrum-picker ng-model="ctrl.getSerieConfig(serie.name).settings.line.color" ng-blur="ctrl.onConfigChanged()" />
         </span>
       </div>
-    
+
     </div>
 
   </div>
