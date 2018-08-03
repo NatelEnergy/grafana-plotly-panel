@@ -17,6 +17,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   defaults = {
     pconfig: {
+      series: [],
       settings: {
         type: 'scatter',
         mode: 'lines+markers',
@@ -80,7 +81,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   cfg: any;
 
   // Used for the editor control
-  subTabIndex: 0;
+  subTabIndex: number;
 
   /** @ngInject **/
   constructor($scope, $injector, $window, private $rootScope, private uiSegmentSrv) {
@@ -120,7 +121,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
     this.traces = [{}];
     this.series = [];
-    this.segs = {};
+    this.segs = [];
+
+    this._updateSeries();
 
     this.layout = $.extend(true, {}, this.cfg.layout);
 
@@ -179,17 +182,11 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.subTabIndex = 0; // select the options
   }
 
-  isSerieVisible(serie) {
-    let target = _.find(this.panel.targets, target => target.refId === serie.name);
-
-    return !target.hide;
-  }
-
-  onSegsChanged(serie) {
-    this.getSerieConfig(serie).settings.marker.symbol = this.segs[serie].symbol.value;
+  onSegsChanged(idx) {
+    this.getSerieConfig(idx).settings.marker.symbol = this.segs[idx].symbol.value;
     this.onConfigChanged();
 
-    console.log(this.segs[serie].symbol, this.cfg);
+    console.log(this.segs[idx].symbol, this.cfg);
   }
 
   onPanelInitalized() {
@@ -318,24 +315,16 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   onDataReceived(dataList) {
-    this._updateSeries();
-    console.log(this.series)
-    this.series.forEach((serie, i) => {
-      if (this.traces.length <= i) {
+    this.series.forEach((serie, idx) => {
+      if (this.traces.length <= idx) {
         this.traces.push({});
       }
-      this.traces[i].x = [];
-      this.traces[i].y = [];
-      this.traces[i].z = [];
+      this.traces[idx].x = [];
+      this.traces[idx].y = [];
+      this.traces[idx].z = [];
 
-      this.traces[i].type = this.cfg.settings.type;
-      this.traces[i].mode = this.cfg.settings.mode;
-
-      this.segs[serie.name] = {
-        symbol: this.uiSegmentSrv.newSegment({
-          value: this.getSerieConfig(serie.name).settings.marker.symbol,
-        }),
-      };
+      this.traces[idx].type = this.cfg.settings.type;
+      this.traces[idx].mode = this.cfg.settings.mode;
     });
 
     this.data = {};
@@ -349,9 +338,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           z: null,
         };
 
-        let serieName = this.series[i].name;
-        let traceConfig = this.getSerieConfig(serieName);
-        trace.name = `${serieName}-series`;
+        let traceConfig = this.getSerieConfig(i);
+        trace.name = traceConfig.name || `trace ${i + 1}`;
 
         //   console.log( "plotly data", dataList);
         let mapping = traceConfig.mapping;
@@ -529,38 +517,60 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   _updateSeries() {
-    let idx = 0;
+    this.series = this.cfg.series.map((serie, idx) => {
+      let serieClone = _.cloneDeep(serie);
+      serieClone.x = val => {
+        if (val) {
+          serie.mapping.x = val;
+        }
+        return serie.mapping.x;
+      };
+      serieClone.y = val => {
+        if (val) {
+          serie.mapping.y = val;
+        }
+        return serie.mapping.y;
+      };
+      serieClone.z = val => {
+        if (val) {
+          serie.mapping.z = val;
+        }
+        return serie.mapping.z;
+      };
 
-    this.series = _.reduce(this.panel.targets, (result, target) => {
-      if (target.refId !== undefined) {
-        idx++;
-
-        let serieConfig = this.getSerieConfig(target.refId);
-        result.push({
-          name: target.refId,
-          idx,
-          x: val => {
-            if (val) {
-              serieConfig.mapping.x = val;
-            }
-            return serieConfig.mapping.x;
-          },
-          y: val => {
-            if (val) {
-              serieConfig.mapping.y = val;
-            }
-            return serieConfig.mapping.y;
-          },
-          z: val => {
-            if (val) {
-              serieConfig.mapping.z = val;
-            }
-            return serieConfig.mapping.z;
-          },
+      if (this.segs.length <= idx) {
+        this.segs.push({
+          symbol: this.uiSegmentSrv.newSegment({
+            value: this.getSerieConfig(idx).settings.marker.symbol,
+          }),
         });
-        return result;
       }
-    }, []);
+
+      return serieClone;
+    });
+    this.refresh();
+  }
+
+  createSerie() {
+    this.cfg.series.push({
+      name: ''
+    });
+    this._updateSeries();
+    this.subTabIndex = this.series.length;
+  }
+
+  removeSerie(idx) {
+    this.cfg.series.splice(idx, 1);
+    this.series.splice(idx, 1);
+    this.traces.splice(idx, 1);
+    this.segs.splice(idx, 1);
+    this.subTabIndex = this.series.length;
+    this.refresh();
+  }
+
+  onChangeName(idx, name) {
+    this.getSerieConfig(idx).name = name;
+    this.refresh();
   }
 
   onConfigChanged() {
@@ -587,12 +597,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     return this.cfg.settings.type === 'scatter3d';
   }
 
-  getSerieConfig(name) {
-    if (this.cfg[name] === undefined) {
-      this.cfg[name] = {};
+  getSerieConfig(idx) {
+    if (this.cfg.series[idx] === undefined) {
+      this.createSerie();
     }
 
-    this.cfg[name] = _.defaults(this.cfg[name], {
+    this.cfg.series[idx] = _.defaultsDeep(this.cfg.series[idx], {
       mapping: {
         x: null,
         y: null,
@@ -625,7 +635,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       }
     });
 
-    return this.cfg[name];
+    return this.cfg.series[idx];
   }
 
   link(scope, elem, attrs, ctrl) {

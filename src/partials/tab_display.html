@@ -2,14 +2,17 @@
 <div class="edit-tab-with-sidemenu">
   <aside class="edit-sidemenu-aside">
     <ul class="edit-sidemenu">
-      <li ng-class="{active: ctrl.subTabIndex === 0}">
+      <li ng-class="{ active: ctrl.subTabIndex === 0 }">
         <a ng-click="ctrl.subTabIndex = 0">Plot</a>
       </li>
       <li
         ng-repeat="serie in ctrl.series"
-        ng-show="ctrl.isSerieVisible(serie);"
-        ng-class="{active: ctrl.subTabIndex === serie.idx}">
-        <a ng-click="ctrl.subTabIndex = serie.idx">{{ serie.name }}-series</a>
+        ng-class="{ active: ctrl.subTabIndex === $index + 1 }">
+        <a ng-click="ctrl.subTabIndex = $index + 1" ng-show="serie.name">{{ serie.name }}</a>
+        <a ng-click="ctrl.subTabIndex = $index + 1" ng-show="!serie.name">trace {{ $index + 1 }}</a>
+      </li>
+      <li>
+        <a ng-click="ctrl.createSerie();">+</a>
       </li>
     </ul>
   </aside>
@@ -184,11 +187,25 @@
 
   </div>
 
-  <div class="edit-tab-content" ng-repeat="serie in ctrl.series" ng-if="ctrl.subTabIndex === serie.idx">
+  <div class="edit-tab-content" ng-repeat="serie in ctrl.series" ng-if="ctrl.subTabIndex === $index + 1">
+    <div class="section gf-form-group">
+      <h5 class="section-heading">Serie</h5>
+
+      <div class="gf-form">
+        <a style="display: inline-block;" ng-click="ctrl.removeSerie($index);">
+          Remove trace <i class="fa fa-trash"></i>
+        </a>
+      </div>
+      <div class="gf-form">
+        <label class="gf-form-label width-7">Name</label>
+        <input class="gf-form-input width-7" ng-model="serie.name" ng-blur="ctrl.onChangeName($index, serie.name);">
+      </div>
+    </div>
+
     <div class="section gf-form-group">
       <h5 class="section-heading">Metrics</h5>
 
-      <div class="gf-form" ng-value="xMetric = ctrl.data[ctrl.getSerieConfig(serie.name).mapping.x];">
+      <div class="gf-form" ng-value="xMetric = ctrl.data[ctrl.getSerieConfig($index).mapping.x];">
         <label class="gf-form-label width-7">X</label>
         <div class="gf-form-select-wrapper max-width-14">
           <select class="gf-form-input"
@@ -201,7 +218,7 @@
         &nbsp; {{ xMetric.type }} &nbsp;&nbsp;  <span ng-show="xMetric.missing > 0">Missing: {{ xMetric.missing }}</span>
       </div>
 
-      <div class="gf-form" ng-value="yMetric = ctrl.data[ctrl.getSerieConfig(serie.name).mapping.y];">
+      <div class="gf-form" ng-value="yMetric = ctrl.data[ctrl.getSerieConfig($index).mapping.y];">
         <label class="gf-form-label width-7">Y</label>
         <div class="gf-form-select-wrapper max-width-14">
           <select class="gf-form-input" ng-model="serie.y" ng-model-options="{ getterSetter: true }" ng-change="ctrl.onConfigChanged()">
@@ -212,7 +229,7 @@
         <span ng-show="yMetric.missing > 0">Missing: {{ yMetric.missing }}</span>
       </div>
 
-      <div class="gf-form" ng-value="zMetric = ctrl.data[ctrl.getSerieConfig(serie.name).mapping.z];" ng-show="ctrl.is3d();">
+      <div class="gf-form" ng-value="zMetric = ctrl.data[ctrl.getSerieConfig($index).mapping.z];" ng-show="ctrl.is3d();">
         <label class="gf-form-label width-7">Z</label>
         <div class="gf-form-select-wrapper max-width-14">
           <select class="gf-form-input" ng-model="serie.z" ng-model-options="{ getterSetter: true }" ng-change="ctrl.onConfigChanged()">
@@ -229,7 +246,7 @@
 
       <div class="gf-form">
         <label class="gf-form-label width-7">Symbol</label>
-        <metric-segment segment="ctrl.segs[serie.name].symbol" get-options="ctrl.getSymbolSegs()" on-change="ctrl.onSegsChanged(serie.name)"></metric-segment>
+        <metric-segment segment="ctrl.segs[$index].symbol" get-options="ctrl.getSymbolSegs()" on-change="ctrl.onSegsChanged($index)"></metric-segment>
       </div>
 
 
@@ -245,13 +262,13 @@
 
       <div class="gf-form" ng-show="!ctrl.cfg.mapping.size">
         <label class="gf-form-label width-7">- Pixels</label>
-        <input type="number" class="gf-form-input width-7" ng-model="ctrl.getSerieConfig(serie.name).settings.marker.size" spellcheck="false"
+        <input type="number" class="gf-form-input width-7" ng-model="ctrl.getSerieConfig($index).settings.marker.size" spellcheck="false"
           placeholder="5" ng-blur="ctrl.onConfigChanged()" />
       </div>
 
       <div class="gf-form" ng-show="ctrl.cfg.mapping.size">
         <label class="gf-form-label width-7">- Min</label>
-        <input type="number" class="gf-form-input width-7" ng-model="ctrl.getSerieConfig(serie.name).settings.marker.sizemin" spellcheck="false"
+        <input type="number" class="gf-form-input width-7" ng-model="ctrl.getSerieConfig($index).settings.marker.sizemin" spellcheck="false"
           placeholder="5" ng-blur="ctrl.onConfigChanged()" />
         <a href="https://plot.ly/javascript/reference/#scatter-marker-sizemin">
           <i class="fa fa-external-link" aria-hidden="true"></i>
@@ -260,7 +277,7 @@
 
       <div class="gf-form" ng-show="ctrl.cfg.mapping.size">
         <label class="gf-form-label width-7">- Ref</label>
-        <input type="number" class="gf-form-input width-7" ng-model="ctrl.getSerieConfig(serie.name).settings.marker.sizeref" spellcheck="false"
+        <input type="number" class="gf-form-input width-7" ng-model="ctrl.getSerieConfig($index).settings.marker.sizeref" spellcheck="false"
           placeholder="5" ng-blur="ctrl.onConfigChanged()" />
         <a href="https://plot.ly/javascript/reference/#scatter-marker-sizeref">
           <i class="fa fa-external-link" aria-hidden="true"></i>
@@ -269,7 +286,7 @@
       <div class="gf-form" ng-show="ctrl.cfg.mapping.size">
         <label class="gf-form-label width-7">- Mode</label>
         <div class="gf-form-select-wrapper max-width-14">
-          <select class="gf-form-input" ng-model="ctrl.getSerieConfig(serie.name).settings.marker.sizemode" ng-change="ctrl.onConfigChanged()">
+          <select class="gf-form-input" ng-model="ctrl.getSerieConfig($index).settings.marker.sizemode" ng-change="ctrl.onConfigChanged()">
             <option value="diameter">Diameter</option>
             <option value="area">Area</option>
           </select>
@@ -282,35 +299,35 @@
       <div class="gf-form">
         <label class="gf-form-label width-7">Color</label>
         <div class="gf-form-select-wrapper max-width-14">
-          <select class="gf-form-input" ng-model="ctrl.getSerieConfig(serie.name).settings.color_option" ng-change="ctrl.onConfigChanged()">
+          <select class="gf-form-input" ng-model="ctrl.getSerieConfig($index).settings.color_option" ng-change="ctrl.onConfigChanged()">
             <option value="ramp">Ramp</option>
             <option value="solid">Solid</option>
           </select>
         </div>
       </div>
 
-      <div class="gf-form" ng-show="ctrl.getSerieConfig(serie.name).settings.color_option == 'solid'">
+      <div class="gf-form" ng-show="ctrl.getSerieConfig($index).settings.color_option == 'solid'">
         <label class="gf-form-label width-7">- Solid</label>
-        <input type="text" placeholder="text" ng-model="ctrl.getSerieConfig(serie.name).settings.marker.color" class="gf-form-input width-10"
+        <input type="text" placeholder="text" ng-model="ctrl.getSerieConfig($index).settings.marker.color" class="gf-form-input width-10"
           ng-blur="ctrl.onConfigChanged()" />
         <span class="gf-form-label">
-          <spectrum-picker ng-model="ctrl.getSerieConfig(serie.name).settings.marker.color" ng-blur="ctrl.onConfigChanged()" />
+          <spectrum-picker ng-model="ctrl.getSerieConfig($index).settings.marker.color" ng-blur="ctrl.onConfigChanged()" />
         </span>
       </div>
 
-      <div class="gf-form" ng-show="ctrl.getSerieConfig(serie.name).settings.color_option == 'ramp'">
+      <div class="gf-form" ng-show="ctrl.getSerieConfig($index).settings.color_option == 'ramp'">
         <label class="gf-form-label width-7">- Metric</label>
         <div class="gf-form-select-wrapper max-width-14">
-          <select class="gf-form-input" ng-model="ctrl.getSerieConfig(serie.name).mapping.color" ng-change="ctrl.onConfigChanged()">
+          <select class="gf-form-input" ng-model="ctrl.getSerieConfig($index).mapping.color" ng-change="ctrl.onConfigChanged()">
             <option ng-repeat="(key, value) in ctrl.data" value="{{key}}">{{key}}</option>
           </select>
         </div>
       </div>
 
-      <div class="gf-form" ng-show="ctrl.getSerieConfig(serie.name).settings.color_option != 'solid'">
+      <div class="gf-form" ng-show="ctrl.getSerieConfig($index).settings.color_option != 'solid'">
         <label class="gf-form-label width-7">- Scale</label>
         <div class="gf-form-select-wrapper max-width-14">
-          <select class="gf-form-input" ng-model="ctrl.getSerieConfig(serie.name).settings.marker.colorscale" ng-change="ctrl.onConfigChanged()">
+          <select class="gf-form-input" ng-model="ctrl.getSerieConfig($index).settings.marker.colorscale" ng-change="ctrl.onConfigChanged()">
             <option value="xxx">Default</option>
             <option value="RdBu">RdBu</option>
             <option value="Earth">Earth</option>
@@ -328,8 +345,8 @@
           </select>
         </div>
       </div>
-      <gf-form-switch ng-show="ctrl.getSerieConfig(serie.name).settings.color_option != 'solid'" class="gf-form" label="- Show" label-class="gf-form-label width-7"
-        checked="ctrl.getSerieConfig(serie.name).settings.marker.showscale" on-change="ctrl.onConfigChanged()"></gf-form-switch>
+      <gf-form-switch ng-show="ctrl.getSerieConfig($index).settings.color_option != 'solid'" class="gf-form" label="- Show" label-class="gf-form-label width-7"
+        checked="ctrl.getSerieConfig($index).settings.marker.showscale" on-change="ctrl.onConfigChanged()"></gf-form-switch>
     </div>
 
     <div class="section gf-form-group" ng-show="ctrl.cfg.settings.mode !== 'markers'">
@@ -337,13 +354,13 @@
 
       <div class="gf-form">
         <label class="gf-form-label width-7">Size</label>
-        <input type="number" class="gf-form-input width-6" ng-model="ctrl.getSerieConfig(serie.name).settings.line.width" spellcheck="false" placeholder="2"
+        <input type="number" class="gf-form-input width-6" ng-model="ctrl.getSerieConfig($index).settings.line.width" spellcheck="false" placeholder="2"
           ng-blur="ctrl.onConfigChanged()" />
       </div>
       <div class="gf-form">
         <label class="gf-form-label width-7">Shape</label>
         <div class="gf-form-select-wrapper max-width-14">
-          <select class="gf-form-input" ng-model="ctrl.getSerieConfig(serie.name).settings.line.shape" ng-change="ctrl.onConfigChanged()">
+          <select class="gf-form-input" ng-model="ctrl.getSerieConfig($index).settings.line.shape" ng-change="ctrl.onConfigChanged()">
             <option value="linear">linear</option>
             <option value="spline">spline</option>
             <option value="vhv">vhv</option>
@@ -356,7 +373,7 @@
       <div class="gf-form">
         <label class="gf-form-label width-7">Dash</label>
         <div class="gf-form-select-wrapper max-width-14">
-          <select class="gf-form-input" ng-model="ctrl.getSerieConfig(serie.name).settings.line.dash" ng-change="ctrl.onConfigChanged()">
+          <select class="gf-form-input" ng-model="ctrl.getSerieConfig($index).settings.line.dash" ng-change="ctrl.onConfigChanged()">
             <option value="solid">solid</option>
             <option value="dot">dot</option>
             <option value="dash">dash</option>
@@ -369,10 +386,10 @@
 
       <div class="gf-form">
         <label class="gf-form-label width-7">Color</label>
-        <input type="text" placeholder="text" ng-model="ctrl.getSerieConfig(serie.name).settings.line.color" class="gf-form-input width-10" ng-blur="ctrl.onConfigChanged()"
+        <input type="text" placeholder="text" ng-model="ctrl.getSerieConfig($index).settings.line.color" class="gf-form-input width-10" ng-blur="ctrl.onConfigChanged()"
         />
         <span class="gf-form-label">
-          <spectrum-picker ng-model="ctrl.getSerieConfig(serie.name).settings.line.color" ng-blur="ctrl.onConfigChanged()" />
+          <spectrum-picker ng-model="ctrl.getSerieConfig($index).settings.line.color" ng-blur="ctrl.onConfigChanged()" />
         </span>
       </div>
 
