@@ -120,6 +120,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
     this.traces = [{}];
     this.series = [];
+    this.segs = {};
     
     this.layout = $.extend(true, {}, this.cfg.layout);
 
@@ -175,11 +176,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     );
     //  this.editorTabIndex = 1;
     this.refresh();
-    this.segs = {
-      symbol: this.uiSegmentSrv.newSegment({
-        value: this.cfg.settings.marker.symbol,
-      }),
-    };
     this.subTabIndex = 0; // select the options
   }
 
@@ -189,11 +185,11 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     return !target.hide;
   }
 
-  onSegsChanged() {
-    this.cfg.settings.marker.symbol = this.segs.symbol.value;
+  onSegsChanged(serie) {
+    this.getSerieConfig(serie).settings.marker.symbol = this.segs[serie].symbol.value;
     this.onConfigChanged();
 
-    console.log(this.segs.symbol, this.cfg);
+    console.log(this.segs[serie].symbol, this.cfg);
   }
 
   onPanelInitalized() {
@@ -323,7 +319,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   onDataReceived(dataList) {
     this._updateSeries();
-
+    console.log(this.series)
     this.series.forEach((serie, i) => {
       if (this.traces.length <= i) {
         this.traces.push({});
@@ -334,6 +330,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
       this.traces[i].type = this.cfg.settings.type;
       this.traces[i].mode = this.cfg.settings.mode;
+
+      this.segs[serie.name] = {
+        symbol: this.uiSegmentSrv.newSegment({
+          value: this.getSerieConfig(serie.name).settings.marker.symbol,
+        }),
+      };
     });
 
     this.data = {};
@@ -529,12 +531,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   _updateSeries() {
     let idx = 0;
 
-    this.series = _.map(this.panel.targets, target => {
+    this.series = _.reduce(this.panel.targets, (result, target) => {
       if (target.refId !== undefined) {
         idx++;
 
         let serieConfig = this.getSerieConfig(target.refId);
-        return {
+        result.push({
           name: target.refId,
           idx,
           x: val => {
@@ -555,9 +557,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
             }
             return serieConfig.mapping.z;
           },
-        };
+        });
+        return result;
       }
-    });
+    }, []);
   }
 
   onConfigChanged() {

@@ -229,7 +229,7 @@
     
       <div class="gf-form">
         <label class="gf-form-label width-7">Symbol</label>
-        <metric-segment segment="ctrl.segs.symbol" get-options="ctrl.getSymbolSegs()" on-change="ctrl.onSegsChanged()"></metric-segment>
+        <metric-segment segment="ctrl.segs[serie.name].symbol" get-options="ctrl.getSymbolSegs()" on-change="ctrl.onSegsChanged(serie.name)"></metric-segment>
       </div>
     
     
@@ -301,7 +301,7 @@
       <div class="gf-form" ng-show="ctrl.getSerieConfig(serie.name).settings.color_option == 'ramp'">
         <label class="gf-form-label width-7">- Metric</label>
         <div class="gf-form-select-wrapper max-width-14">
-          <select class="gf-form-input" ng-model="ctrl.cfg.mapping.color" ng-change="ctrl.onConfigChanged()">
+          <select class="gf-form-input" ng-model="ctrl.getSerieConfig(serie.name).mapping.color" ng-change="ctrl.onConfigChanged()">
             <option ng-repeat="(key, value) in ctrl.data" value="{{key}}">{{key}}</option>
           </select>
         </div>
