@@ -223,7 +223,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       Plotly.newPlot(this.graph, this.traces, this.layout, options);
 
       this.graph.on('plotly_click', data => {
-        if (data.points === undefined) {
+        if (data === undefined || data.points === undefined) {
           return;
         }
         for (let i = 0; i < data.points.length; i++) {
@@ -260,7 +260,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       // }
 
       this.graph.on('plotly_selected', data => {
-        if (data.points === undefined) {
+        if (data === undefined || data.points === undefined) {
           return;
         }
         
