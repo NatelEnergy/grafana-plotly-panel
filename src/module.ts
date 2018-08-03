@@ -223,6 +223,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       Plotly.newPlot(this.graph, this.traces, this.layout, options);
 
       this.graph.on('plotly_click', data => {
+        if (data.points === undefined) {
+          return;
+        }
         for (let i = 0; i < data.points.length; i++) {
           let idx = data.points[i].pointNumber;
           // TODO: handle clicks on different traces
@@ -257,8 +260,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       // }
 
       this.graph.on('plotly_selected', data => {
+        if (data.points === undefined) {
+          return;
+        }
+        
         if (data.points.length === 0) {
-          console.log('Nothign Selected', data);
+          console.log('Nothing Selected', data);
           return;
         }
 
