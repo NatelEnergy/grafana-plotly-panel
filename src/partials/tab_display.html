@@ -186,10 +186,10 @@
 
   <div class="edit-tab-content" ng-repeat="serie in ctrl.series" ng-if="ctrl.subTabIndex === serie.idx">
     <div class="section gf-form-group">
-      <h5 class="section-heading">X</h5>
+      <h5 class="section-heading">Metrics</h5>
 
-      <div class="gf-form" ng-value="metric = ctrl.data[ctrl.getSerieConfig(serie.name).mapping.x];">
-        <label class="gf-form-label width-7">Metric</label>
+      <div class="gf-form" ng-value="xMetric = ctrl.data[ctrl.getSerieConfig(serie.name).mapping.x];">
+        <label class="gf-form-label width-7">X</label>
         <div class="gf-form-select-wrapper max-width-14">
           <select class="gf-form-input"
             ng-model="serie.x"
@@ -198,37 +198,29 @@
             <option ng-repeat="(key, value) in ctrl.data" value="{{key}}">{{key}}</option>
           </select>
         </div>
-        &nbsp; {{ metric.type }} &nbsp;&nbsp;  <span ng-show="metric.missing > 0">Missing: {{ metric.missing }}</span>
+        &nbsp; {{ xMetric.type }} &nbsp;&nbsp;  <span ng-show="xMetric.missing > 0">Missing: {{ xMetric.missing }}</span>
       </div>
-    </div>
 
-    <div class="section gf-form-group">
-      <h5 class="section-heading">Y</h5>
-    
-      <div class="gf-form" ng-value="metric = ctrl.data[ctrl.getSerieConfig(serie.name).mapping.y];">
-        <label class="gf-form-label width-7">Metric</label>
+      <div class="gf-form" ng-value="yMetric = ctrl.data[ctrl.getSerieConfig(serie.name).mapping.y];">
+        <label class="gf-form-label width-7">Y</label>
         <div class="gf-form-select-wrapper max-width-14">
           <select class="gf-form-input" ng-model="serie.y" ng-model-options="{ getterSetter: true }" ng-change="ctrl.onConfigChanged()">
             <option ng-repeat="(key, value) in ctrl.data" value="{{key}}">{{key}}</option>
           </select>
         </div>
-        &nbsp; {{ metric.type }} &nbsp;&nbsp;
-        <span ng-show="metric.missing > 0">Missing: {{ metric.missing }}</span>
+        &nbsp; {{ yMetric.type }} &nbsp;&nbsp;
+        <span ng-show="yMetric.missing > 0">Missing: {{ yMetric.missing }}</span>
       </div>
-    </div>
-
-    <div class="section gf-form-group" ng-show="ctrl.is3d();">
-      <h5 class="section-heading">Z</h5>
     
-      <div class="gf-form" ng-value="metric = ctrl.data[ctrl.getSerieConfig(serie.name).mapping.z];">
-        <label class="gf-form-label width-7">Metric</label>
+      <div class="gf-form" ng-value="zMetric = ctrl.data[ctrl.getSerieConfig(serie.name).mapping.z];" ng-show="ctrl.is3d();">
+        <label class="gf-form-label width-7">Z</label>
         <div class="gf-form-select-wrapper max-width-14">
           <select class="gf-form-input" ng-model="serie.z" ng-model-options="{ getterSetter: true }" ng-change="ctrl.onConfigChanged()">
             <option ng-repeat="(key, value) in ctrl.data" value="{{key}}">{{key}}</option>
           </select>
         </div>
-        &nbsp; {{ metric.type }} &nbsp;&nbsp;
-        <span ng-show="metric.missing > 0">Missing: {{ metric.missing }}</span>
+        &nbsp; {{ zMetric.type }} &nbsp;&nbsp;
+        <span ng-show="zMetric.missing > 0">Missing: {{ zMetric.missing }}</span>
       </div>
     </div>
 
