@@ -228,7 +228,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         }
         for (let i = 0; i < data.points.length; i++) {
           let idx = data.points[i].pointNumber;
-          // TODO: handle clicks on different traces
           let ts = this.traces[0].ts[idx];
           // console.log( 'CLICK!!!', ts, data );
           let msg =
@@ -276,7 +275,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
         for (let i = 0; i < data.points.length; i++) {
           let idx = data.points[i].pointNumber;
-          // TODO: handle different traces selection
           let ts = this.traces[0].ts[idx];
           min = Math.min(min, ts);
           max = Math.max(max, ts);
