@@ -564,7 +564,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.series.splice(idx, 1);
     this.traces.splice(idx, 1);
     this.segs.splice(idx, 1);
-    this.subTabIndex = this.series.length;
+    this.subTabIndex--;
     this.refresh();
   }
 

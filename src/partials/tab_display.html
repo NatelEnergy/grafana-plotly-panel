@@ -12,7 +12,17 @@
         <a ng-click="ctrl.subTabIndex = $index + 1" ng-show="!serie.name">trace {{ $index + 1 }}</a>
       </li>
       <li>
-        <a ng-click="ctrl.createSerie();">+</a>
+        <!-- TODO: Better move style to CSS file -->
+        <button class="btn btn-success" ng-click="ctrl.createSerie();" style="margin-bottom: 5px;">
+          <i class="fa fa-plus"></i>
+          Add trace
+        </button>
+      </li>
+      <li>
+        <button class="btn btn-danger" ng-click="ctrl.removeSerie($index);" ng-show="ctrl.subTabIndex !== 0">
+          <i class="fa fa-trash"></i>
+          Delete trace
+        </button>
       </li>
     </ul>
   </aside>
@@ -204,13 +214,8 @@
 
   <div class="edit-tab-content" ng-repeat="serie in ctrl.series" ng-if="ctrl.subTabIndex === $index + 1">
     <div class="section gf-form-group">
-      <h5 class="section-heading">Serie</h5>
+      <h5 class="section-heading">Trace</h5>
 
-      <div class="gf-form">
-        <a style="display: inline-block;" ng-click="ctrl.removeSerie($index);">
-          Remove trace <i class="fa fa-trash"></i>
-        </a>
-      </div>
       <div class="gf-form">
         <label class="gf-form-label width-7">Name</label>
         <input class="gf-form-input width-7" ng-model="serie.name" ng-blur="ctrl.onChangeName($index, serie.name);">
