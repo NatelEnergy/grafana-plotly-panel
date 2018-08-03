@@ -40,7 +40,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           l: 65,
           r: 20,
         },
-        // TODO: make xaxis and yaxis settings differ in traces
         xaxis: {
           showgrid: true,
           zeroline: false,
@@ -49,6 +48,13 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" )
         },
         yaxis: {
+          showgrid: true,
+          zeroline: false,
+          type: 'linear',
+          gridcolor: '#444444',
+          rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" )
+        },
+        zaxis: {
           showgrid: true,
           zeroline: false,
           type: 'linear',
@@ -531,7 +537,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         return {
           name: target.refId,
           idx,
-          config: this.cfg.layout.xaxis,
           x: val => {
             if (val) {
               serieConfig.mapping.x = val;
