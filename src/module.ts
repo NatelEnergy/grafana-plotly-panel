@@ -478,15 +478,15 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           if (!dZ) {
             throw { message: 'Unable to find Z: ' + mapping.z };
           }
-          this.layout.scene.xaxis.title = dX.name;
-          this.layout.scene.yaxis.title = dY.name;
-          this.layout.scene.zaxis.title = dZ.name;
+          this.layout.scene.xaxis.title = this.cfg.layout.xaxis.title || dX.name;
+          this.layout.scene.yaxis.title = this.cfg.layout.yaxis.title || dY.name;
+          this.layout.scene.zaxis.title = this.cfg.layout.zaxis.title || dZ.name;
 
           trace.z = dZ.points;
           console.log('3D', this.layout);
         } else {
-          this.layout.xaxis.title = dX.name;
-          this.layout.yaxis.title = dY.name;
+          this.layout.xaxis.title = this.cfg.layout.xaxis.title || dX.name;
+          this.layout.yaxis.title = this.cfg.layout.yaxis.title || dY.name;
         }
 
         trace.marker = $.extend(true, {}, traceConfig.settings.marker);

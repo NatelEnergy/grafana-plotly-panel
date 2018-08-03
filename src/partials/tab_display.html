@@ -61,6 +61,11 @@
       <h5 class="section-heading">X</h5>
 
       <div class="gf-form">
+        <label class="gf-form-label width-7">Title</label>
+        <input class="gf-form-input width-7" ng-model="ctrl.cfg.layout.xaxis.title" ng-blur="ctrl.refresh();">
+      </div>
+
+      <div class="gf-form">
         <label class="gf-form-label width-7">Type</label>
         <div class="gf-form-select-wrapper max-width-14">
           <select class="gf-form-input" ng-model="ctrl.cfg.layout.xaxis.type" ng-change="ctrl.onConfigChanged()">
@@ -103,6 +108,11 @@
       <h5 class="section-heading">Y</h5>
 
       <div class="gf-form">
+        <label class="gf-form-label width-7">Title</label>
+        <input class="gf-form-input width-7" ng-model="ctrl.cfg.layout.yaxis.title" ng-blur="ctrl.refresh();">
+      </div>
+
+      <div class="gf-form">
         <label class="gf-form-label width-7">Type</label>
         <div class="gf-form-select-wrapper max-width-14">
           <select class="gf-form-input" ng-model="ctrl.cfg.layout.yaxis.type" ng-change="ctrl.onConfigChanged()">
@@ -143,6 +153,11 @@
 
     <div class="section gf-form-group" ng-show="ctrl.is3d();">
       <h5 class="section-heading">Z</h5>
+
+      <div class="gf-form">
+        <label class="gf-form-label width-7">Title</label>
+        <input class="gf-form-input width-7" ng-model="ctrl.cfg.layout.zaxis.title" ng-blur="ctrl.refresh();">
+      </div>
 
       <div class="gf-form">
         <label class="gf-form-label width-7">Type</label>
