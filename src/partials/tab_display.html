@@ -1,27 +1,32 @@
 
 <div class="edit-tab-with-sidemenu">
-  <aside class="edit-sidemenu-aside">
+  <aside class="edit-sidemenu-aside" style="min-width: 100px">
     <ul class="edit-sidemenu">
       <li ng-class="{ active: ctrl.subTabIndex === 0 }">
         <a ng-click="ctrl.subTabIndex = 0">Plot</a>
       </li>
       <li
         ng-repeat="serie in ctrl.series"
-        ng-class="{ active: ctrl.subTabIndex === $index + 1 }">
+        ng-class="{ active: ctrl.subTabIndex === $index + 1 }"
+      >
         <a ng-click="ctrl.subTabIndex = $index + 1" ng-show="serie.name">{{ serie.name }}</a>
         <a ng-click="ctrl.subTabIndex = $index + 1" ng-show="!serie.name">trace {{ $index + 1 }}</a>
       </li>
       <li>
         <!-- TODO: Better move style to CSS file -->
-        <button class="btn btn-success" ng-click="ctrl.createSerie();" style="margin-bottom: 5px;">
+        <button class="btn btn-success" ng-click="ctrl.createSerie();" style="margin-bottom: 5px; width: 100%">
           <i class="fa fa-plus"></i>
-          Add trace
+          Add new
         </button>
       </li>
       <li>
-        <button class="btn btn-danger" ng-click="ctrl.removeSerie($index);" ng-show="ctrl.subTabIndex !== 0">
+        <button 
+          class="btn btn-danger" ng-click="ctrl.removeCurrentSerie();" 
+          ng-show="ctrl.subTabIndex !== 0"
+          style="width: 100%"
+        >
           <i class="fa fa-trash"></i>
-          Delete trace
+          Delete
         </button>
       </li>
     </ul>
@@ -214,51 +219,55 @@
 
   <div class="edit-tab-content" ng-repeat="serie in ctrl.series" ng-if="ctrl.subTabIndex === $index + 1">
     <div class="section gf-form-group">
+
       <h5 class="section-heading">Trace</h5>
-
-      <div class="gf-form">
-        <label class="gf-form-label width-7">Name</label>
-        <input class="gf-form-input width-7" ng-model="serie.name" ng-blur="ctrl.onChangeName($index, serie.name);">
+      <div class="section gf-form-group gf-form-inline">
+        <div class="gf-form">
+          <label class="gf-form-label width-7">Name</label>
+          <input class="gf-form-input width-7" ng-model="serie.name" ng-blur="ctrl.onChangeName($index, serie.name);">
+        </div>
       </div>
-    </div>
 
-    <div class="section gf-form-group">
       <h5 class="section-heading">Metrics</h5>
-
-      <div class="gf-form" ng-value="xMetric = ctrl.data[ctrl.getSerieConfig($index).mapping.x];">
-        <label class="gf-form-label width-7">X</label>
-        <div class="gf-form-select-wrapper max-width-14">
-          <select class="gf-form-input"
-            ng-model="serie.x"
-            ng-model-options="{ getterSetter: true }"
-            ng-change="ctrl.onConfigChanged()">
-            <option ng-repeat="(key, value) in ctrl.data" value="{{key}}">{{key}}</option>
-          </select>
+      <div class="section gf-form-inline">
+        
+        <div class="gf-form" ng-value="xMetric = ctrl.data[ctrl.getSerieConfig($index).mapping.x];">
+          <label class="gf-form-label width-7">X</label>
+          <div class="gf-form-select-wrapper max-width-14">
+            <select class="gf-form-input"
+              ng-model="serie.x"
+              ng-model-options="{ getterSetter: true }"
+              ng-change="ctrl.onConfigChanged()"
+            >
+              <option ng-repeat="(key, value) in ctrl.data" value="{{key}}">{{key}}</option>
+            </select>
+          </div>
+          &nbsp; {{ xMetric.type }} &nbsp;&nbsp;  <span ng-show="xMetric.missing > 0">Missing: {{ xMetric.missing }}</span>
         </div>
-        &nbsp; {{ xMetric.type }} &nbsp;&nbsp;  <span ng-show="xMetric.missing > 0">Missing: {{ xMetric.missing }}</span>
+
+        <div class="gf-form" ng-value="yMetric = ctrl.data[ctrl.getSerieConfig($index).mapping.y];">
+          <label class="gf-form-label width-7">Y</label>
+          <div class="gf-form-select-wrapper max-width-14">
+            <select class="gf-form-input" ng-model="serie.y" ng-model-options="{ getterSetter: true }" ng-change="ctrl.onConfigChanged()">
+              <option ng-repeat="(key, value) in ctrl.data" value="{{key}}">{{key}}</option>
+            </select>
+          </div>
+          &nbsp; {{ yMetric.type }} &nbsp;&nbsp;
+          <span ng-show="yMetric.missing > 0">Missing: {{ yMetric.missing }}</span>
+        </div>
+
+        <div class="gf-form" ng-value="zMetric = ctrl.data[ctrl.getSerieConfig($index).mapping.z];" ng-show="ctrl.is3d();">
+          <label class="gf-form-label width-7">Z</label>
+          <div class="gf-form-select-wrapper max-width-14">
+            <select class="gf-form-input" ng-model="serie.z" ng-model-options="{ getterSetter: true }" ng-change="ctrl.onConfigChanged()">
+              <option ng-repeat="(key, value) in ctrl.data" value="{{key}}">{{key}}</option>
+            </select>
+          </div>
+          &nbsp; {{ zMetric.type }} &nbsp;&nbsp;
+          <span ng-show="zMetric.missing > 0">Missing: {{ zMetric.missing }}</span>
+        </div>
       </div>
 
-      <div class="gf-form" ng-value="yMetric = ctrl.data[ctrl.getSerieConfig($index).mapping.y];">
-        <label class="gf-form-label width-7">Y</label>
-        <div class="gf-form-select-wrapper max-width-14">
-          <select class="gf-form-input" ng-model="serie.y" ng-model-options="{ getterSetter: true }" ng-change="ctrl.onConfigChanged()">
-            <option ng-repeat="(key, value) in ctrl.data" value="{{key}}">{{key}}</option>
-          </select>
-        </div>
-        &nbsp; {{ yMetric.type }} &nbsp;&nbsp;
-        <span ng-show="yMetric.missing > 0">Missing: {{ yMetric.missing }}</span>
-      </div>
-
-      <div class="gf-form" ng-value="zMetric = ctrl.data[ctrl.getSerieConfig($index).mapping.z];" ng-show="ctrl.is3d();">
-        <label class="gf-form-label width-7">Z</label>
-        <div class="gf-form-select-wrapper max-width-14">
-          <select class="gf-form-input" ng-model="serie.z" ng-model-options="{ getterSetter: true }" ng-change="ctrl.onConfigChanged()">
-            <option ng-repeat="(key, value) in ctrl.data" value="{{key}}">{{key}}</option>
-          </select>
-        </div>
-        &nbsp; {{ zMetric.type }} &nbsp;&nbsp;
-        <span ng-show="zMetric.missing > 0">Missing: {{ zMetric.missing }}</span>
-      </div>
     </div>
 
     <div class="section gf-form-group" ng-show="ctrl.cfg.settings.mode !== 'lines'">

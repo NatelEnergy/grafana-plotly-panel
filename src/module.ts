@@ -21,7 +21,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       settings: {
         type: 'scatter',
         mode: 'lines+markers',
-        displayModeBar: false
+        displayModeBar: false,
       },
       layout: {
         autosize: false,
@@ -283,7 +283,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         min -= 1000;
         max += 1000;
 
-        let range = { from: moment.utc(min), to: moment.utc(max) };
+        let range = {from: moment.utc(min), to: moment.utc(max)};
 
         console.log('SELECTED!!!', min, max, data.points.length, range);
 
@@ -348,14 +348,14 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           type: 'ms',
           missing: 0,
           idx: -1,
-          points: []
+          points: [],
         };
         let idx = {
           name: '@index',
           type: 'number',
           missing: 0,
           idx: -1,
-          points: []
+          points: [],
         };
         this.data[key.name] = key;
         this.data[idx.name] = idx;
@@ -364,7 +364,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           if ('table' === dataList[i].type) {
             const table = dataList[i];
             if (i > 0) {
-              throw { message: 'Multiple tables not (yet) supported' };
+              throw {message: 'Multiple tables not (yet) supported'};
             }
 
             for (let k = 0; k < table.rows.length; k++) {
@@ -462,7 +462,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         let dS = null;
 
         if (!dX) {
-          throw { message: 'Unable to find X: ' + mapping.x };
+          throw {message: 'Unable to find X: ' + mapping.x};
         }
         if (!dY) {
           dY = dX;
@@ -476,7 +476,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         if (this.is3d()) {
           dZ = this.data[mapping.z];
           if (!dZ) {
-            throw { message: 'Unable to find Z: ' + mapping.z };
+            throw {message: 'Unable to find Z: ' + mapping.z};
           }
           this.layout.scene.xaxis.title = this.cfg.layout.xaxis.title || dX.name;
           this.layout.scene.yaxis.title = this.cfg.layout.yaxis.title || dY.name;
@@ -495,7 +495,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         if (mapping.size) {
           dS = this.data[mapping.size];
           if (!dS) {
-            throw { message: 'Unable to find Size: ' + mapping.size };
+            throw {message: 'Unable to find Size: ' + mapping.size};
           }
           trace.marker.size = dS.points;
         }
@@ -507,7 +507,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           }
           dC = this.data[mapping.color];
           if (!dC) {
-            throw { message: 'Unable to find Color: ' + mapping.color };
+            throw {message: 'Unable to find Color: ' + mapping.color};
           }
           trace.marker.color = dC.points;
         }
@@ -552,19 +552,18 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   createSerie() {
-    this.cfg.series.push({
-      name: ''
-    });
+    this.cfg.series.push({name: ''});
     this._updateSeries();
     this.subTabIndex = this.series.length;
   }
 
-  removeSerie(idx) {
+  removeCurrentSerie() {
+    let idx = this.subTabIndex - 1; // because first tab is "Plot"
     this.cfg.series.splice(idx, 1);
     this.series.splice(idx, 1);
     this.traces.splice(idx, 1);
     this.segs.splice(idx, 1);
-    this.subTabIndex--;
+    this.subTabIndex = Math.min(this.series.length, this.subTabIndex);
     this.refresh();
   }
 
@@ -608,7 +607,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         y: null,
         z: null,
         color: null,
-        size: null
+        size: null,
       },
       settings: {
         line: {
@@ -631,8 +630,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           },
           showscale: true,
         },
-        color_option: 'ramp'
-      }
+        color_option: 'ramp',
+      },
     });
 
     return this.cfg.series[idx];
