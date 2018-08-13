@@ -81,7 +81,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   cfg: any;
 
   // Used for the editor control
-  subTabIndex: number;
+  traceTabIndex: number;
 
   /** @ngInject **/
   constructor($scope, $injector, $window, private $rootScope, private uiSegmentSrv) {
@@ -177,9 +177,14 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       'public/plugins/natel-plotly-panel/partials/tab_display.html',
       2
     );
+    this.addEditorTab(
+      'Traces',
+      'public/plugins/natel-plotly-panel/partials/tab_traces.html',
+      3
+    );
     //  this.editorTabIndex = 1;
     this.refresh();
-    this.subTabIndex = 0; // select the options
+    this.traceTabIndex = 0; // select the options
   }
 
   onSegsChanged(idx) {
@@ -554,16 +559,15 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   createSerie() {
     this.cfg.series.push({name: ''});
     this._updateSeries();
-    this.subTabIndex = this.series.length;
+    this.traceTabIndex = this.series.length - 1;
   }
 
   removeCurrentSerie() {
-    let idx = this.subTabIndex - 1; // because first tab is "Plot"
-    this.cfg.series.splice(idx, 1);
-    this.series.splice(idx, 1);
-    this.traces.splice(idx, 1);
-    this.segs.splice(idx, 1);
-    this.subTabIndex = Math.min(this.series.length, this.subTabIndex);
+    this.cfg.series.splice(this.traceTabIndex, 1);
+    this.series.splice(this.traceTabIndex, 1);
+    this.traces.splice(this.traceTabIndex, 1);
+    this.segs.splice(this.traceTabIndex, 1);
+    this.traceTabIndex = Math.min(this.series.length - 1, this.traceTabIndex);
     this.refresh();
   }
 
