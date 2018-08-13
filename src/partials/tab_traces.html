@@ -9,16 +9,16 @@
       </li>
       <li>
         <!-- TODO: Better move style to CSS file -->
-        <button 
-          class="btn btn-success" ng-click="ctrl.createTrace();" 
+        <button
+          class="btn btn-success" ng-click="ctrl.createTrace();"
           style="margin-bottom: 5px; width: 100%"
         >
           <i class="fa fa-plus"/> Add new
         </button>
       </li>
       <li>
-        <button 
-          class="btn btn-danger" ng-click="ctrl.removeCurrentTrace();" 
+        <button
+          class="btn btn-danger" ng-click="ctrl.removeCurrentTrace();"
           ng-show="ctrl.traces.length > 1"
           style="width: 100%"
         >
@@ -37,15 +37,15 @@
         <div class="gf-form">
           <label class="gf-form-label width-7">Name</label>
           <input
-            class="gf-form-input width-7" 
-            ng-model="trace.name" ng-change="ctrl.onChangeName($index, trace.name);" 
+            class="gf-form-input width-7"
+            ng-model="trace.name" ng-blur="ctrl.onChangeName($index, trace.name);"
           />
         </div>
       </div>
 
       <h5 class="section-heading">Metrics</h5>
       <div class="section gf-form-inline">
-        
+
         <div class="gf-form" ng-value="xMetric = ctrl.data[ctrl.getTraceConfig($index).mapping.x];">
           <label class="gf-form-label width-7">X</label>
           <div class="gf-form-select-wrapper max-width-14">
@@ -229,8 +229,8 @@
 
       <div class="gf-form">
         <label class="gf-form-label width-7">Color</label>
-        <input type="text" placeholder="text" 
-          ng-model="ctrl.getTraceConfig($index).settings.line.color" class="gf-form-input width-10" 
+        <input type="text" placeholder="text"
+          ng-model="ctrl.getTraceConfig($index).settings.line.color" class="gf-form-input width-10"
           ng-blur="ctrl.onConfigChanged()"
         />
         <span class="gf-form-label">
