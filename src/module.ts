@@ -17,7 +17,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   defaults = {
     pconfig: {
-      series: [],
+      traces: [],
       settings: {
         type: 'scatter',
         mode: 'lines+markers',
@@ -71,10 +71,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     },
   };
 
-  traces: Array<any>;
+  plotlyTraces: Array<any>;
   layout: any;
   graph: any;
-  series: Array<any>;
+  traces: Array<any>;
   segs: any;
   mouse: any;
   data: any;
@@ -119,11 +119,11 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this.cfg.layout.yaxis.gridcolor = color;
     }
 
-    this.traces = [{}];
-    this.series = [];
+    this.plotlyTraces = [{}];
+    this.traces = [];
     this.segs = [];
 
-    this._updateSeries();
+    this._updateTraces();
 
     this.layout = $.extend(true, {}, this.cfg.layout);
 
@@ -188,7 +188,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   onSegsChanged(idx) {
-    this.getSerieConfig(idx).settings.marker.symbol = this.segs[idx].symbol.value;
+    this.getTraceConfig(idx).settings.marker.symbol = this.segs[idx].symbol.value;
     this.onConfigChanged();
 
     console.log(this.segs[idx].symbol, this.cfg);
@@ -224,7 +224,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         this.layout.xaxis.title = old.xaxis.title;
         this.layout.yaxis.title = old.yaxis.title;
       }
-      Plotly.newPlot(this.graph, this.traces, this.layout, options);
+      Plotly.newPlot(this.graph, this.plotlyTraces, this.layout, options);
 
       this.graph.on('plotly_click', data => {
         if (data === undefined || data.points === undefined) {
@@ -232,7 +232,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         }
         for (let i = 0; i < data.points.length; i++) {
           let idx = data.points[i].pointNumber;
-          let ts = this.traces[0].ts[idx];
+          let ts = this.plotlyTraces[0].ts[idx];
           // console.log( 'CLICK!!!', ts, data );
           let msg =
             data.points[i].x.toPrecision(4) + ', ' + data.points[i].y.toPrecision(4);
@@ -279,7 +279,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
         for (let i = 0; i < data.points.length; i++) {
           let idx = data.points[i].pointNumber;
-          let ts = this.traces[0].ts[idx];
+          let ts = this.plotlyTraces[0].ts[idx];
           min = Math.min(min, ts);
           max = Math.max(max, ts);
         }
@@ -320,31 +320,30 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   onDataReceived(dataList) {
-    this.series.forEach((serie, idx) => {
-      if (this.traces.length <= idx) {
-        this.traces.push({});
+    this.traces.forEach((trace, idx) => {
+      if (this.plotlyTraces.length <= idx) {
+        this.plotlyTraces.push({});
       }
-      this.traces[idx].x = [];
-      this.traces[idx].y = [];
-      this.traces[idx].z = [];
+      this.plotlyTraces[idx].x = [];
+      this.plotlyTraces[idx].y = [];
+      this.plotlyTraces[idx].z = [];
 
-      this.traces[idx].type = this.cfg.settings.type;
-      this.traces[idx].mode = this.cfg.settings.mode;
+      this.plotlyTraces[idx].type = this.cfg.settings.type;
+      this.plotlyTraces[idx].mode = this.cfg.settings.mode;
     });
 
     this.data = {};
     if (dataList.length < 1) {
       console.log('No data', dataList);
     } else {
-      this.traces.forEach((trace, i) => {
+      this.plotlyTraces.forEach((trace, i) => {
         let dmapping = {
           x: null,
           y: null,
           z: null,
         };
 
-        let traceConfig = this.getSerieConfig(i);
-        trace.name = traceConfig.name || `trace ${i + 1}`;
+        let traceConfig = this.getTraceConfig(i);
 
         //   console.log( "plotly data", dataList);
         let mapping = traceConfig.mapping;
@@ -521,59 +520,68 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.render();
   }
 
-  _updateSeries() {
-    this.series = this.cfg.series.map((serie, idx) => {
-      let serieClone = _.cloneDeep(serie);
-      serieClone.x = val => {
+  _updateTraces() {
+    this.traces = this.cfg.traces.map((trace, idx) => {
+      let traceClone = _.cloneDeep(trace);
+      traceClone.x = val => {
         if (val) {
-          serie.mapping.x = val;
+          trace.mapping.x = val;
         }
-        return serie.mapping.x;
+        return trace.mapping.x;
       };
-      serieClone.y = val => {
+      traceClone.y = val => {
         if (val) {
-          serie.mapping.y = val;
+          trace.mapping.y = val;
         }
-        return serie.mapping.y;
+        return trace.mapping.y;
       };
-      serieClone.z = val => {
+      traceClone.z = val => {
         if (val) {
-          serie.mapping.z = val;
+          trace.mapping.z = val;
         }
-        return serie.mapping.z;
+        return trace.mapping.z;
       };
 
       if (this.segs.length <= idx) {
         this.segs.push({
           symbol: this.uiSegmentSrv.newSegment({
-            value: this.getSerieConfig(idx).settings.marker.symbol,
+            value: this.getTraceConfig(idx).settings.marker.symbol,
           }),
         });
       }
 
-      return serieClone;
+      return traceClone;
     });
     this.refresh();
   }
 
-  createSerie() {
-    this.cfg.series.push({name: ''});
-    this._updateSeries();
-    this.traceTabIndex = this.series.length - 1;
+  createTrace() {
+    let name = PlotlyPanelCtrl.createTraceName(this.traces.length);
+    this.cfg.traces.push({name});
+    this._updateTraces();
+    this.traceTabIndex = this.traces.length - 1;
   }
 
-  removeCurrentSerie() {
-    this.cfg.series.splice(this.traceTabIndex, 1);
-    this.series.splice(this.traceTabIndex, 1);
+  removeCurrentTrace() {
+    this.cfg.traces.splice(this.traceTabIndex, 1);
     this.traces.splice(this.traceTabIndex, 1);
+    this.plotlyTraces.splice(this.traceTabIndex, 1);
     this.segs.splice(this.traceTabIndex, 1);
-    this.traceTabIndex = Math.min(this.series.length - 1, this.traceTabIndex);
+    this.traceTabIndex = Math.min(this.traces.length - 1, this.traceTabIndex);
     this.refresh();
   }
 
-  onChangeName(idx, name) {
-    this.getSerieConfig(idx).name = name;
+  onChangeName(idx: number, name: string) {
+    if (name === '') {
+      name = PlotlyPanelCtrl.createTraceName(idx);
+      this.traces[idx].name = name;
+    }
+    this.getTraceConfig(idx).name = name;
     this.refresh();
+  }
+
+  static createTraceName(idx: number) {
+    return 'trace ' + (idx + 1);
   }
 
   onConfigChanged() {
@@ -600,12 +608,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     return this.cfg.settings.type === 'scatter3d';
   }
 
-  getSerieConfig(idx) {
-    if (this.cfg.series[idx] === undefined) {
-      this.createSerie();
+  getTraceConfig(idx) {
+    if (this.cfg.traces[idx] === undefined) {
+      this.createTrace();
     }
 
-    this.cfg.series[idx] = _.defaultsDeep(this.cfg.series[idx], {
+    this.cfg.traces[idx] = _.defaultsDeep(this.cfg.traces[idx], {
       mapping: {
         x: null,
         y: null,
@@ -638,7 +646,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       },
     });
 
-    return this.cfg.series[idx];
+    return this.cfg.traces[idx];
   }
 
   link(scope, elem, attrs, ctrl) {
