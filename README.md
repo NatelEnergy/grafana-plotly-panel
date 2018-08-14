@@ -6,6 +6,8 @@
 
 Render metrics using the plot.ly javascript framework
 
+Works with grafana 4 and 5
+
 ### Screenshots
 
 ![Screenshot of scatter plot](https://raw.githubusercontent.com/NatelEnergy/grafana-plotly-panel/master/src/img/screenshot-scatter.png)
