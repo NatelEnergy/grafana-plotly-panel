@@ -347,24 +347,21 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
         //   console.log( "plotly data", dataList);
         let mapping = traceConfig.mapping;
-        let key = {
-          name: '@time',
-          type: 'ms',
-          missing: 0,
-          idx: -1,
-          points: [],
-        };
-        let idx = {
-          name: '@index',
-          type: 'number',
-          missing: 0,
-          idx: -1,
-          points: [],
-        };
-        this.data[key.name] = key;
-        this.data[idx.name] = idx;
+
         // TODO: maybe move dataList parsing to separate method?
+
         for (let i = 0; i < dataList.length; i++) {
+          let query = this.panel.targets[i];
+
+          let idxMetric = {
+            name: query.refId + '@index',
+            type: 'number',
+            missing: 0,
+            idx: -1,
+            points: [],
+          };
+          this.data[idxMetric.name] = idxMetric;
+
           if ('table' === dataList[i].type) {
             const table = dataList[i];
             if (i > 0) {
@@ -372,73 +369,83 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
             }
 
             for (let k = 0; k < table.rows.length; k++) {
-              idx.points.push(k);
+              idxMetric.points.push(k);
             }
 
             for (let j = 0; j < table.columns.length; j++) {
               const col = table.columns[j];
-              let val = {
-                name: col.text,
+              let valMetric = {
+                name: query.refId + '.' + col.text,
                 type: col.type,
                 missing: 0,
                 idx: j,
                 points: [],
               };
-              if (j == 0 && val.type === 'time') {
-                // InfluxDB time
-                val = key; // will overwrite the time field
-              }
+              // Commented cuz don`t know what is it for :)
+              // if (j == 0 && val.type === 'time') {
+              //   // InfluxDB time
+              //   val = key; // will overwrite the time field
+              // }
 
-              if (!val.type) {
-                val.type = 'number';
+              if (!valMetric.type) {
+                valMetric.type = 'number';
               }
               for (let k = 0; k < table.rows.length; k++) {
-                val.points.push(table.rows[k][j]);
+                valMetric.points.push(table.rows[k][j]);
               }
-              this.data[val.name] = val;
+              this.data[valMetric.name] = valMetric;
             }
           } else {
+            let timeMetric = {
+              name: query.refId + '@time',
+              type: 'ms',
+              missing: 0,
+              idx: -1,
+              points: [],
+            };
+            this.data[timeMetric.name] = timeMetric;
+
             let datapoints: any[] = dataList[i].datapoints;
             if (datapoints.length > 0) {
-              let val = {
-                name: dataList[i].target,
+              let valMetric = {
+                name: query.refId + '.' + dataList[i].target,
                 type: 'number',
                 missing: 0,
                 idx: i,
                 points: [],
               };
               if (_.isString(datapoints[0][0])) {
-                val.type = 'string';
+                valMetric.type = 'string';
               } else if (_.isBoolean(datapoints[0][0])) {
-                val.type = 'boolean';
+                valMetric.type = 'boolean';
               }
 
               // Set the default mapping values
               if (i === 0) {
-                dmapping.x = val.name;
+                dmapping.x = valMetric.name;
               } else if (i === 1) {
-                dmapping.y = val.name;
+                dmapping.y = valMetric.name;
               } else if (i === 2) {
-                dmapping.z = val.name;
+                dmapping.z = valMetric.name;
               }
 
-              this.data[val.name] = val;
-              if (key.points.length === 0) {
+              this.data[valMetric.name] = valMetric;
+              if (timeMetric.points.length === 0) {
                 for (let j = 0; j < datapoints.length; j++) {
-                  key.points.push(datapoints[j][1]);
-                  val.points.push(datapoints[j][0]);
-                  idx.points.push(j);
+                  timeMetric.points.push(datapoints[j][1]);
+                  valMetric.points.push(datapoints[j][0]);
+                  idxMetric.points.push(j);
                 }
               } else {
                 for (let j = 0; j < datapoints.length; j++) {
-                  if (j >= key.points.length) {
+                  if (j >= timeMetric.points.length) {
                     break;
                   }
                   // Make sure it is from the same timestamp
-                  if (key.points[j] === datapoints[j][1]) {
-                    val.points.push(datapoints[j][0]);
+                  if (timeMetric.points[j] === datapoints[j][1]) {
+                    valMetric.points.push(datapoints[j][0]);
                   } else {
-                    val.missing = val.missing + 1;
+                    valMetric.missing = valMetric.missing + 1;
                   }
                 }
               }
@@ -465,15 +472,17 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         let dC = null;
         let dS = null;
 
+        let timeMetric = this.data['A.Time'] !== undefined ? 'A.Time' : 'A@time';
+
         if (!dX) {
           throw {message: 'Unable to find X: ' + mapping.x};
         }
         if (!dY) {
           dY = dX;
-          dX = '@time';
+          dX = timeMetric;
         }
 
-        trace.ts = key.points;
+        trace.ts = this.data[timeMetric].points;
         trace.x = dX.points;
         trace.y = dY.points;
 
@@ -507,7 +516,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         // Set the marker colors
         if (traceConfig.settings.color_option === 'ramp') {
           if (!mapping.color) {
-            mapping.color = idx.name;
+            mapping.color = 'A@index';
           }
           dC = this.data[mapping.color];
           if (!dC) {
