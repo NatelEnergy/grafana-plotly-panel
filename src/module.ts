@@ -523,6 +523,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
             throw {message: 'Unable to find Color: ' + mapping.color};
           }
           trace.marker.color = dC.points;
+        } else {
+          delete trace.marker.showscale;
         }
       });
     }
