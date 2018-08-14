@@ -4,7 +4,6 @@ import {MetricsPanelCtrl} from 'app/plugins/sdk';
 
 import _ from 'lodash';
 import moment from 'moment';
-import angular from 'angular';
 import $ from 'jquery';
 
 import * as Plotly from './lib/plotly.min';
@@ -18,38 +17,11 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   defaults = {
     pconfig: {
-      mapping: {
-        x: null,
-        y: null,
-        z: null,
-        color: null,
-        size: null,
-      },
+      traces: [],
       settings: {
         type: 'scatter',
         mode: 'lines+markers',
         displayModeBar: false,
-        line: {
-          color: '#005f81',
-          width: 6,
-          dash: 'solid',
-          shape: 'linear',
-        },
-        marker: {
-          size: 15,
-          symbol: 'circle',
-          color: '#33B5E5',
-          colorscale: 'YIOrRd',
-          sizemode: 'diameter',
-          sizemin: 3,
-          sizeref: 0.2,
-          line: {
-            color: '#DDD',
-            width: 0,
-          },
-          showscale: true,
-        },
-        color_option: 'ramp',
       },
       layout: {
         autosize: false,
@@ -83,6 +55,13 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           gridcolor: '#444444',
           rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" )
         },
+        zaxis: {
+          showgrid: true,
+          zeroline: false,
+          type: 'linear',
+          gridcolor: '#444444',
+          rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" )
+        },
         scene: {
           xaxis: {title: 'X AXIS'},
           yaxis: {title: 'Y AXIS'},
@@ -92,17 +71,17 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     },
   };
 
-  trace: any;
+  plotlyTraces: Array<any>;
   layout: any;
   graph: any;
-  seriesList: Array<any>;
-  axis: Array<any>;
+  traces: Array<any>;
   segs: any;
   mouse: any;
   data: any;
+  cfg: any;
 
   // Used for the editor control
-  subTabIndex: 0;
+  traceTabIndex: number;
 
   /** @ngInject **/
   constructor($scope, $injector, $window, private $rootScope, private uiSegmentSrv) {
@@ -116,16 +95,18 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     // defaults configs
     _.defaultsDeep(this.panel, this.defaults);
 
+    this.cfg = this.panel.pconfig;
+
     // Update existing configurations
-    this.panel.pconfig.layout.paper_bgcolor = 'transparent';
-    this.panel.pconfig.layout.plot_bgcolor = this.panel.pconfig.layout.paper_bgcolor;
+    this.cfg.layout.paper_bgcolor = 'transparent';
+    this.cfg.layout.plot_bgcolor = this.cfg.layout.paper_bgcolor;
 
     // get the css rule of grafana graph axis text
     const labelStyle = this.getCssRule('div.flot-text');
     if (labelStyle) {
-      let color = labelStyle.style.color || this.panel.pconfig.layout.font.color;
+      let color = labelStyle.style.color || this.cfg.layout.font.color;
       // set the panel font color to grafana graph axis text color
-      this.panel.pconfig.layout.font.color = color;
+      this.cfg.layout.font.color = color;
 
       // make color more transparent
       color = $.color
@@ -134,13 +115,17 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         .toString();
 
       // set gridcolor (like grafana graph)
-      this.panel.pconfig.layout.xaxis.gridcolor = color;
-      this.panel.pconfig.layout.yaxis.gridcolor = color;
+      this.cfg.layout.xaxis.gridcolor = color;
+      this.cfg.layout.yaxis.gridcolor = color;
     }
 
-    let cfg = this.panel.pconfig;
-    this.trace = {};
-    this.layout = $.extend(true, {}, this.panel.pconfig.layout);
+    this.plotlyTraces = [{}];
+    this.traces = [];
+    this.segs = [];
+
+    this._updateTraces();
+
+    this.layout = $.extend(true, {}, this.cfg.layout);
 
     this.events.on('init-edit-mode', this.onInitEditMode.bind(this));
     this.events.on('render', this.onRender.bind(this));
@@ -171,7 +156,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   onDataError(err) {
-    this.seriesList = [];
     this.render([]);
     console.log('onDataError', err);
   }
@@ -193,65 +177,21 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       'public/plugins/natel-plotly-panel/partials/tab_display.html',
       2
     );
+    this.addEditorTab(
+      'Traces',
+      'public/plugins/natel-plotly-panel/partials/tab_traces.html',
+      3
+    );
     //  this.editorTabIndex = 1;
     this.refresh();
-    this.segs = {
-      symbol: this.uiSegmentSrv.newSegment({
-        value: this.panel.pconfig.settings.marker.symbol,
-      }),
-    };
-    this.subTabIndex = 0; // select the options
-
-    let cfg = this.panel.pconfig;
-    this.axis = [
-      {
-        disp: 'X Axis',
-        idx: 1,
-        config: cfg.layout.xaxis,
-        metric: name => {
-          if (name) {
-            cfg.mapping.x = name;
-          }
-          return cfg.mapping.x;
-        },
-      },
-      {
-        disp: 'Y Axis',
-        idx: 2,
-        config: cfg.layout.yaxis,
-        metric: name => {
-          if (name) {
-            cfg.mapping.y = name;
-          }
-          return cfg.mapping.y;
-        },
-      },
-      {
-        disp: 'Z Axis',
-        idx: 3,
-        config: cfg.layout.yaxis,
-        metric: name => {
-          if (name) {
-            cfg.mapping.z = name;
-          }
-          return cfg.mapping.z;
-        },
-      },
-    ];
+    this.traceTabIndex = 0; // select the options
   }
 
-  isAxisVisible(axis) {
-    if (axis.idx === 3) {
-      return this.panel.pconfig.settings.type === 'scatter3d';
-    }
-    return true;
-  }
-
-  onSegsChanged() {
-    this.panel.pconfig.settings.marker.symbol = this.segs.symbol.value;
+  onSegsChanged(idx) {
+    this.getTraceConfig(idx).settings.marker.symbol = this.segs[idx].symbol.value;
     this.onConfigChanged();
 
-    console.log(this.segs.symbol, this.panel.pconfig);
+    console.log(this.segs[idx].symbol, this.cfg);
   }
 
   onPanelInitalized() {
@@ -265,7 +205,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     }
 
     if (!this.initalized) {
-      let s = this.panel.pconfig.settings;
+      let s = this.cfg.settings;
 
       let options = {
         showLink: false,
@@ -274,24 +214,25 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         modeBarButtonsToRemove: ['sendDataToCloud'], //, 'select2d', 'lasso2d']
       };
 
-      let data = [this.trace];
       let rect = this.graph.getBoundingClientRect();
 
       let old = this.layout;
-      this.layout = $.extend(true, {}, this.panel.pconfig.layout);
+      this.layout = $.extend(true, {}, this.cfg.layout);
       this.layout.height = this.height;
       this.layout.width = rect.width;
       if (old) {
         this.layout.xaxis.title = old.xaxis.title;
         this.layout.yaxis.title = old.yaxis.title;
       }
-
-      Plotly.newPlot(this.graph, data, this.layout, options);
+      Plotly.newPlot(this.graph, this.plotlyTraces, this.layout, options);
 
       this.graph.on('plotly_click', data => {
+        if (data === undefined || data.points === undefined) {
+          return;
+        }
         for (let i = 0; i < data.points.length; i++) {
           let idx = data.points[i].pointNumber;
-          let ts = this.trace.ts[idx];
+          let ts = this.plotlyTraces[0].ts[idx];
           // console.log( 'CLICK!!!', ts, data );
           let msg =
             data.points[i].x.toPrecision(4) + ', ' + data.points[i].y.toPrecision(4);
@@ -322,8 +263,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       // }
 
       this.graph.on('plotly_selected', data => {
+        if (data === undefined || data.points === undefined) {
+          return;
+        }
+
         if (data.points.length === 0) {
-          console.log('Nothign Selected', data);
+          console.log('Nothing Selected', data);
           return;
         }
 
@@ -334,7 +279,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
         for (let i = 0; i < data.points.length; i++) {
           let idx = data.points[i].pointNumber;
-          let ts = this.trace.ts[idx];
+          let ts = this.plotlyTraces[0].ts[idx];
           min = Math.min(min, ts);
           max = Math.max(max, ts);
         }
@@ -375,193 +320,277 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   onDataReceived(dataList) {
-    this.trace.x = [];
-    this.trace.y = [];
-    this.trace.z = [];
+    this.traces.forEach((trace, idx) => {
+      if (this.plotlyTraces.length <= idx) {
+        this.plotlyTraces.push({});
+      }
+      this.plotlyTraces[idx].x = [];
+      this.plotlyTraces[idx].y = [];
+      this.plotlyTraces[idx].z = [];
+
+      this.plotlyTraces[idx].type = this.cfg.settings.type;
+      this.plotlyTraces[idx].mode = this.cfg.settings.mode;
+    });
 
     this.data = {};
     if (dataList.length < 1) {
       console.log('No data', dataList);
     } else {
-      let dmapping = {
-        x: null,
-        y: null,
-        z: null,
-      };
+      this.plotlyTraces.forEach((trace, i) => {
+        let dmapping = {
+          x: null,
+          y: null,
+          z: null,
+        };
 
-      //   console.log( "plotly data", dataList);
-      let cfg = this.panel.pconfig;
-      let mapping = cfg.mapping;
-      let key = {
-        name: '@time',
-        type: 'ms',
-        missing: 0,
-        idx: -1,
-        points: [],
-      };
-      let idx = {
-        name: '@index',
-        type: 'number',
-        missing: 0,
-        idx: -1,
-        points: [],
-      };
-      this.data[key.name] = key;
-      this.data[idx.name] = idx;
-      for (let i = 0; i < dataList.length; i++) {
-        if ('table' === dataList[i].type) {
-          const table = dataList[i];
-          if (i > 0) {
-            throw {message: 'Multiple tables not (yet) supported'};
-          }
+        let traceConfig = this.getTraceConfig(i);
 
-          for (let k = 0; k < table.rows.length; k++) {
-            idx.points.push(k);
-          }
+        //   console.log( "plotly data", dataList);
+        let mapping = traceConfig.mapping;
 
-          for (let j = 0; j < table.columns.length; j++) {
-            const col = table.columns[j];
-            let val = {
-              name: col.text,
-              type: col.type,
-              missing: 0,
-              idx: j,
-              points: [],
-            };
-            if (j == 0 && val.type === 'time') {
-              // InfluxDB time
-              val = key; // will overwrite the time field
+        // TODO: maybe move dataList parsing to separate method?
+
+        for (let i = 0; i < dataList.length; i++) {
+          let query = this.panel.targets[i];
+
+          let idxMetric = {
+            name: query.refId + '@index',
+            type: 'number',
+            missing: 0,
+            idx: -1,
+            points: [],
+          };
+          this.data[idxMetric.name] = idxMetric;
+
+          if ('table' === dataList[i].type) {
+            const table = dataList[i];
+            if (i > 0) {
+              throw {message: 'Multiple tables not (yet) supported'};
             }
 
-            if (!val.type) {
-              val.type = 'number';
-            }
             for (let k = 0; k < table.rows.length; k++) {
-              val.points.push(table.rows[k][j]);
+              idxMetric.points.push(k);
             }
-            this.data[val.name] = val;
-          }
-        } else {
-          let datapoints: any[] = dataList[i].datapoints;
-          if (datapoints.length > 0) {
-            let val = {
-              name: dataList[i].target,
-              type: 'number',
+
+            for (let j = 0; j < table.columns.length; j++) {
+              const col = table.columns[j];
+              let valMetric = {
+                name: query.refId + '.' + col.text,
+                type: col.type,
+                missing: 0,
+                idx: j,
+                points: [],
+              };
+              // Commented cuz don`t know what is it for :)
+              // if (j == 0 && val.type === 'time') {
+              //   // InfluxDB time
+              //   val = key; // will overwrite the time field
+              // }
+
+              if (!valMetric.type) {
+                valMetric.type = 'number';
+              }
+              for (let k = 0; k < table.rows.length; k++) {
+                valMetric.points.push(table.rows[k][j]);
+              }
+              this.data[valMetric.name] = valMetric;
+            }
+          } else {
+            let timeMetric = {
+              name: query.refId + '@time',
+              type: 'ms',
               missing: 0,
-              idx: i,
+              idx: -1,
               points: [],
             };
-            if (_.isString(datapoints[0][0])) {
-              val.type = 'string';
-            } else if (_.isBoolean(datapoints[0][0])) {
-              val.type = 'boolean';
-            }
+            this.data[timeMetric.name] = timeMetric;
 
-            // Set the default mapping values
-            if (i === 0) {
-              dmapping.x = val.name;
-            } else if (i === 1) {
-              dmapping.y = val.name;
-            } else if (i === 2) {
-              dmapping.z = val.name;
-            }
-
-            this.data[val.name] = val;
-            if (key.points.length === 0) {
-              for (let j = 0; j < datapoints.length; j++) {
-                key.points.push(datapoints[j][1]);
-                val.points.push(datapoints[j][0]);
-                idx.points.push(j);
+            let datapoints: any[] = dataList[i].datapoints;
+            if (datapoints.length > 0) {
+              let valMetric = {
+                name: query.refId + '.' + dataList[i].target,
+                type: 'number',
+                missing: 0,
+                idx: i,
+                points: [],
+              };
+              if (_.isString(datapoints[0][0])) {
+                valMetric.type = 'string';
+              } else if (_.isBoolean(datapoints[0][0])) {
+                valMetric.type = 'boolean';
               }
-            } else {
-              for (let j = 0; j < datapoints.length; j++) {
-                if (j >= key.points.length) {
-                  break;
+
+              // Set the default mapping values
+              if (i === 0) {
+                dmapping.x = valMetric.name;
+              } else if (i === 1) {
+                dmapping.y = valMetric.name;
+              } else if (i === 2) {
+                dmapping.z = valMetric.name;
+              }
+
+              this.data[valMetric.name] = valMetric;
+              if (timeMetric.points.length === 0) {
+                for (let j = 0; j < datapoints.length; j++) {
+                  timeMetric.points.push(datapoints[j][1]);
+                  valMetric.points.push(datapoints[j][0]);
+                  idxMetric.points.push(j);
                 }
-                // Make sure it is from the same timestamp
-                if (key.points[j] === datapoints[j][1]) {
-                  val.points.push(datapoints[j][0]);
-                } else {
-                  val.missing = val.missing + 1;
+              } else {
+                for (let j = 0; j < datapoints.length; j++) {
+                  if (j >= timeMetric.points.length) {
+                    break;
+                  }
+                  // Make sure it is from the same timestamp
+                  if (timeMetric.points[j] === datapoints[j][1]) {
+                    valMetric.points.push(datapoints[j][0]);
+                  } else {
+                    valMetric.missing = valMetric.missing + 1;
+                  }
                 }
               }
             }
           }
         }
-      }
 
-      // Maybe overwrite?
-      if (!mapping.x) {
-        mapping.x = dmapping.x;
-      }
-      if (!mapping.y) {
-        mapping.y = dmapping.y;
-      }
-      if (!mapping.z) {
-        mapping.z = dmapping.z;
-      }
-
-      // console.log( "GOT", this.data, mapping );
-
-      let dX = this.data[mapping.x];
-      let dY = this.data[mapping.y];
-      let dZ = null;
-      let dC = null;
-      let dS = null;
-      let dT = null;
-
-      if (!dX) {
-        throw {message: 'Unable to find X: ' + mapping.x};
-      }
-      if (!dY) {
-        dY = dX;
-        dX = '@time';
-      }
-
-      this.trace.ts = key.points;
-      this.trace.x = dX.points;
-      this.trace.y = dY.points;
-
-      if (cfg.settings.type === 'scatter3d') {
-        dZ = this.data[mapping.z];
-        if (!dZ) {
-          throw {message: 'Unable to find Z: ' + mapping.z};
+        // Maybe overwrite?
+        if (!mapping.x) {
+          mapping.x = dmapping.x;
         }
-        this.layout.scene.xaxis.title = dX.name;
-        this.layout.scene.yaxis.title = dY.name;
-        this.layout.scene.zaxis.title = dZ.name;
-
-        this.trace.z = dZ.points;
-        console.log('3D', this.layout);
-      } else {
-        this.layout.xaxis.title = dX.name;
-        this.layout.yaxis.title = dY.name;
-      }
-
-      this.trace.marker = $.extend(true, {}, cfg.settings.marker);
-      this.trace.line = $.extend(true, {}, cfg.settings.line);
-
-      if (mapping.size) {
-        dS = this.data[mapping.size];
-        if (!dS) {
-          throw {message: 'Unable to find Size: ' + mapping.size};
+        if (!mapping.y) {
+          mapping.y = dmapping.y;
         }
-        this.trace.marker.size = dS.points;
-      }
+        if (!mapping.z) {
+          mapping.z = dmapping.z;
+        }
 
-      // Set the marker colors
-      if (cfg.settings.color_option === 'ramp') {
-        if (!mapping.color) {
-          mapping.color = idx.name;
+        // console.log( "GOT", this.data, mapping );
+
+        let dX = this.data[mapping.x];
+        let dY = this.data[mapping.y];
+        let dZ = null;
+        let dC = null;
+        let dS = null;
+
+        let timeMetric = this.data['A.Time'] !== undefined ? 'A.Time' : 'A@time';
+
+        if (!dX) {
+          throw {message: 'Unable to find X: ' + mapping.x};
         }
-        dC = this.data[mapping.color];
-        if (!dC) {
-          throw {message: 'Unable to find Color: ' + mapping.color};
+        if (!dY) {
+          dY = dX;
+          dX = timeMetric;
         }
-        this.trace.marker.color = dC.points;
-      }
+
+        trace.ts = this.data[timeMetric].points;
+        trace.x = dX.points;
+        trace.y = dY.points;
+
+        if (this.is3d()) {
+          dZ = this.data[mapping.z];
+          if (!dZ) {
+            throw {message: 'Unable to find Z: ' + mapping.z};
+          }
+          this.layout.scene.xaxis.title = this.cfg.layout.xaxis.title || dX.name;
+          this.layout.scene.yaxis.title = this.cfg.layout.yaxis.title || dY.name;
+          this.layout.scene.zaxis.title = this.cfg.layout.zaxis.title || dZ.name;
+
+          trace.z = dZ.points;
+          console.log('3D', this.layout);
+        } else {
+          this.layout.xaxis.title = this.cfg.layout.xaxis.title || dX.name;
+          this.layout.yaxis.title = this.cfg.layout.yaxis.title || dY.name;
+        }
+
+        trace.marker = $.extend(true, {}, traceConfig.settings.marker);
+        trace.line = $.extend(true, {}, traceConfig.settings.line);
+
+        if (mapping.size) {
+          dS = this.data[mapping.size];
+          if (!dS) {
+            throw {message: 'Unable to find Size: ' + mapping.size};
+          }
+          trace.marker.size = dS.points;
+        }
+
+        // Set the marker colors
+        if (traceConfig.settings.color_option === 'ramp') {
+          if (!mapping.color) {
+            mapping.color = 'A@index';
+          }
+          dC = this.data[mapping.color];
+          if (!dC) {
+            throw {message: 'Unable to find Color: ' + mapping.color};
+          }
+          trace.marker.color = dC.points;
+        }
+      });
     }
     this.render();
+  }
+
+  _updateTraces() {
+    this.traces = this.cfg.traces.map((trace, idx) => {
+      let traceClone = _.cloneDeep(trace);
+      traceClone.x = val => {
+        if (val) {
+          trace.mapping.x = val;
+        }
+        return trace.mapping.x;
+      };
+      traceClone.y = val => {
+        if (val) {
+          trace.mapping.y = val;
+        }
+        return trace.mapping.y;
+      };
+      traceClone.z = val => {
+        if (val) {
+          trace.mapping.z = val;
+        }
+        return trace.mapping.z;
+      };
+
+      if (this.segs.length <= idx) {
+        this.segs.push({
+          symbol: this.uiSegmentSrv.newSegment({
+            value: this.getTraceConfig(idx).settings.marker.symbol,
+          }),
+        });
+      }
+
+      return traceClone;
+    });
+    this.refresh();
+  }
+
+  createTrace() {
+    let name = PlotlyPanelCtrl.createTraceName(this.traces.length);
+    this.cfg.traces.push({name});
+    this._updateTraces();
+    this.traceTabIndex = this.traces.length - 1;
+  }
+
+  removeCurrentTrace() {
+    this.cfg.traces.splice(this.traceTabIndex, 1);
+    this.traces.splice(this.traceTabIndex, 1);
+    this.plotlyTraces.splice(this.traceTabIndex, 1);
+    this.segs.splice(this.traceTabIndex, 1);
+    this.traceTabIndex = Math.min(this.traces.length - 1, this.traceTabIndex);
+    this.refresh();
+  }
+
+  onChangeName(idx: number, name: string) {
+    if (name === '') {
+      name = PlotlyPanelCtrl.createTraceName(idx);
+      this.traces[idx].name = name;
+    }
+    this.getTraceConfig(idx).name = name;
+    this.refresh();
+  }
+
+  static createTraceName(idx: number) {
+    return 'trace ' + (idx + 1);
   }
 
   onConfigChanged() {
@@ -571,11 +600,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this.initalized = false;
     }
 
-    let cfg = this.panel.pconfig;
-    this.trace.type = cfg.settings.type;
-    this.trace.mode = cfg.settings.mode;
-
-    let axis = [this.panel.pconfig.layout.xaxis, this.panel.pconfig.layout.yaxis];
+    let axis = [this.cfg.layout.xaxis, this.cfg.layout.yaxis];
     for (let i = 0; i < axis.length; i++) {
       if (axis[i].rangemode === 'between') {
         if (axis[i].range == null) {
@@ -586,6 +611,51 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       }
     }
     this.refresh();
+  }
+
+  is3d() {
+    return this.cfg.settings.type === 'scatter3d';
+  }
+
+  getTraceConfig(idx) {
+    if (this.cfg.traces[idx] === undefined) {
+      this.createTrace();
+    }
+
+    this.cfg.traces[idx] = _.defaultsDeep(this.cfg.traces[idx], {
+      mapping: {
+        x: null,
+        y: null,
+        z: null,
+        color: null,
+        size: null,
+      },
+      settings: {
+        line: {
+          color: '#005f81',
+          width: 6,
+          dash: 'solid',
+          shape: 'linear',
+        },
+        marker: {
+          size: 15,
+          symbol: 'circle',
+          color: '#33B5E5',
+          colorscale: 'YIOrRd',
+          sizemode: 'diameter',
+          sizemin: 3,
+          sizeref: 0.2,
+          line: {
+            color: '#DDD',
+            width: 0,
+          },
+          showscale: true,
+        },
+        color_option: 'ramp',
+      },
+    });
+
+    return this.cfg.traces[idx];
   }
 
   link(scope, elem, attrs, ctrl) {

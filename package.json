@@ -4,13 +4,20 @@
   "description": "Plot.ly Panel Plugin for Grafana",
   "scripts": {
     "build": "grunt",
+    "dev": "grunt watch",
     "test": "./node_modules/karma/bin/karma start",
     "precommit": "pretty-quick --staged",
     "pretty": "prettier --write src/**/*.ts"
   },
   "author": "ryantxu",
   "license": "MIT",
-  "keywords": ["plotly", "scatter", "grafana", "plugin", "panel"],
+  "keywords": [
+    "plotly",
+    "scatter",
+    "grafana",
+    "plugin",
+    "panel"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/NatelEnergy/grafana-plotly-panel.git"
