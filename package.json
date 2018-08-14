@@ -11,13 +11,7 @@
   },
   "author": "ryantxu",
   "license": "MIT",
-  "keywords": [
-    "plotly",
-    "scatter",
-    "grafana",
-    "plugin",
-    "panel"
-  ],
+  "keywords": ["plotly", "scatter", "grafana", "plugin", "panel"],
   "repository": {
     "type": "git",
     "url": "https://github.com/NatelEnergy/grafana-plotly-panel.git"
@@ -35,7 +29,7 @@
     "moment": "^2.22.2",
     "q": "^1.5.0",
     "systemjs": "^0.21.4",
-    "plotly.js": "^1.38"
+    "plotly.js": "^1.39"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.74",
@@ -57,12 +51,12 @@
     "karma-sinon": "^1.0.5",
     "karma-systemjs": "^0.16.0",
     "load-grunt-tasks": "^3.5.2",
-    "plugin-typescript": "^7.1.0",
+    "plugin-typescript": "^8.0.0",
     "prettier": "1.10.2",
     "pretty-quick": "^1.4.1",
     "sinon": "^3.2.1",
     "systemjs-plugin-css": "^0.1.35",
     "tslint": "^5.8.0",
-    "typescript": "^2.8.1"
+    "typescript": "^3.0.1"
   }
 }
