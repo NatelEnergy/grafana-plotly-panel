@@ -27,7 +27,7 @@ yarn build
 
 ##### v0.0.5 (not released yet)
 
-* Upgrade plotly (v1.38+)
+* Upgrade plotly (v1.39+)
 * Better support for light theme. (#24, @cscheuermann81)
 * Support snapshots
 * Removing `dist` from master branch
