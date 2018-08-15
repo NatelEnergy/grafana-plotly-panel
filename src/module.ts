@@ -513,6 +513,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           trace.marker.size = dS.points;
         }
 
+        if (mapping.text && traceConfig.settings.showtext) {
+          trace.text = this.data[mapping.text].points;
+        } else {
+          trace.text = null;
+        }
+
         // Set the marker colors
         if (traceConfig.settings.color_option === 'ramp') {
           if (!mapping.color) {

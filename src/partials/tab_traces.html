@@ -239,5 +239,22 @@
       </div>
 
     </div>
+
+    <div class="section gf-form-group">
+      <h5 class="section-heading">Text</h5>
+
+      <gf-form-switch class="gf-form" label="Hover" label-class="gf-form-label width-7"
+        checked="ctrl.getTraceConfig($index).settings.showtext" on-change="ctrl.onConfigChanged()"></gf-form-switch>
+
+      <div class="gf-form" ng-if="ctrl.getTraceConfig($index).settings.showtext">
+        <label class="gf-form-label width-7">Metric</label>
+        <div class="gf-form-select-wrapper max-width-14">
+          <select class="gf-form-input" ng-model="ctrl.getTraceConfig($index).mapping.text" ng-change="ctrl.onConfigChanged()">
+            <option ng-repeat="(key, value) in ctrl.data" value="{{key}}">{{key}}</option>
+          </select>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+
