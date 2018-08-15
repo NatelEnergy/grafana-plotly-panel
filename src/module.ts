@@ -513,8 +513,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           trace.marker.size = dS.points;
         }
 
-        if (mapping.text && traceConfig.settings.showtext) {
+        if (mapping.text) {
           trace.text = this.data[mapping.text].points;
+          if (trace.text && traceConfig.settings.textposition) {
+            trace.mode += '+text';
+            trace.textposition = traceConfig.settings.textposition;
+          }
         } else {
           trace.text = null;
         }

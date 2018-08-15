@@ -243,17 +243,30 @@
     <div class="section gf-form-group">
       <h5 class="section-heading">Text</h5>
 
-      <gf-form-switch class="gf-form" label="Hover" label-class="gf-form-label width-7"
-        checked="ctrl.getTraceConfig($index).settings.showtext" on-change="ctrl.onConfigChanged()"></gf-form-switch>
-
-      <div class="gf-form" ng-if="ctrl.getTraceConfig($index).settings.showtext">
+      <div class="gf-form">
         <label class="gf-form-label width-7">Metric</label>
         <div class="gf-form-select-wrapper max-width-14">
           <select class="gf-form-input" ng-model="ctrl.getTraceConfig($index).mapping.text" ng-change="ctrl.onConfigChanged()">
             <option ng-repeat="(key, value) in ctrl.data" value="{{key}}">{{key}}</option>
           </select>
         </div>
+        <button 
+          ng-if="ctrl.getTraceConfig($index).mapping.text"
+          class="btn btn-inverse" 
+          ng-click="ctrl.getTraceConfig($index).mapping.text = null;">x</button>
       </div>
+      
+      <div class="gf-form" ng-if="ctrl.getTraceConfig($index).mapping.text">
+        <label class="gf-form-label width-7">Show</label>
+        <div class="gf-form-select-wrapper max-width-14">
+          <select class="gf-form-input" ng-model="ctrl.getTraceConfig($index).settings.textposition" ng-change="ctrl.onConfigChanged()">
+            <option value="">Hover</option>
+            <option value="top">Top</option>
+            <option value="bottom">Bottom</option>
+          </select>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>

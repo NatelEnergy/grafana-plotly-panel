@@ -34,7 +34,7 @@ yarn build
 * Support snapshots
 * Removing `dist` from master branch
 * Support of multiple time series's ([#9](https://github.com/NatelEnergy/grafana-plotly-panel/issues/9), [CorpGlory DevTeam](https://corpglory.com/))
-* Support showing text from query in the hover text (#11)
+* Support showing text from query (#11)
 
 ##### v0.0.4
 
