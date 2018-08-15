@@ -69,12 +69,12 @@
       </div>
     </div>
 
-    <div class="gf-form" ng-show="ctrl.cfg.layout.xaxis.rangemode === 'between'">
+    <div class="gf-form" ng-if="ctrl.cfg.layout.xaxis.rangemode === 'between'">
       <label class="gf-form-label width-7">Min</label>
       <input type="number" placeholder="min" ng-model="ctrl.cfg.layout.xaxis.range[0]" class="gf-form-input width-10" ng-blur="ctrl.onConfigChanged()"
       />
     </div>
-    <div class="gf-form" ng-show="ctrl.cfg.layout.xaxis.rangemode === 'between'">
+    <div class="gf-form" ng-if="ctrl.cfg.layout.xaxis.rangemode === 'between'">
       <label class="gf-form-label width-7">Max</label>
       <input type="number" placeholder="max" ng-model="ctrl.cfg.layout.xaxis.range[1]" class="gf-form-input width-10" ng-blur="ctrl.onConfigChanged()"
       />
@@ -116,12 +116,12 @@
       </div>
     </div>
 
-    <div class="gf-form" ng-show="ctrl.cfg.layout.yaxis.rangemode === 'between'">
+    <div class="gf-form" ng-if="ctrl.cfg.layout.yaxis.rangemode === 'between'">
       <label class="gf-form-label width-7">Min</label>
       <input type="number" placeholder="min" ng-model="ctrl.cfg.layout.yaxis.range[0]" class="gf-form-input width-10" ng-blur="ctrl.onConfigChanged()"
       />
     </div>
-    <div class="gf-form" ng-show="ctrl.cfg.layout.yaxis.rangemode === 'between'">
+    <div class="gf-form" ng-if="ctrl.cfg.layout.yaxis.rangemode === 'between'">
       <label class="gf-form-label width-7">Max</label>
       <input type="number" placeholder="max" ng-model="ctrl.cfg.layout.yaxis.range[1]" class="gf-form-input width-10" ng-blur="ctrl.onConfigChanged()"
       />
@@ -131,7 +131,7 @@
     <gf-form-switch class="gf-form" label="Zero Line:" label-class="gf-form-label width-7" checked="ctrl.cfg.layout.yaxis.zeroline" on-change="ctrl.onConfigChanged()"></gf-form-switch>
   </div>
 
-  <div class="section gf-form-group" ng-show="ctrl.is3d();">
+  <div class="section gf-form-group" ng-if="ctrl.is3d();">
     <h5 class="section-heading">Z</h5>
 
     <div class="gf-form">
@@ -163,12 +163,12 @@
       </div>
     </div>
 
-    <div class="gf-form" ng-show="ctrl.cfg.layout.zaxis.rangemode === 'between'">
+    <div class="gf-form" ng-if="ctrl.cfg.layout.zaxis.rangemode === 'between'">
       <label class="gf-form-label width-7">Min</label>
       <input type="number" placeholder="min" ng-model="ctrl.cfg.layout.zaxis.range[0]" class="gf-form-input width-10" ng-blur="ctrl.onConfigChanged()"
       />
     </div>
-    <div class="gf-form" ng-show="ctrl.cfg.layout.zaxis.rangemode === 'between'">
+    <div class="gf-form" ng-if="ctrl.cfg.layout.zaxis.rangemode === 'between'">
       <label class="gf-form-label width-7">Max</label>
       <input type="number" placeholder="max" ng-model="ctrl.cfg.layout.zaxis.range[1]" class="gf-form-input width-10" ng-blur="ctrl.onConfigChanged()"
       />

@@ -5,7 +5,7 @@
         ng-repeat="trace in ctrl.traces"
         ng-class="{ active: ctrl.traceTabIndex === $index }"
       >
-        <a ng-click="ctrl.traceTabIndex = $index" ng-show="trace.name">{{ trace.name }}</a>
+        <a ng-click="ctrl.traceTabIndex = $index" ng-if="trace.name">{{ trace.name }}</a>
       </li>
       <li>
         <!-- TODO: Better move style to CSS file -->
@@ -19,7 +19,7 @@
       <li>
         <button
           class="btn btn-danger" ng-click="ctrl.removeCurrentTrace();"
-          ng-show="ctrl.traces.length > 1"
+          ng-if="ctrl.traces.length > 1"
           style="width: 100%"
         >
           <i class="fa fa-trash"/> Delete
@@ -57,7 +57,7 @@
               <option ng-repeat="(key, value) in ctrl.data" value="{{ key }}">{{ key }}</option>
             </select>
           </div>
-          &nbsp; {{ xMetric.type }} &nbsp;&nbsp;  <span ng-show="xMetric.missing > 0">Missing: {{ xMetric.missing }}</span>
+          &nbsp; {{ xMetric.type }} &nbsp;&nbsp;  <span ng-if="xMetric.missing > 0">Missing: {{ xMetric.missing }}</span>
         </div>
 
         <div class="gf-form" ng-value="yMetric = ctrl.data[ctrl.getTraceConfig($index).mapping.y];">
@@ -68,10 +68,10 @@
             </select>
           </div>
           &nbsp; {{ yMetric.type }} &nbsp;&nbsp;
-          <span ng-show="yMetric.missing > 0">Missing: {{ yMetric.missing }}</span>
+          <span ng-if="yMetric.missing > 0">Missing: {{ yMetric.missing }}</span>
         </div>
 
-        <div class="gf-form" ng-value="zMetric = ctrl.data[ctrl.getTraceConfig($index).mapping.z];" ng-show="ctrl.is3d();">
+        <div class="gf-form" ng-value="zMetric = ctrl.data[ctrl.getTraceConfig($index).mapping.z];" ng-if="ctrl.is3d();">
           <label class="gf-form-label width-7">Z</label>
           <div class="gf-form-select-wrapper max-width-14">
             <select class="gf-form-input" ng-model="trace.z" ng-model-options="{ getterSetter: true }" ng-change="ctrl.onConfigChanged()">
@@ -79,13 +79,13 @@
             </select>
           </div>
           &nbsp; {{ zMetric.type }} &nbsp;&nbsp;
-          <span ng-show="zMetric.missing > 0">Missing: {{ zMetric.missing }}</span>
+          <span ng-if="zMetric.missing > 0">Missing: {{ zMetric.missing }}</span>
         </div>
       </div>
 
     </div>
 
-    <div class="section gf-form-group" ng-show="ctrl.cfg.settings.mode !== 'lines'">
+    <div class="section gf-form-group" ng-if="ctrl.cfg.settings.mode !== 'lines'">
       <h5 class="section-heading">Markers</h5>
 
       <div class="gf-form">
@@ -103,13 +103,13 @@
         </div>
       </div>
 
-      <div class="gf-form" ng-show="!ctrl.cfg.mapping.size">
+      <div class="gf-form" ng-if="!ctrl.cfg.mapping.size">
         <label class="gf-form-label width-7">- Pixels</label>
         <input type="number" class="gf-form-input width-7" ng-model="ctrl.getTraceConfig($index).settings.marker.size" spellcheck="false"
           placeholder="5" ng-blur="ctrl.onConfigChanged()" />
       </div>
 
-      <div class="gf-form" ng-show="ctrl.cfg.mapping.size">
+      <div class="gf-form" ng-if="ctrl.cfg.mapping.size">
         <label class="gf-form-label width-7">- Min</label>
         <input type="number" class="gf-form-input width-7" ng-model="ctrl.getTraceConfig($index).settings.marker.sizemin" spellcheck="false"
           placeholder="5" ng-blur="ctrl.onConfigChanged()" />
@@ -118,7 +118,7 @@
         </a>
       </div>
 
-      <div class="gf-form" ng-show="ctrl.cfg.mapping.size">
+      <div class="gf-form" ng-if="ctrl.cfg.mapping.size">
         <label class="gf-form-label width-7">- Ref</label>
         <input type="number" class="gf-form-input width-7" ng-model="ctrl.getTraceConfig($index).settings.marker.sizeref" spellcheck="false"
           placeholder="5" ng-blur="ctrl.onConfigChanged()" />
@@ -126,7 +126,7 @@
           <i class="fa fa-external-link" aria-hidden="true"></i>
         </a>
       </div>
-      <div class="gf-form" ng-show="ctrl.cfg.mapping.size">
+      <div class="gf-form" ng-if="ctrl.cfg.mapping.size">
         <label class="gf-form-label width-7">- Mode</label>
         <div class="gf-form-select-wrapper max-width-14">
           <select class="gf-form-input" ng-model="ctrl.getTraceConfig($index).settings.marker.sizemode" ng-change="ctrl.onConfigChanged()">
@@ -149,7 +149,7 @@
         </div>
       </div>
 
-      <div class="gf-form" ng-show="ctrl.getTraceConfig($index).settings.color_option == 'solid'">
+      <div class="gf-form" ng-if="ctrl.getTraceConfig($index).settings.color_option == 'solid'">
         <label class="gf-form-label width-7">- Solid</label>
         <input type="text" placeholder="text" ng-model="ctrl.getTraceConfig($index).settings.marker.color" class="gf-form-input width-10"
           ng-blur="ctrl.onConfigChanged()" />
@@ -158,7 +158,7 @@
         </span>
       </div>
 
-      <div class="gf-form" ng-show="ctrl.getTraceConfig($index).settings.color_option == 'ramp'">
+      <div class="gf-form" ng-if="ctrl.getTraceConfig($index).settings.color_option == 'ramp'">
         <label class="gf-form-label width-7">- Metric</label>
         <div class="gf-form-select-wrapper max-width-14">
           <select class="gf-form-input" ng-model="ctrl.getTraceConfig($index).mapping.color" ng-change="ctrl.onConfigChanged()">
@@ -167,7 +167,7 @@
         </div>
       </div>
 
-      <div class="gf-form" ng-show="ctrl.getTraceConfig($index).settings.color_option != 'solid'">
+      <div class="gf-form" ng-if="ctrl.getTraceConfig($index).settings.color_option != 'solid'">
         <label class="gf-form-label width-7">- Scale</label>
         <div class="gf-form-select-wrapper max-width-14">
           <select class="gf-form-input" ng-model="ctrl.getTraceConfig($index).settings.marker.colorscale" ng-change="ctrl.onConfigChanged()">
@@ -188,11 +188,11 @@
           </select>
         </div>
       </div>
-      <gf-form-switch ng-show="ctrl.getTraceConfig($index).settings.color_option != 'solid'" class="gf-form" label="- Show" label-class="gf-form-label width-7"
+      <gf-form-switch ng-if="ctrl.getTraceConfig($index).settings.color_option != 'solid'" class="gf-form" label="- Show" label-class="gf-form-label width-7"
         checked="ctrl.getTraceConfig($index).settings.marker.showscale" on-change="ctrl.onConfigChanged()"></gf-form-switch>
     </div>
 
-    <div class="section gf-form-group" ng-show="ctrl.cfg.settings.mode !== 'markers'">
+    <div class="section gf-form-group" ng-if="ctrl.cfg.settings.mode !== 'markers'">
       <h5 class="section-heading">Lines</h5>
 
       <div class="gf-form">
