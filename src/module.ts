@@ -17,7 +17,41 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   defaults = {
     pconfig: {
-      traces: [],
+      traces: [
+        {
+          name: 'trace 1',
+          mapping: {
+            x: 'A@index',
+            y: 'A@index',
+            z: null,
+            color: 'A@index',
+            size: null,
+          },
+          settings: {
+            line: {
+              color: '#005f81',
+              width: 6,
+              dash: 'solid',
+              shape: 'linear',
+            },
+            marker: {
+              size: 15,
+              symbol: 'circle',
+              color: '#33B5E5',
+              colorscale: 'YIOrRd',
+              sizemode: 'diameter',
+              sizemin: 3,
+              sizeref: 0.2,
+              line: {
+                color: '#DDD',
+                width: 0,
+              },
+              showscale: true,
+            },
+            color_option: 'ramp',
+          },
+        },
+      ],
       settings: {
         type: 'scatter',
         mode: 'lines+markers',
@@ -71,9 +105,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     },
   };
 
-  plotlyTraces: Array<any>;
+  plotlyData: Array<any>;
   layout: any;
-  graph: any;
+  graphDiv: any;
   traces: Array<any>;
   segs: any;
   mouse: any;
@@ -119,7 +153,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this.cfg.layout.yaxis.gridcolor = color;
     }
 
-    this.plotlyTraces = [{}];
+    this.plotlyData = [{}];
     this.traces = [];
     this.segs = [];
 
@@ -166,8 +200,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       return;
     }
 
-    if (this.graph && this.initalized) {
-      Plotly.redraw(this.graph);
+    if (this.graphDiv && this.initalized) {
+      Plotly.redraw(this.graphDiv);
     }
   }
 
@@ -200,7 +234,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   onRender() {
     // ignore fetching data if another panel is in fullscreen
-    if (this.otherPanelInFullscreenMode() || !this.graph) {
+    if (this.otherPanelInFullscreenMode() || !this.graphDiv) {
       return;
     }
 
@@ -214,7 +248,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         modeBarButtonsToRemove: ['sendDataToCloud'], //, 'select2d', 'lasso2d']
       };
 
-      let rect = this.graph.getBoundingClientRect();
+      let rect = this.graphDiv.getBoundingClientRect();
 
       let old = this.layout;
       this.layout = $.extend(true, {}, this.cfg.layout);
@@ -223,16 +257,18 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       if (old) {
         this.layout.xaxis.title = old.xaxis.title;
         this.layout.yaxis.title = old.yaxis.title;
+        this.layout.zaxis.title = old.zaxis.title;
       }
-      Plotly.newPlot(this.graph, this.plotlyTraces, this.layout, options);
 
-      this.graph.on('plotly_click', data => {
+      Plotly.react(this.graphDiv, this.plotlyData, this.layout, options);
+
+      this.graphDiv.on('plotly_click', data => {
         if (data === undefined || data.points === undefined) {
           return;
         }
         for (let i = 0; i < data.points.length; i++) {
           let idx = data.points[i].pointNumber;
-          let ts = this.plotlyTraces[0].ts[idx];
+          let ts = this.plotlyData[0].ts[idx];
           // console.log( 'CLICK!!!', ts, data );
           let msg =
             data.points[i].x.toPrecision(4) + ', ' + data.points[i].y.toPrecision(4);
@@ -262,7 +298,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       //   });
       // }
 
-      this.graph.on('plotly_selected', data => {
+      this.graphDiv.on('plotly_selected', data => {
         if (data === undefined || data.points === undefined) {
           return;
         }
@@ -279,7 +315,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
         for (let i = 0; i < data.points.length; i++) {
           let idx = data.points[i].pointNumber;
-          let ts = this.plotlyTraces[0].ts[idx];
+          let ts = this.plotlyData[0].ts[idx];
           min = Math.min(min, ts);
           max = Math.max(max, ts);
         }
@@ -295,21 +331,21 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         this.timeSrv.setTime(range);
 
         // rebuild the graph after query
-        if (this.graph) {
-          Plotly.Plots.purge(this.graph);
-          this.graph.innerHTML = '';
+        if (this.graphDiv) {
+          Plotly.Plots.purge(this.graphDiv);
+          this.graphDiv.innerHTML = '';
           this.initalized = false;
         }
       });
     } else {
-      Plotly.redraw(this.graph);
+      Plotly.redraw(this.graphDiv);
     }
 
-    if (this.sizeChanged && this.graph && this.layout) {
-      let rect = this.graph.getBoundingClientRect();
+    if (this.sizeChanged && this.graphDiv && this.layout) {
+      let rect = this.graphDiv.getBoundingClientRect();
       this.layout.width = rect.width;
       this.layout.height = this.height;
-      Plotly.Plots.resize(this.graph);
+      Plotly.Plots.resize(this.graphDiv);
     }
     this.sizeChanged = false;
     this.initalized = true;
@@ -319,224 +355,230 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.onDataReceived(snapshot);
   }
 
-  onDataReceived(dataList) {
-    this.traces.forEach((trace, idx) => {
-      if (this.plotlyTraces.length <= idx) {
-        this.plotlyTraces.push({});
-      }
-      this.plotlyTraces[idx].x = [];
-      this.plotlyTraces[idx].y = [];
-      this.plotlyTraces[idx].z = [];
+  private _rebuildMetrics(dataList: any[]) {
+    this.plotlyData.forEach((trace, i) => {
+      let dmapping = {
+        x: null,
+        y: null,
+        z: null,
+      };
 
-      this.plotlyTraces[idx].type = this.cfg.settings.type;
-      this.plotlyTraces[idx].mode = this.cfg.settings.mode;
-    });
+      let traceConfig = this.getTraceConfig(i);
 
-    this.data = {};
-    if (dataList.length < 1) {
-      console.log('No data', dataList);
-    } else {
-      this.plotlyTraces.forEach((trace, i) => {
-        let dmapping = {
-          x: null,
-          y: null,
-          z: null,
+      //   console.log( "plotly data", dataList);
+      let mapping = traceConfig.mapping;
+
+      // TODO: maybe move dataList parsing to separate method?
+
+      for (let i = 0; i < dataList.length; i++) {
+        let query = this.panel.targets[i];
+        let refId = query.refId || 'A';
+
+        let idxMetric = {
+          name: refId + '@index',
+          type: 'number',
+          missing: 0,
+          idx: -1,
+          points: [],
         };
+        this.data[idxMetric.name] = idxMetric;
 
-        let traceConfig = this.getTraceConfig(i);
+        if ('table' === dataList[i].type) {
+          const table = dataList[i];
+          if (i > 0) {
+            throw {message: 'Multiple tables not (yet) supported'};
+          }
 
-        //   console.log( "plotly data", dataList);
-        let mapping = traceConfig.mapping;
+          for (let k = 0; k < table.rows.length; k++) {
+            idxMetric.points.push(k);
+          }
 
-        // TODO: maybe move dataList parsing to separate method?
+          for (let j = 0; j < table.columns.length; j++) {
+            const col = table.columns[j];
+            let valMetric = {
+              name: refId + '.' + col.text,
+              type: col.type,
+              missing: 0,
+              idx: j,
+              points: [],
+            };
+            // Commented cuz don`t know what is it for :)
+            // if (j == 0 && val.type === 'time') {
+            //   // InfluxDB time
+            //   val = key; // will overwrite the time field
+            // }
 
-        for (let i = 0; i < dataList.length; i++) {
-          let query = this.panel.targets[i];
-
-          let idxMetric = {
-            name: query.refId + '@index',
-            type: 'number',
+            if (!valMetric.type) {
+              valMetric.type = 'number';
+            }
+            for (let k = 0; k < table.rows.length; k++) {
+              valMetric.points.push(table.rows[k][j]);
+            }
+            this.data[valMetric.name] = valMetric;
+          }
+        } else {
+          let timeMetric = {
+            name: refId + '@time',
+            type: 'ms',
             missing: 0,
             idx: -1,
             points: [],
           };
-          this.data[idxMetric.name] = idxMetric;
+          this.data[timeMetric.name] = timeMetric;
 
-          if ('table' === dataList[i].type) {
-            const table = dataList[i];
-            if (i > 0) {
-              throw {message: 'Multiple tables not (yet) supported'};
-            }
-
-            for (let k = 0; k < table.rows.length; k++) {
-              idxMetric.points.push(k);
-            }
-
-            for (let j = 0; j < table.columns.length; j++) {
-              const col = table.columns[j];
-              let valMetric = {
-                name: query.refId + '.' + col.text,
-                type: col.type,
-                missing: 0,
-                idx: j,
-                points: [],
-              };
-              // Commented cuz don`t know what is it for :)
-              // if (j == 0 && val.type === 'time') {
-              //   // InfluxDB time
-              //   val = key; // will overwrite the time field
-              // }
-
-              if (!valMetric.type) {
-                valMetric.type = 'number';
-              }
-              for (let k = 0; k < table.rows.length; k++) {
-                valMetric.points.push(table.rows[k][j]);
-              }
-              this.data[valMetric.name] = valMetric;
-            }
-          } else {
-            let timeMetric = {
-              name: query.refId + '@time',
-              type: 'ms',
+          let datapoints: any[] = dataList[i].datapoints;
+          if (datapoints.length > 0) {
+            let valMetric = {
+              name: refId + '.' + dataList[i].target,
+              type: 'number',
               missing: 0,
-              idx: -1,
+              idx: i,
               points: [],
             };
-            this.data[timeMetric.name] = timeMetric;
+            if (_.isString(datapoints[0][0])) {
+              valMetric.type = 'string';
+            } else if (_.isBoolean(datapoints[0][0])) {
+              valMetric.type = 'boolean';
+            }
 
-            let datapoints: any[] = dataList[i].datapoints;
-            if (datapoints.length > 0) {
-              let valMetric = {
-                name: query.refId + '.' + dataList[i].target,
-                type: 'number',
-                missing: 0,
-                idx: i,
-                points: [],
-              };
-              if (_.isString(datapoints[0][0])) {
-                valMetric.type = 'string';
-              } else if (_.isBoolean(datapoints[0][0])) {
-                valMetric.type = 'boolean';
+            // Set the default mapping values
+            if (i === 0) {
+              dmapping.x = valMetric.name;
+            } else if (i === 1) {
+              dmapping.y = valMetric.name;
+            } else if (i === 2) {
+              dmapping.z = valMetric.name;
+            }
+
+            this.data[valMetric.name] = valMetric;
+            if (timeMetric.points.length === 0) {
+              for (let j = 0; j < datapoints.length; j++) {
+                timeMetric.points.push(datapoints[j][1]);
+                valMetric.points.push(datapoints[j][0]);
+                idxMetric.points.push(j);
               }
-
-              // Set the default mapping values
-              if (i === 0) {
-                dmapping.x = valMetric.name;
-              } else if (i === 1) {
-                dmapping.y = valMetric.name;
-              } else if (i === 2) {
-                dmapping.z = valMetric.name;
-              }
-
-              this.data[valMetric.name] = valMetric;
-              if (timeMetric.points.length === 0) {
-                for (let j = 0; j < datapoints.length; j++) {
-                  timeMetric.points.push(datapoints[j][1]);
-                  valMetric.points.push(datapoints[j][0]);
-                  idxMetric.points.push(j);
+            } else {
+              for (let j = 0; j < datapoints.length; j++) {
+                if (j >= timeMetric.points.length) {
+                  break;
                 }
-              } else {
-                for (let j = 0; j < datapoints.length; j++) {
-                  if (j >= timeMetric.points.length) {
-                    break;
-                  }
-                  // Make sure it is from the same timestamp
-                  if (timeMetric.points[j] === datapoints[j][1]) {
-                    valMetric.points.push(datapoints[j][0]);
-                  } else {
-                    valMetric.missing = valMetric.missing + 1;
-                  }
+                // Make sure it is from the same timestamp
+                if (timeMetric.points[j] === datapoints[j][1]) {
+                  valMetric.points.push(datapoints[j][0]);
+                } else {
+                  valMetric.missing = valMetric.missing + 1;
                 }
               }
             }
           }
         }
+      }
 
-        // Maybe overwrite?
-        if (!mapping.x) {
-          mapping.x = dmapping.x;
+      // Maybe overwrite?
+      if (!mapping.x) {
+        mapping.x = dmapping.x;
+      }
+      if (!mapping.y) {
+        mapping.y = dmapping.y;
+      }
+      if (!mapping.z) {
+        mapping.z = dmapping.z;
+      }
+
+      // console.log( "GOT", this.data, mapping );
+
+      let dX = this.data[mapping.x];
+      let dY = this.data[mapping.y];
+      let dZ = null;
+      let dC = null;
+      let dS = null;
+
+      let timeMetric = this.data['A.Time'] !== undefined ? 'A.Time' : 'A@time';
+
+      if (!dX) {
+        throw {message: 'Unable to find X: ' + mapping.x};
+      }
+      if (!dY) {
+        dY = dX;
+        dX = timeMetric;
+      }
+
+      trace.ts = this.data[timeMetric].points;
+      trace.x = dX.points;
+      trace.y = dY.points;
+
+      if (this.is3d()) {
+        dZ = this.data[mapping.z];
+        if (!dZ) {
+          throw {message: 'Unable to find Z: ' + mapping.z};
         }
-        if (!mapping.y) {
-          mapping.y = dmapping.y;
+        this.layout.scene.xaxis.title = this.cfg.layout.xaxis.title;
+        this.layout.scene.yaxis.title = this.cfg.layout.yaxis.title;
+        this.layout.scene.zaxis.title = this.cfg.layout.zaxis.title;
+
+        trace.z = dZ.points;
+        console.log('3D', this.layout);
+      } else {
+        this.layout.xaxis.title = this.cfg.layout.xaxis.title;
+        this.layout.yaxis.title = this.cfg.layout.yaxis.title;
+      }
+
+      trace.marker = $.extend(true, {}, traceConfig.settings.marker);
+      trace.line = $.extend(true, {}, traceConfig.settings.line);
+
+      if (mapping.size) {
+        dS = this.data[mapping.size];
+        if (!dS) {
+          throw {message: 'Unable to find Size: ' + mapping.size};
         }
-        if (!mapping.z) {
-          mapping.z = dmapping.z;
+        trace.marker.size = dS.points;
+      }
+
+      if (mapping.text) {
+        trace.text = this.data[mapping.text].points;
+        if (trace.text && traceConfig.settings.textposition) {
+          trace.mode += '+text';
+          trace.textposition = traceConfig.settings.textposition;
         }
+      } else {
+        trace.text = null;
+      }
 
-        // console.log( "GOT", this.data, mapping );
-
-        let dX = this.data[mapping.x];
-        let dY = this.data[mapping.y];
-        let dZ = null;
-        let dC = null;
-        let dS = null;
-
-        let timeMetric = this.data['A.Time'] !== undefined ? 'A.Time' : 'A@time';
-
-        if (!dX) {
-          throw {message: 'Unable to find X: ' + mapping.x};
+      // Set the marker colors
+      if (traceConfig.settings.color_option === 'ramp') {
+        if (!mapping.color) {
+          mapping.color = 'A@index';
         }
-        if (!dY) {
-          dY = dX;
-          dX = timeMetric;
+        dC = this.data[mapping.color];
+        if (!dC) {
+          throw {message: 'Unable to find Color: ' + mapping.color};
         }
+        trace.marker.color = dC.points;
+      } else {
+        delete trace.marker.showscale;
+      }
+    });
+  }
 
-        trace.ts = this.data[timeMetric].points;
-        trace.x = dX.points;
-        trace.y = dY.points;
+  onDataReceived(dataList) {
+    this.traces.forEach((trace, idx) => {
+      if (this.plotlyData.length <= idx) {
+        this.plotlyData.push({});
+      }
+      this.plotlyData[idx].x = [];
+      this.plotlyData[idx].y = [];
+      this.plotlyData[idx].z = [];
 
-        if (this.is3d()) {
-          dZ = this.data[mapping.z];
-          if (!dZ) {
-            throw {message: 'Unable to find Z: ' + mapping.z};
-          }
-          this.layout.scene.xaxis.title = this.cfg.layout.xaxis.title || dX.name;
-          this.layout.scene.yaxis.title = this.cfg.layout.yaxis.title || dY.name;
-          this.layout.scene.zaxis.title = this.cfg.layout.zaxis.title || dZ.name;
+      this.plotlyData[idx].type = this.cfg.settings.type;
+      this.plotlyData[idx].mode = this.cfg.settings.mode;
+    });
 
-          trace.z = dZ.points;
-          console.log('3D', this.layout);
-        } else {
-          this.layout.xaxis.title = this.cfg.layout.xaxis.title || dX.name;
-          this.layout.yaxis.title = this.cfg.layout.yaxis.title || dY.name;
-        }
-
-        trace.marker = $.extend(true, {}, traceConfig.settings.marker);
-        trace.line = $.extend(true, {}, traceConfig.settings.line);
-
-        if (mapping.size) {
-          dS = this.data[mapping.size];
-          if (!dS) {
-            throw {message: 'Unable to find Size: ' + mapping.size};
-          }
-          trace.marker.size = dS.points;
-        }
-
-        if (mapping.text) {
-          trace.text = this.data[mapping.text].points;
-          if (trace.text && traceConfig.settings.textposition) {
-            trace.mode += '+text';
-            trace.textposition = traceConfig.settings.textposition;
-          }
-        } else {
-          trace.text = null;
-        }
-
-        // Set the marker colors
-        if (traceConfig.settings.color_option === 'ramp') {
-          if (!mapping.color) {
-            mapping.color = 'A@index';
-          }
-          dC = this.data[mapping.color];
-          if (!dC) {
-            throw {message: 'Unable to find Color: ' + mapping.color};
-          }
-          trace.marker.color = dC.points;
-        } else {
-          delete trace.marker.showscale;
-        }
-      });
+    this.data = {};
+    this.dataList = dataList;
+    if (dataList.length < 1) {
+      console.log('No data', dataList);
+    } else {
+      this._rebuildMetrics(dataList);
     }
     this.render();
   }
@@ -578,7 +620,16 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   createTrace() {
     let name = PlotlyPanelCtrl.createTraceName(this.traces.length);
-    this.cfg.traces.push({name});
+    this.cfg.traces.push({
+      name: name,
+      mapping: {
+        x: 'A@index',
+        y: 'A@index',
+        z: 'A@index',
+        color: 'A@index',
+        size: null,
+      },
+    });
     this._updateTraces();
     this.traceTabIndex = this.traces.length - 1;
   }
@@ -586,7 +637,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   removeCurrentTrace() {
     this.cfg.traces.splice(this.traceTabIndex, 1);
     this.traces.splice(this.traceTabIndex, 1);
-    this.plotlyTraces.splice(this.traceTabIndex, 1);
+    this.plotlyData.splice(this.traceTabIndex, 1);
     this.segs.splice(this.traceTabIndex, 1);
     this.traceTabIndex = Math.min(this.traces.length - 1, this.traceTabIndex);
     this.refresh();
@@ -606,13 +657,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   onConfigChanged() {
-    if (this.graph && this.initalized) {
-      Plotly.Plots.purge(this.graph);
-      this.graph.innerHTML = '';
-      this.initalized = false;
-    }
-
-    let axis = [this.cfg.layout.xaxis, this.cfg.layout.yaxis];
+    let axis = [this.cfg.layout.xaxis, this.cfg.layout.yaxis, this.cfg.layout.zaxis];
     for (let i = 0; i < axis.length; i++) {
       if (axis[i].rangemode === 'between') {
         if (axis[i].range == null) {
@@ -671,7 +716,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   link(scope, elem, attrs, ctrl) {
-    this.graph = elem.find('.plotly-spot')[0];
+    this.graphDiv = elem.find('.plotly-spot')[0];
     this.initalized = false;
     elem.on('mousemove', evt => {
       this.mouse = evt;
