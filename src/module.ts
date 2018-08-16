@@ -372,9 +372,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
       for (let i = 0; i < dataList.length; i++) {
         let query = this.panel.targets[i];
+        let refId = query.refId || 'A';
 
         let idxMetric = {
-          name: query.refId + '@index',
+          name: refId + '@index',
           type: 'number',
           missing: 0,
           idx: -1,
@@ -395,7 +396,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           for (let j = 0; j < table.columns.length; j++) {
             const col = table.columns[j];
             let valMetric = {
-              name: query.refId + '.' + col.text,
+              name: refId + '.' + col.text,
               type: col.type,
               missing: 0,
               idx: j,
@@ -417,7 +418,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           }
         } else {
           let timeMetric = {
-            name: query.refId + '@time',
+            name: refId + '@time',
             type: 'ms',
             missing: 0,
             idx: -1,
@@ -428,7 +429,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           let datapoints: any[] = dataList[i].datapoints;
           if (datapoints.length > 0) {
             let valMetric = {
-              name: query.refId + '.' + dataList[i].target,
+              name: refId + '.' + dataList[i].target,
               type: 'number',
               missing: 0,
               idx: i,
@@ -619,7 +620,16 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   createTrace() {
     let name = PlotlyPanelCtrl.createTraceName(this.traces.length);
-    this.cfg.traces.push({name});
+    this.cfg.traces.push({
+      name: name,
+      mapping: {
+        x: 'A@index',
+        y: 'A@index',
+        z: 'A@index',
+        color: 'A@index',
+        size: null,
+      },
+    });
     this._updateTraces();
     this.traceTabIndex = this.traces.length - 1;
   }
