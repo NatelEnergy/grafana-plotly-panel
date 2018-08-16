@@ -71,9 +71,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     },
   };
 
-  plotlyTraces: Array<any>;
+  plotlyData: Array<any>;
   layout: any;
-  graph: any;
+  graphDiv: any;
   traces: Array<any>;
   segs: any;
   mouse: any;
@@ -119,7 +119,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this.cfg.layout.yaxis.gridcolor = color;
     }
 
-    this.plotlyTraces = [{}];
+    this.plotlyData = [{}];
     this.traces = [];
     this.segs = [];
 
@@ -166,8 +166,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       return;
     }
 
-    if (this.graph && this.initalized) {
-      Plotly.redraw(this.graph);
+    if (this.graphDiv && this.initalized) {
+      Plotly.redraw(this.graphDiv);
     }
   }
 
@@ -200,7 +200,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   onRender() {
     // ignore fetching data if another panel is in fullscreen
-    if (this.otherPanelInFullscreenMode() || !this.graph) {
+    if (this.otherPanelInFullscreenMode() || !this.graphDiv) {
       return;
     }
 
@@ -214,7 +214,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         modeBarButtonsToRemove: ['sendDataToCloud'], //, 'select2d', 'lasso2d']
       };
 
-      let rect = this.graph.getBoundingClientRect();
+      let rect = this.graphDiv.getBoundingClientRect();
 
       let old = this.layout;
       this.layout = $.extend(true, {}, this.cfg.layout);
@@ -223,16 +223,18 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       if (old) {
         this.layout.xaxis.title = old.xaxis.title;
         this.layout.yaxis.title = old.yaxis.title;
+        this.layout.zaxis.title = old.zaxis.title;
       }
-      Plotly.newPlot(this.graph, this.plotlyTraces, this.layout, options);
 
-      this.graph.on('plotly_click', data => {
+      Plotly.react(this.graphDiv, this.plotlyData, this.layout, options);
+
+      this.graphDiv.on('plotly_click', data => {
         if (data === undefined || data.points === undefined) {
           return;
         }
         for (let i = 0; i < data.points.length; i++) {
           let idx = data.points[i].pointNumber;
-          let ts = this.plotlyTraces[0].ts[idx];
+          let ts = this.plotlyData[0].ts[idx];
           // console.log( 'CLICK!!!', ts, data );
           let msg =
             data.points[i].x.toPrecision(4) + ', ' + data.points[i].y.toPrecision(4);
@@ -262,7 +264,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       //   });
       // }
 
-      this.graph.on('plotly_selected', data => {
+      this.graphDiv.on('plotly_selected', data => {
         if (data === undefined || data.points === undefined) {
           return;
         }
@@ -279,7 +281,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
         for (let i = 0; i < data.points.length; i++) {
           let idx = data.points[i].pointNumber;
-          let ts = this.plotlyTraces[0].ts[idx];
+          let ts = this.plotlyData[0].ts[idx];
           min = Math.min(min, ts);
           max = Math.max(max, ts);
         }
@@ -295,21 +297,21 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         this.timeSrv.setTime(range);
 
         // rebuild the graph after query
-        if (this.graph) {
-          Plotly.Plots.purge(this.graph);
-          this.graph.innerHTML = '';
+        if (this.graphDiv) {
+          Plotly.Plots.purge(this.graphDiv);
+          this.graphDiv.innerHTML = '';
           this.initalized = false;
         }
       });
     } else {
-      Plotly.redraw(this.graph);
+      Plotly.redraw(this.graphDiv);
     }
 
-    if (this.sizeChanged && this.graph && this.layout) {
-      let rect = this.graph.getBoundingClientRect();
+    if (this.sizeChanged && this.graphDiv && this.layout) {
+      let rect = this.graphDiv.getBoundingClientRect();
       this.layout.width = rect.width;
       this.layout.height = this.height;
-      Plotly.Plots.resize(this.graph);
+      Plotly.Plots.resize(this.graphDiv);
     }
     this.sizeChanged = false;
     this.initalized = true;
@@ -321,22 +323,22 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   onDataReceived(dataList) {
     this.traces.forEach((trace, idx) => {
-      if (this.plotlyTraces.length <= idx) {
-        this.plotlyTraces.push({});
+      if (this.plotlyData.length <= idx) {
+        this.plotlyData.push({});
       }
-      this.plotlyTraces[idx].x = [];
-      this.plotlyTraces[idx].y = [];
-      this.plotlyTraces[idx].z = [];
+      this.plotlyData[idx].x = [];
+      this.plotlyData[idx].y = [];
+      this.plotlyData[idx].z = [];
 
-      this.plotlyTraces[idx].type = this.cfg.settings.type;
-      this.plotlyTraces[idx].mode = this.cfg.settings.mode;
+      this.plotlyData[idx].type = this.cfg.settings.type;
+      this.plotlyData[idx].mode = this.cfg.settings.mode;
     });
 
     this.data = {};
     if (dataList.length < 1) {
       console.log('No data', dataList);
     } else {
-      this.plotlyTraces.forEach((trace, i) => {
+      this.plotlyData.forEach((trace, i) => {
         let dmapping = {
           x: null,
           y: null,
@@ -586,7 +588,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   removeCurrentTrace() {
     this.cfg.traces.splice(this.traceTabIndex, 1);
     this.traces.splice(this.traceTabIndex, 1);
-    this.plotlyTraces.splice(this.traceTabIndex, 1);
+    this.plotlyData.splice(this.traceTabIndex, 1);
     this.segs.splice(this.traceTabIndex, 1);
     this.traceTabIndex = Math.min(this.traces.length - 1, this.traceTabIndex);
     this.refresh();
@@ -606,9 +608,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   onConfigChanged() {
-    if (this.graph && this.initalized) {
-      Plotly.Plots.purge(this.graph);
-      this.graph.innerHTML = '';
+    if (this.graphDiv && this.initalized) {
+      Plotly.Plots.purge(this.graphDiv);
+      this.graphDiv.innerHTML = '';
       this.initalized = false;
     }
 
@@ -671,7 +673,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   link(scope, elem, attrs, ctrl) {
-    this.graph = elem.find('.plotly-spot')[0];
+    this.graphDiv = elem.find('.plotly-spot')[0];
     this.initalized = false;
     elem.on('mousemove', evt => {
       this.mouse = evt;
