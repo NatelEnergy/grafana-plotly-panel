@@ -608,13 +608,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   onConfigChanged() {
-    if (this.graphDiv && this.initalized) {
-      Plotly.Plots.purge(this.graphDiv);
-      this.graphDiv.innerHTML = '';
-      this.initalized = false;
-    }
-
-    let axis = [this.cfg.layout.xaxis, this.cfg.layout.yaxis];
+    let axis = [this.cfg.layout.xaxis, this.cfg.layout.yaxis, this.cfg.layout.zaxis];
     for (let i = 0; i < axis.length; i++) {
       if (axis[i].rangemode === 'between') {
         if (axis[i].range == null) {
