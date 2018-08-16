@@ -17,7 +17,41 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   defaults = {
     pconfig: {
-      traces: [],
+      traces: [
+        {
+          name: 'trace 1',
+          mapping: {
+            x: 'A@index',
+            y: 'A@index',
+            z: null,
+            color: 'A@index',
+            size: null,
+          },
+          settings: {
+            line: {
+              color: '#005f81',
+              width: 6,
+              dash: 'solid',
+              shape: 'linear',
+            },
+            marker: {
+              size: 15,
+              symbol: 'circle',
+              color: '#33B5E5',
+              colorscale: 'YIOrRd',
+              sizemode: 'diameter',
+              sizemin: 3,
+              sizeref: 0.2,
+              line: {
+                color: '#DDD',
+                width: 0,
+              },
+              showscale: true,
+            },
+            color_option: 'ramp',
+          },
+        },
+      ],
       settings: {
         type: 'scatter',
         mode: 'lines+markers',
@@ -321,6 +355,210 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.onDataReceived(snapshot);
   }
 
+  private _rebuildMetrics(dataList: any[]) {
+    this.plotlyData.forEach((trace, i) => {
+      let dmapping = {
+        x: null,
+        y: null,
+        z: null,
+      };
+
+      let traceConfig = this.getTraceConfig(i);
+
+      //   console.log( "plotly data", dataList);
+      let mapping = traceConfig.mapping;
+
+      // TODO: maybe move dataList parsing to separate method?
+
+      for (let i = 0; i < dataList.length; i++) {
+        let query = this.panel.targets[i];
+
+        let idxMetric = {
+          name: query.refId + '@index',
+          type: 'number',
+          missing: 0,
+          idx: -1,
+          points: [],
+        };
+        this.data[idxMetric.name] = idxMetric;
+
+        if ('table' === dataList[i].type) {
+          const table = dataList[i];
+          if (i > 0) {
+            throw {message: 'Multiple tables not (yet) supported'};
+          }
+
+          for (let k = 0; k < table.rows.length; k++) {
+            idxMetric.points.push(k);
+          }
+
+          for (let j = 0; j < table.columns.length; j++) {
+            const col = table.columns[j];
+            let valMetric = {
+              name: query.refId + '.' + col.text,
+              type: col.type,
+              missing: 0,
+              idx: j,
+              points: [],
+            };
+            // Commented cuz don`t know what is it for :)
+            // if (j == 0 && val.type === 'time') {
+            //   // InfluxDB time
+            //   val = key; // will overwrite the time field
+            // }
+
+            if (!valMetric.type) {
+              valMetric.type = 'number';
+            }
+            for (let k = 0; k < table.rows.length; k++) {
+              valMetric.points.push(table.rows[k][j]);
+            }
+            this.data[valMetric.name] = valMetric;
+          }
+        } else {
+          let timeMetric = {
+            name: query.refId + '@time',
+            type: 'ms',
+            missing: 0,
+            idx: -1,
+            points: [],
+          };
+          this.data[timeMetric.name] = timeMetric;
+
+          let datapoints: any[] = dataList[i].datapoints;
+          if (datapoints.length > 0) {
+            let valMetric = {
+              name: query.refId + '.' + dataList[i].target,
+              type: 'number',
+              missing: 0,
+              idx: i,
+              points: [],
+            };
+            if (_.isString(datapoints[0][0])) {
+              valMetric.type = 'string';
+            } else if (_.isBoolean(datapoints[0][0])) {
+              valMetric.type = 'boolean';
+            }
+
+            // Set the default mapping values
+            if (i === 0) {
+              dmapping.x = valMetric.name;
+            } else if (i === 1) {
+              dmapping.y = valMetric.name;
+            } else if (i === 2) {
+              dmapping.z = valMetric.name;
+            }
+
+            this.data[valMetric.name] = valMetric;
+            if (timeMetric.points.length === 0) {
+              for (let j = 0; j < datapoints.length; j++) {
+                timeMetric.points.push(datapoints[j][1]);
+                valMetric.points.push(datapoints[j][0]);
+                idxMetric.points.push(j);
+              }
+            } else {
+              for (let j = 0; j < datapoints.length; j++) {
+                if (j >= timeMetric.points.length) {
+                  break;
+                }
+                // Make sure it is from the same timestamp
+                if (timeMetric.points[j] === datapoints[j][1]) {
+                  valMetric.points.push(datapoints[j][0]);
+                } else {
+                  valMetric.missing = valMetric.missing + 1;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // Maybe overwrite?
+      if (!mapping.x) {
+        mapping.x = dmapping.x;
+      }
+      if (!mapping.y) {
+        mapping.y = dmapping.y;
+      }
+      if (!mapping.z) {
+        mapping.z = dmapping.z;
+      }
+
+      // console.log( "GOT", this.data, mapping );
+
+      let dX = this.data[mapping.x];
+      let dY = this.data[mapping.y];
+      let dZ = null;
+      let dC = null;
+      let dS = null;
+
+      let timeMetric = this.data['A.Time'] !== undefined ? 'A.Time' : 'A@time';
+
+      if (!dX) {
+        throw {message: 'Unable to find X: ' + mapping.x};
+      }
+      if (!dY) {
+        dY = dX;
+        dX = timeMetric;
+      }
+
+      trace.ts = this.data[timeMetric].points;
+      trace.x = dX.points;
+      trace.y = dY.points;
+
+      if (this.is3d()) {
+        dZ = this.data[mapping.z];
+        if (!dZ) {
+          throw {message: 'Unable to find Z: ' + mapping.z};
+        }
+        this.layout.scene.xaxis.title = this.cfg.layout.xaxis.title;
+        this.layout.scene.yaxis.title = this.cfg.layout.yaxis.title;
+        this.layout.scene.zaxis.title = this.cfg.layout.zaxis.title;
+
+        trace.z = dZ.points;
+        console.log('3D', this.layout);
+      } else {
+        this.layout.xaxis.title = this.cfg.layout.xaxis.title;
+        this.layout.yaxis.title = this.cfg.layout.yaxis.title;
+      }
+
+      trace.marker = $.extend(true, {}, traceConfig.settings.marker);
+      trace.line = $.extend(true, {}, traceConfig.settings.line);
+
+      if (mapping.size) {
+        dS = this.data[mapping.size];
+        if (!dS) {
+          throw {message: 'Unable to find Size: ' + mapping.size};
+        }
+        trace.marker.size = dS.points;
+      }
+
+      if (mapping.text) {
+        trace.text = this.data[mapping.text].points;
+        if (trace.text && traceConfig.settings.textposition) {
+          trace.mode += '+text';
+          trace.textposition = traceConfig.settings.textposition;
+        }
+      } else {
+        trace.text = null;
+      }
+
+      // Set the marker colors
+      if (traceConfig.settings.color_option === 'ramp') {
+        if (!mapping.color) {
+          mapping.color = 'A@index';
+        }
+        dC = this.data[mapping.color];
+        if (!dC) {
+          throw {message: 'Unable to find Color: ' + mapping.color};
+        }
+        trace.marker.color = dC.points;
+      } else {
+        delete trace.marker.showscale;
+      }
+    });
+  }
+
   onDataReceived(dataList) {
     this.traces.forEach((trace, idx) => {
       if (this.plotlyData.length <= idx) {
@@ -335,210 +573,11 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     });
 
     this.data = {};
+    this.dataList = dataList;
     if (dataList.length < 1) {
       console.log('No data', dataList);
     } else {
-      this.plotlyData.forEach((trace, i) => {
-        let dmapping = {
-          x: null,
-          y: null,
-          z: null,
-        };
-
-        let traceConfig = this.getTraceConfig(i);
-
-        //   console.log( "plotly data", dataList);
-        let mapping = traceConfig.mapping;
-
-        // TODO: maybe move dataList parsing to separate method?
-
-        for (let i = 0; i < dataList.length; i++) {
-          let query = this.panel.targets[i];
-
-          let idxMetric = {
-            name: query.refId + '@index',
-            type: 'number',
-            missing: 0,
-            idx: -1,
-            points: [],
-          };
-          this.data[idxMetric.name] = idxMetric;
-
-          if ('table' === dataList[i].type) {
-            const table = dataList[i];
-            if (i > 0) {
-              throw {message: 'Multiple tables not (yet) supported'};
-            }
-
-            for (let k = 0; k < table.rows.length; k++) {
-              idxMetric.points.push(k);
-            }
-
-            for (let j = 0; j < table.columns.length; j++) {
-              const col = table.columns[j];
-              let valMetric = {
-                name: query.refId + '.' + col.text,
-                type: col.type,
-                missing: 0,
-                idx: j,
-                points: [],
-              };
-              // Commented cuz don`t know what is it for :)
-              // if (j == 0 && val.type === 'time') {
-              //   // InfluxDB time
-              //   val = key; // will overwrite the time field
-              // }
-
-              if (!valMetric.type) {
-                valMetric.type = 'number';
-              }
-              for (let k = 0; k < table.rows.length; k++) {
-                valMetric.points.push(table.rows[k][j]);
-              }
-              this.data[valMetric.name] = valMetric;
-            }
-          } else {
-            let timeMetric = {
-              name: query.refId + '@time',
-              type: 'ms',
-              missing: 0,
-              idx: -1,
-              points: [],
-            };
-            this.data[timeMetric.name] = timeMetric;
-
-            let datapoints: any[] = dataList[i].datapoints;
-            if (datapoints.length > 0) {
-              let valMetric = {
-                name: query.refId + '.' + dataList[i].target,
-                type: 'number',
-                missing: 0,
-                idx: i,
-                points: [],
-              };
-              if (_.isString(datapoints[0][0])) {
-                valMetric.type = 'string';
-              } else if (_.isBoolean(datapoints[0][0])) {
-                valMetric.type = 'boolean';
-              }
-
-              // Set the default mapping values
-              if (i === 0) {
-                dmapping.x = valMetric.name;
-              } else if (i === 1) {
-                dmapping.y = valMetric.name;
-              } else if (i === 2) {
-                dmapping.z = valMetric.name;
-              }
-
-              this.data[valMetric.name] = valMetric;
-              if (timeMetric.points.length === 0) {
-                for (let j = 0; j < datapoints.length; j++) {
-                  timeMetric.points.push(datapoints[j][1]);
-                  valMetric.points.push(datapoints[j][0]);
-                  idxMetric.points.push(j);
-                }
-              } else {
-                for (let j = 0; j < datapoints.length; j++) {
-                  if (j >= timeMetric.points.length) {
-                    break;
-                  }
-                  // Make sure it is from the same timestamp
-                  if (timeMetric.points[j] === datapoints[j][1]) {
-                    valMetric.points.push(datapoints[j][0]);
-                  } else {
-                    valMetric.missing = valMetric.missing + 1;
-                  }
-                }
-              }
-            }
-          }
-        }
-
-        // Maybe overwrite?
-        if (!mapping.x) {
-          mapping.x = dmapping.x;
-        }
-        if (!mapping.y) {
-          mapping.y = dmapping.y;
-        }
-        if (!mapping.z) {
-          mapping.z = dmapping.z;
-        }
-
-        // console.log( "GOT", this.data, mapping );
-
-        let dX = this.data[mapping.x];
-        let dY = this.data[mapping.y];
-        let dZ = null;
-        let dC = null;
-        let dS = null;
-
-        let timeMetric = this.data['A.Time'] !== undefined ? 'A.Time' : 'A@time';
-
-        if (!dX) {
-          throw {message: 'Unable to find X: ' + mapping.x};
-        }
-        if (!dY) {
-          dY = dX;
-          dX = timeMetric;
-        }
-
-        trace.ts = this.data[timeMetric].points;
-        trace.x = dX.points;
-        trace.y = dY.points;
-
-        if (this.is3d()) {
-          dZ = this.data[mapping.z];
-          if (!dZ) {
-            throw {message: 'Unable to find Z: ' + mapping.z};
-          }
-          this.layout.scene.xaxis.title = this.cfg.layout.xaxis.title;
-          this.layout.scene.yaxis.title = this.cfg.layout.yaxis.title;
-          this.layout.scene.zaxis.title = this.cfg.layout.zaxis.title;
-
-          trace.z = dZ.points;
-          console.log('3D', this.layout);
-        } else {
-          this.layout.xaxis.title = this.cfg.layout.xaxis.title;
-          this.layout.yaxis.title = this.cfg.layout.yaxis.title;
-        }
-
-        trace.marker = $.extend(true, {}, traceConfig.settings.marker);
-        trace.line = $.extend(true, {}, traceConfig.settings.line);
-
-        if (mapping.size) {
-          dS = this.data[mapping.size];
-          if (!dS) {
-            throw {message: 'Unable to find Size: ' + mapping.size};
-          }
-          trace.marker.size = dS.points;
-        }
-
-        if (mapping.text) {
-          trace.text = this.data[mapping.text].points;
-          if (trace.text && traceConfig.settings.textposition) {
-            trace.mode += '+text';
-            trace.textposition = traceConfig.settings.textposition;
-          }
-        } else {
-          trace.text = null;
-        }
-
-        // Set the marker colors
-        if (traceConfig.settings.color_option === 'ramp') {
-          if (!mapping.color) {
-            mapping.color = 'A@index';
-          }
-          dC = this.data[mapping.color];
-          if (!dC) {
-            throw {message: 'Unable to find Color: ' + mapping.color};
-          }
-          trace.marker.color = dC.points;
-        } else {
-          delete trace.marker.showscale;
-        }
-      });
+      this._rebuildMetrics(dataList);
     }
     this.render();
   }
