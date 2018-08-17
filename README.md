@@ -11,10 +11,10 @@ Works with grafana 4 and 5
 ### Screenshots
 
 ![Screenshot of scatter plot](https://raw.githubusercontent.com/NatelEnergy/grafana-plotly-panel/master/src/img/screenshot-scatter.png)
-![Screenshot of scatter plot](https://github.com/CorpGlory/grafana-plotly-panel/blob/new-screenshots/src/img/screenshot-single-trace.png?raw=true)
-![Screenshot of scatter plot](https://github.com/CorpGlory/grafana-plotly-panel/blob/new-screenshots/src/img/screenshot-multiple-trace.png?raw=true)
+![Screenshot of scatter plot](https://raw.githubusercontent.com/NatelEnergy/grafana-plotly-panel/master/src/img/screenshot-single-trace.png?raw=true)
+![Screenshot of scatter plot](https://raw.githubusercontent.com/NatelEnergy/grafana-plotly-panel/master/src/img/screenshot-multiple-trace.png)
 ![Screenshot of 3d scatter plot](https://raw.githubusercontent.com/NatelEnergy/grafana-plotly-panel/master/src/img/screenshot-scatter-3d.png)
-![Screenshot of the options screen](https://github.com/CorpGlory/grafana-plotly-panel/blob/new-screenshots/src/img/screenshot-options-new.png?raw=true)
+![Screenshot of the options screen](https://raw.githubusercontent.com/NatelEnergy/grafana-plotly-panel/master/src/img/screenshot-options-new.png)
 
 ### Building
 
