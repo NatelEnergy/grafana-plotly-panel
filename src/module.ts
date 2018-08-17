@@ -69,12 +69,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           color: '#D8D9DA',
           family: '"Open Sans", Helvetica, Arial, sans-serif',
         },
-        margin: {
-          t: 0,
-          b: 45,
-          l: 65,
-          r: 20,
-        },
         xaxis: {
           showgrid: true,
           zeroline: false,
@@ -95,11 +89,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           type: 'linear',
           gridcolor: '#444444',
           rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" )
-        },
-        scene: {
-          xaxis: {title: 'X AXIS'},
-          yaxis: {title: 'Y AXIS'},
-          zaxis: {title: 'Z AXIS'},
         },
       },
     },
@@ -249,16 +238,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       };
 
       let rect = this.graphDiv.getBoundingClientRect();
-
-      let old = this.layout;
       this.layout = $.extend(true, {}, this.cfg.layout);
       this.layout.height = this.height;
       this.layout.width = rect.width;
-      if (old) {
-        this.layout.xaxis.title = old.xaxis.title;
-        this.layout.yaxis.title = old.yaxis.title;
-        this.layout.zaxis.title = old.zaxis.title;
-      }
 
       Plotly.react(this.graphDiv, this.plotlyData, this.layout, options);
 
@@ -526,10 +508,25 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         this.layout.scene.zaxis.title = this.cfg.layout.zaxis.title;
 
         trace.z = dZ.points;
-        console.log('3D', this.layout);
+
+        this.layout.margin = {
+          l: 0,
+          r: 0,
+          t: 0,
+          b: 0,
+          pad: 0,
+        };
       } else {
         this.layout.xaxis.title = this.cfg.layout.xaxis.title;
         this.layout.yaxis.title = this.cfg.layout.yaxis.title;
+
+        this.layout.margin = {
+          l: this.layout.yaxis.title ? 50 : 35,
+          r: 5,
+          t: 0,
+          b: this.layout.xaxis.title ? 65 : 30,
+          pad: 2,
+        };
       }
 
       trace.marker = $.extend(true, {}, traceConfig.settings.marker);
