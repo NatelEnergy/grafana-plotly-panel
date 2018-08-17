@@ -345,7 +345,15 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       let rect = this.graphDiv.getBoundingClientRect();
       this.layout.width = rect.width;
       this.layout.height = this.height;
-      Plotly.Plots.resize(this.graphDiv);
+
+      // https://github.com/alonho/angular-plotly/issues/26
+      let e = window.getComputedStyle(this.graphDiv).display;
+      if (!e || 'none' === e) {
+        // not drawn!
+        console.warn('resize a plot that is not drawn yet');
+      } else {
+        Plotly.Plots.resize(this.graphDiv);
+      }
     }
     this.sizeChanged = false;
     this.initalized = true;
@@ -364,6 +372,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       };
 
       let traceConfig = this.getTraceConfig(i);
+      trace.name = traceConfig.name;
 
       //   console.log( "plotly data", dataList);
       let mapping = traceConfig.mapping;
@@ -612,24 +621,28 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           }),
         });
       }
-
       return traceClone;
     });
     this.refresh();
   }
 
   createTrace() {
-    let name = PlotlyPanelCtrl.createTraceName(this.traces.length);
-    this.cfg.traces.push({
-      name: name,
-      mapping: {
-        x: 'A@index',
-        y: 'A@index',
-        z: 'A@index',
-        color: 'A@index',
-        size: null,
-      },
-    });
+    let trace: any = {};
+    if (this.cfg.traces.length > 0) {
+      trace = _.cloneDeep(this.cfg.traces[this.cfg.traces.length - 1]);
+    } else {
+      trace = {
+        mapping: {
+          x: 'A@index',
+          y: 'A@index',
+          z: 'A@index',
+          color: 'A@index',
+          size: null,
+        },
+      };
+    }
+    trace.name = PlotlyPanelCtrl.createTraceName(this.traces.length);
+    this.cfg.traces.push(trace);
     this._updateTraces();
     this.traceTabIndex = this.traces.length - 1;
   }
@@ -653,7 +666,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   static createTraceName(idx: number) {
-    return 'trace ' + (idx + 1);
+    return 'Trace ' + (idx + 1);
   }
 
   onConfigChanged() {
