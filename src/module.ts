@@ -11,7 +11,6 @@ import * as Plotly from './lib/plotly.min';
 class PlotlyPanelCtrl extends MetricsPanelCtrl {
   static templateUrl = 'partials/module.html';
 
-  sizeChanged: boolean;
   initalized: boolean;
   $tooltip: any;
 
@@ -58,7 +57,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         displayModeBar: false,
       },
       layout: {
-        autosize: false,
         showlegend: false,
         legend: {orientation: 'v'},
         dragmode: 'lasso', // (enumerated: "zoom" | "pan" | "select" | "lasso" | "orbit" | "turntable" )
@@ -110,7 +108,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   constructor($scope, $injector, $window, private $rootScope, private uiSegmentSrv) {
     super($scope, $injector);
 
-    this.sizeChanged = true;
     this.initalized = false;
 
     this.$tooltip = $('<div id="tooltip" class="graph-tooltip">');
@@ -175,7 +172,25 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   onResize() {
-    this.sizeChanged = true;
+    setTimeout(() => {
+      if (this.graphDiv && this.layout) {
+        // https://github.com/alonho/angular-plotly/issues/26
+        let e = window.getComputedStyle(this.graphDiv).display;
+        if (!e || 'none' === e) {
+          // not drawn!
+          console.warn('resize a plot that is not drawn yet');
+        } else {
+          let rect = this.graphDiv.getBoundingClientRect();
+          this.layout.width = rect.width;
+          this.layout.height = this.height;
+
+          Plotly.redraw(this.graphDiv);
+          console.log('RESIZE a little later...', rect.width);
+        }
+      } else {
+        console.log('Resized before initalization...');
+      }
+    }, 75);
   }
 
   onDataError(err) {
@@ -206,8 +221,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       3
     );
     //  this.editorTabIndex = 1;
-    this.refresh();
     this.traceTabIndex = 0; // select the options
+    this.onResize();
   }
 
   onSegsChanged(idx) {
@@ -239,6 +254,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
       let rect = this.graphDiv.getBoundingClientRect();
       this.layout = $.extend(true, {}, this.cfg.layout);
+      this.layout.autosize = false; // height is from the div
       this.layout.height = this.height;
       this.layout.width = rect.width;
 
@@ -322,22 +338,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     } else {
       Plotly.redraw(this.graphDiv);
     }
-
-    if (this.sizeChanged && this.graphDiv && this.layout) {
-      let rect = this.graphDiv.getBoundingClientRect();
-      this.layout.width = rect.width;
-      this.layout.height = this.height;
-
-      // https://github.com/alonho/angular-plotly/issues/26
-      let e = window.getComputedStyle(this.graphDiv).display;
-      if (!e || 'none' === e) {
-        // not drawn!
-        console.warn('resize a plot that is not drawn yet');
-      } else {
-        Plotly.Plots.resize(this.graphDiv);
-      }
-    }
-    this.sizeChanged = false;
     this.initalized = true;
   }
 
@@ -731,6 +731,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     elem.on('mousemove', evt => {
       this.mouse = evt;
     });
+
+    //let p = $(this.graphDiv).parent().parent()[0];
+    //console.log( 'PLOT', this.graphDiv, p );
   }
 
   //---------------------------
