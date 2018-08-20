@@ -61,31 +61,25 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         legend: {orientation: 'v'},
         dragmode: 'lasso', // (enumerated: "zoom" | "pan" | "select" | "lasso" | "orbit" | "turntable" )
         hovermode: 'closest',
-        plot_bgcolor: 'transparent',
-        paper_bgcolor: 'transparent', // transparent?
         font: {
-          color: '#D8D9DA',
           family: '"Open Sans", Helvetica, Arial, sans-serif',
         },
         xaxis: {
           showgrid: true,
           zeroline: false,
           type: 'linear',
-          gridcolor: '#444444',
           rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" )
         },
         yaxis: {
           showgrid: true,
           zeroline: false,
           type: 'linear',
-          gridcolor: '#444444',
           rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" )
         },
         zaxis: {
           showgrid: true,
           zeroline: false,
           type: 'linear',
-          gridcolor: '#444444',
           rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" )
         },
       },
@@ -120,35 +114,11 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
     this.cfg = this.panel.pconfig;
 
-    // Update existing configurations
-    this.cfg.layout.paper_bgcolor = 'transparent';
-    this.cfg.layout.plot_bgcolor = this.cfg.layout.paper_bgcolor;
-
-    // get the css rule of grafana graph axis text
-    const labelStyle = this.getCssRule('div.flot-text');
-    if (labelStyle) {
-      let color = labelStyle.style.color || this.cfg.layout.font.color;
-      // set the panel font color to grafana graph axis text color
-      this.cfg.layout.font.color = color;
-
-      // make color more transparent
-      color = $.color
-        .parse(color)
-        .scale('a', 0.22)
-        .toString();
-
-      // set gridcolor (like grafana graph)
-      this.cfg.layout.xaxis.gridcolor = color;
-      this.cfg.layout.yaxis.gridcolor = color;
-    }
-
     this.plotlyData = [{}];
     this.traces = [];
     this.segs = [];
 
     this._updateTraces();
-
-    this.layout = $.extend(true, {}, this.cfg.layout);
 
     this.events.on('init-edit-mode', this.onInitEditMode.bind(this));
     this.events.on('render', this.onRender.bind(this));
@@ -186,12 +156,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           let rect = this.graphDiv.getBoundingClientRect();
           this.layout.width = rect.width;
           this.layout.height = this.height;
-
           Plotly.redraw(this.graphDiv);
-          console.log('RESIZE a little later...', rect.width);
         }
-      } else {
-        console.log('Resized before initalization...');
       }
     }, 75);
   }
@@ -225,6 +191,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     );
     //  this.editorTabIndex = 1;
     this.traceTabIndex = 0; // select the options
+    this.onConfigChanged(); // Sets up the axis info
     this.onResize();
   }
 
@@ -235,8 +202,93 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     console.log(this.segs[idx].symbol, this.cfg);
   }
 
-  onPanelInitalized() {
-    this.onConfigChanged();
+  onPanelInitalized() {}
+
+  deepCopyWithTeplates = obj => {
+    if (_.isArray(obj)) {
+      return obj.map(val => this.deepCopyWithTeplates(val));
+    } else if (_.isString(obj)) {
+      return this.templateSrv.replace(obj, this.panel.scopedVars);
+    } else if (_.isObject(obj)) {
+      let copy = {};
+      _.forEach(obj, (v, k) => {
+        copy[k] = this.deepCopyWithTeplates(v);
+      });
+      return copy;
+    }
+    return obj;
+  };
+
+  getProcessedLayout() {
+    // Remove some things that should not be saved
+    delete this.cfg.layout.plot_bgcolor;
+    delete this.cfg.layout.paper_bgcolor;
+    delete this.cfg.layout.autosize;
+    delete this.cfg.layout.height;
+    delete this.cfg.layout.width;
+    if (!this.is3d()) {
+      delete this.cfg.layout.zaxis;
+    }
+
+    // Copy from config
+    let layout = this.deepCopyWithTeplates(this.cfg.layout);
+    layout.plot_bgcolor = 'transparent';
+    layout.paper_bgcolor = layout.plot_bgcolor;
+
+    // Update the size
+    let rect = this.graphDiv.getBoundingClientRect();
+    layout.autosize = false; // height is from the div
+    layout.height = this.height;
+    layout.width = rect.width;
+
+    // Make sure it is something
+    if (!layout.xaxis) layout.xaxis = {};
+    if (!layout.yaxis) layout.yaxis = {};
+
+    if (this.is3d()) {
+      if (!layout.zaxis) layout.zaxis = {};
+
+      layout.scene.xaxis.title = this.cfg.layout.xaxis.title;
+      layout.scene.yaxis.title = this.cfg.layout.yaxis.title;
+      layout.scene.zaxis.title = this.cfg.layout.zaxis.title;
+      layout.margin = {
+        l: 0,
+        r: 0,
+        t: 0,
+        b: 0,
+        pad: 0,
+      };
+    } else {
+      delete layout.scene;
+      layout.xaxis.title = this.cfg.layout.xaxis.title;
+      layout.yaxis.title = this.cfg.layout.yaxis.title;
+      layout.margin = {
+        l: layout.yaxis.title ? 50 : 35,
+        r: 5,
+        t: 0,
+        b: layout.xaxis.title ? 65 : 30,
+        pad: 2,
+      };
+
+      // get the css rule of grafana graph axis text
+      const labelStyle = this.getCssRule('div.flot-text');
+      if (labelStyle) {
+        let color = labelStyle.style.color;
+        if (!layout.font) layout.font = {};
+        layout.font.color = color;
+
+        // make the grid a little more transparent
+        color = $.color
+          .parse(color)
+          .scale('a', 0.22)
+          .toString();
+
+        // set gridcolor (like grafana graph)
+        layout.xaxis.gridcolor = color;
+        layout.yaxis.gridcolor = color;
+      }
+    }
+    return layout;
   }
 
   onRender() {
@@ -255,11 +307,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         modeBarButtonsToRemove: ['sendDataToCloud'], //, 'select2d', 'lasso2d']
       };
 
-      let rect = this.graphDiv.getBoundingClientRect();
-      this.layout = $.extend(true, {}, this.cfg.layout);
-      this.layout.autosize = false; // height is from the div
-      this.layout.height = this.height;
-      this.layout.width = rect.width;
+      this.layout = this.getProcessedLayout();
 
       Plotly.react(this.graphDiv, this.plotlyData, this.layout, options);
 
@@ -396,11 +444,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
               idx: j,
               points: [],
             };
-            // Commented cuz don`t know what is it for :)
-            // if (j == 0 && val.type === 'time') {
-            //   // InfluxDB time
-            //   val = key; // will overwrite the time field
-            // }
 
             if (!valMetric.type) {
               valMetric.type = 'number';
@@ -506,30 +549,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         if (!dZ) {
           throw {message: 'Unable to find Z: ' + mapping.z};
         }
-        this.layout.scene.xaxis.title = this.cfg.layout.xaxis.title;
-        this.layout.scene.yaxis.title = this.cfg.layout.yaxis.title;
-        this.layout.scene.zaxis.title = this.cfg.layout.zaxis.title;
-
         trace.z = dZ.points;
-
-        this.layout.margin = {
-          l: 0,
-          r: 0,
-          t: 0,
-          b: 0,
-          pad: 0,
-        };
-      } else {
-        this.layout.xaxis.title = this.cfg.layout.xaxis.title;
-        this.layout.yaxis.title = this.cfg.layout.yaxis.title;
-
-        this.layout.margin = {
-          l: this.layout.yaxis.title ? 50 : 35,
-          r: 5,
-          t: 0,
-          b: this.layout.xaxis.title ? 65 : 30,
-          pad: 2,
-        };
       }
 
       trace.marker = $.extend(true, {}, traceConfig.settings.marker);
@@ -670,28 +690,44 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   onConfigChanged() {
-    let axis = [this.cfg.layout.xaxis, this.cfg.layout.yaxis, this.cfg.layout.zaxis];
-    for (let i = 0; i < axis.length; i++) {
-      if (axis[i].rangemode === 'between') {
-        if (axis[i].range == null) {
-          axis[i].range = [0, null];
-        }
-      } else {
-        axis[i].range = null;
-      }
-    }
+    this.cfg.layout.xaxis.label = 'X Axis';
+    this.cfg.layout.yaxis.label = 'Y Axis';
 
-    // Really only necessary if editor is open
     this.axis = [];
     this.axis.push(this.cfg.layout.xaxis);
     this.axis.push(this.cfg.layout.yaxis);
     if (this.is3d()) {
+      if (!this.cfg.layout.zaxis) {
+        this.cfg.layout.zaxis = {};
+      }
+      this.cfg.layout.zaxis.label = 'Z Axis';
       this.axis.push(this.cfg.layout.zaxis);
     }
-    this.cfg.layout.xaxis.label = 'X Axis';
-    this.cfg.layout.yaxis.label = 'Y Axis';
-    this.cfg.layout.zaxis.label = 'Z Axis';
 
+    for (let i = 0; i < this.axis.length; i++) {
+      if (this.axis[i].rangemode === 'between') {
+        if (this.axis[i].range == null) {
+          this.axis[i].range = [0, null];
+        }
+      } else {
+        this.axis[i].range = null;
+      }
+    }
+
+    if (this.initalized && this.graphDiv) {
+      let s = this.cfg.settings;
+
+      let options = {
+        showLink: false,
+        displaylogo: false,
+        displayModeBar: s.displayModeBar,
+        modeBarButtonsToRemove: ['sendDataToCloud'], //, 'select2d', 'lasso2d']
+      };
+      this.layout = this.getProcessedLayout();
+      Plotly.react(this.graphDiv, this.plotlyData, this.layout, options);
+    }
+
+    // Will query and then update metrics
     this.refresh();
   }
 
