@@ -64,13 +64,8 @@ yarn build
 
 * First working version
 
-### Roadmap
-
-* support 'table' response format for more than one query.
-
-Nice things to have
+### Wishlist (help wanted)
 
 * sizeref helper. I think this depends on the data. likely need to find the range and pick a good value?
-* support text
 * load plotly.js from CDN?
 * nice to have: https://plot.ly/javascript/parallel-coordinates-plot/
