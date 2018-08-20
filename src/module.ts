@@ -101,6 +101,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   data: any;
   cfg: any;
 
+  // For editor
+  axis: Array<any> = [];
+
   // Used for the editor control
   traceTabIndex: number;
 
@@ -677,6 +680,18 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         axis[i].range = null;
       }
     }
+
+    // Really only necessary if editor is open
+    this.axis = [];
+    this.axis.push(this.cfg.layout.xaxis);
+    this.axis.push(this.cfg.layout.yaxis);
+    if (this.is3d()) {
+      this.axis.push(this.cfg.layout.zaxis);
+    }
+    this.cfg.layout.xaxis.label = 'X Axis';
+    this.cfg.layout.yaxis.label = 'Y Axis';
+    this.cfg.layout.zaxis.label = 'Z Axis';
+
     this.refresh();
   }
 

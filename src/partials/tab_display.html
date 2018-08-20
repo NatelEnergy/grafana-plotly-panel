@@ -41,13 +41,14 @@
     <gf-form-switch class="gf-form" label="Toolbar" label-class="gf-form-label width-7" checked="ctrl.cfg.settings.displayModeBar" on-change="ctrl.onConfigChanged()"></gf-form-switch>
   </div>
 
-  <div class="section gf-form-group">
-    <h5 class="section-heading">X</h5>
+  <div ng-repeat="axis in ctrl.axis" class="section gf-form-group">
+    <h5 class="section-heading">{{axis.label}}</h5>
 
     <div class="gf-form">
       <label class="gf-form-label width-7">Title</label>
       <input class="gf-form-input width-7" 
-        ng-model="ctrl.cfg.layout.xaxis.title" 
+        placeholder="No Label"
+        ng-model="axis.title" 
         ng-change="ctrl.onConfigChanged();">
     </div>
 
@@ -55,7 +56,7 @@
       <label class="gf-form-label width-7">Type</label>
       <div class="gf-form-select-wrapper max-width-14">
         <select class="gf-form-input" 
-          ng-model="ctrl.cfg.layout.xaxis.type" 
+          ng-model="axis.type" 
           ng-change="ctrl.onConfigChanged()">
           <option value="-">auto</option>
           <option value="linear">Linear</option>
@@ -68,7 +69,7 @@
     <div class="gf-form">
       <label class="gf-form-label width-7">Range</label>
       <div class="gf-form-select-wrapper max-width-14">
-        <select class="gf-form-input" ng-model="ctrl.cfg.layout.xaxis.rangemode" ng-change="ctrl.onConfigChanged()">
+        <select class="gf-form-input" ng-model="axis.rangemode" ng-change="ctrl.onConfigChanged()">
           <option value="normal">Auto</option>
           <option value="between">Between</option>
           <option value="tozero">To Zero</option>
@@ -77,115 +78,25 @@
       </div>
     </div>
 
-    <div class="gf-form" ng-if="ctrl.cfg.layout.xaxis.rangemode === 'between'">
+    <div class="gf-form" ng-if="axis.rangemode === 'between'">
       <label class="gf-form-label width-7">Min</label>
-      <input type="number" placeholder="min" ng-model="ctrl.cfg.layout.xaxis.range[0]" class="gf-form-input width-10" ng-blur="ctrl.onConfigChanged()"
+      <input class="gf-form-input width-10"
+        placeholder="min" 
+        ng-model="axis.range[0]" 
+        ng-blur="ctrl.onConfigChanged()"
       />
     </div>
-    <div class="gf-form" ng-if="ctrl.cfg.layout.xaxis.rangemode === 'between'">
+    <div class="gf-form" ng-if="axis.rangemode === 'between'">
       <label class="gf-form-label width-7">Max</label>
-      <input type="number" placeholder="max" ng-model="ctrl.cfg.layout.xaxis.range[1]" class="gf-form-input width-10" ng-blur="ctrl.onConfigChanged()"
+      <input class="gf-form-input width-10"
+        placeholder="max" 
+        ng-model="axis.range[1]" 
+        ng-blur="ctrl.onConfigChanged()"
       />
     </div>
 
-    <gf-form-switch class="gf-form" label="Show Grid:" label-class="gf-form-label width-7" checked="ctrl.cfg.layout.xaxis.showgrid" on-change="ctrl.onConfigChanged()"></gf-form-switch>
-    <gf-form-switch class="gf-form" label="Zero Line:" label-class="gf-form-label width-7" checked="ctrl.cfg.layout.xaxis.zeroline" on-change="ctrl.onConfigChanged()"></gf-form-switch>
-  </div>
-
-  <div class="section gf-form-group">
-    <h5 class="section-heading">Y</h5>
-
-    <div class="gf-form">
-      <label class="gf-form-label width-7">Title</label>
-      <input class="gf-form-input width-7" ng-model="ctrl.cfg.layout.yaxis.title" ng-blur="ctrl.onConfigChanged();">
-    </div>
-
-    <div class="gf-form">
-      <label class="gf-form-label width-7">Type</label>
-      <div class="gf-form-select-wrapper max-width-14">
-        <select class="gf-form-input" ng-model="ctrl.cfg.layout.yaxis.type" ng-change="ctrl.onConfigChanged()">
-          <option value="-">auto</option>
-          <option value="linear">Linear</option>
-          <option value="log">Log</option>
-          <option value="date">Date</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="gf-form">
-      <label class="gf-form-label width-7">Range</label>
-      <div class="gf-form-select-wrapper max-width-14">
-        <select class="gf-form-input" ng-model="ctrl.cfg.layout.yaxis.rangemode" ng-change="ctrl.onConfigChanged()">
-          <option value="normal">Auto</option>
-          <option value="between">Between</option>
-          <option value="tozero">To Zero</option>
-          <option value="nonnegative">Non-Negative</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="gf-form" ng-if="ctrl.cfg.layout.yaxis.rangemode === 'between'">
-      <label class="gf-form-label width-7">Min</label>
-      <input type="number" placeholder="min" ng-model="ctrl.cfg.layout.yaxis.range[0]" class="gf-form-input width-10" ng-blur="ctrl.onConfigChanged()"
-      />
-    </div>
-    <div class="gf-form" ng-if="ctrl.cfg.layout.yaxis.rangemode === 'between'">
-      <label class="gf-form-label width-7">Max</label>
-      <input type="number" placeholder="max" ng-model="ctrl.cfg.layout.yaxis.range[1]" class="gf-form-input width-10" ng-blur="ctrl.onConfigChanged()"
-      />
-    </div>
-
-    <gf-form-switch class="gf-form" label="Show Grid:" label-class="gf-form-label width-7" checked="ctrl.cfg.layout.yaxis.showgrid" on-change="ctrl.onConfigChanged()"></gf-form-switch>
-    <gf-form-switch class="gf-form" label="Zero Line:" label-class="gf-form-label width-7" checked="ctrl.cfg.layout.yaxis.zeroline" on-change="ctrl.onConfigChanged()"></gf-form-switch>
-  </div>
-
-  <div class="section gf-form-group" ng-if="ctrl.is3d();">
-    <h5 class="section-heading">Z</h5>
-
-    <div class="gf-form">
-      <label class="gf-form-label width-7">Title</label>
-      <input class="gf-form-input width-7" ng-model="ctrl.cfg.layout.zaxis.title" ng-blur="ctrl.onConfigChanged();">
-    </div>
-
-    <div class="gf-form">
-      <label class="gf-form-label width-7">Type</label>
-      <div class="gf-form-select-wrapper max-width-14">
-        <select class="gf-form-input" ng-model="ctrl.cfg.layout.zaxis.type" ng-change="ctrl.onConfigChanged()">
-          <option value="-">auto</option>
-          <option value="linear">Linear</option>
-          <option value="log">Log</option>
-          <option value="date">Date</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="gf-form">
-      <label class="gf-form-label width-7">Range</label>
-      <div class="gf-form-select-wrapper max-width-14">
-        <select class="gf-form-input" ng-model="ctrl.cfg.layout.zaxis.rangemode" ng-change="ctrl.onConfigChanged()">
-          <option value="normal">Auto</option>
-          <option value="between">Between</option>
-          <option value="tozero">To Zero</option>
-          <option value="nonnegative">Non-Negative</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="gf-form" ng-if="ctrl.cfg.layout.zaxis.rangemode === 'between'">
-      <label class="gf-form-label width-7">Min</label>
-      <input type="number" placeholder="min" ng-model="ctrl.cfg.layout.zaxis.range[0]" class="gf-form-input width-10" ng-blur="ctrl.onConfigChanged()"
-      />
-    </div>
-    <div class="gf-form" ng-if="ctrl.cfg.layout.zaxis.rangemode === 'between'">
-      <label class="gf-form-label width-7">Max</label>
-      <input type="number" placeholder="max" ng-model="ctrl.cfg.layout.zaxis.range[1]" class="gf-form-input width-10" ng-blur="ctrl.onConfigChanged()"
-      />
-    </div>
-
-    <gf-form-switch class="gf-form" label="Show Grid:" label-class="gf-form-label width-7" checked="ctrl.cfg.layout.zaxis.showgrid"
-      on-change="ctrl.onConfigChanged()"></gf-form-switch>
-    <gf-form-switch class="gf-form" label="Zero Line:" label-class="gf-form-label width-7" checked="ctrl.cfg.layout.zaxis.zeroline"
-      on-change="ctrl.onConfigChanged()"></gf-form-switch>
+    <gf-form-switch class="gf-form" label="Show Grid:" label-class="gf-form-label width-7" checked="axis.showgrid" on-change="ctrl.onConfigChanged()"></gf-form-switch>
+    <gf-form-switch class="gf-form" label="Zero Line:" label-class="gf-form-label width-7" checked="axis.zeroline" on-change="ctrl.onConfigChanged()"></gf-form-switch>
   </div>
 
 </div>
