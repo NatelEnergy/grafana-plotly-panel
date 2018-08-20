@@ -248,20 +248,18 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     if (this.is3d()) {
       if (!layout.zaxis) layout.zaxis = {};
 
-      layout.scene.xaxis.title = this.cfg.layout.xaxis.title;
-      layout.scene.yaxis.title = this.cfg.layout.yaxis.title;
-      layout.scene.zaxis.title = this.cfg.layout.zaxis.title;
+      layout.scene.xaxis.title = layout.xaxis.title;
+      layout.scene.yaxis.title = layout.yaxis.title;
+      layout.scene.zaxis.title = layout.zaxis.title;
       layout.margin = {
         l: 0,
         r: 0,
         t: 0,
-        b: 0,
+        b: 5,
         pad: 0,
       };
     } else {
       delete layout.scene;
-      layout.xaxis.title = this.cfg.layout.xaxis.title;
-      layout.yaxis.title = this.cfg.layout.yaxis.title;
       layout.margin = {
         l: layout.yaxis.title ? 50 : 35,
         r: 5,
@@ -552,8 +550,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         trace.z = dZ.points;
       }
 
-      trace.marker = $.extend(true, {}, traceConfig.settings.marker);
-      trace.line = $.extend(true, {}, traceConfig.settings.line);
+      trace.marker = this.deepCopyWithTeplates(traceConfig.settings.marker) || {};
+      trace.line = this.deepCopyWithTeplates(traceConfig.settings.line) || {};
 
       if (mapping.size) {
         dS = this.data[mapping.size];

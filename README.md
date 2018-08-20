@@ -36,6 +36,7 @@ yarn build
 * Removing `dist` from master branch
 * Support of multiple time series's ([#9](https://github.com/NatelEnergy/grafana-plotly-panel/issues/9), [CorpGlory DevTeam](https://corpglory.com/))
 * Support showing text from query (#11)
+* Template variable support
 
 ##### v0.0.4
 
