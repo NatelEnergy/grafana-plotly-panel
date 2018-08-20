@@ -154,7 +154,9 @@
         <input type="text" placeholder="text" ng-model="ctrl.getTraceConfig($index).settings.marker.color" class="gf-form-input width-10"
           ng-blur="ctrl.onConfigChanged()" />
         <span class="gf-form-label">
-          <spectrum-picker ng-model="ctrl.getTraceConfig($index).settings.marker.color" ng-blur="ctrl.onConfigChanged()" />
+          <spectrum-picker 
+            ng-model="ctrl.getTraceConfig($index).settings.marker.color" 
+            ng-change="ctrl.onConfigChanged()" />
         </span>
       </div>
 
@@ -229,12 +231,15 @@
 
       <div class="gf-form">
         <label class="gf-form-label width-7">Color</label>
-        <input type="text" placeholder="text"
-          ng-model="ctrl.getTraceConfig($index).settings.line.color" class="gf-form-input width-10"
+        <input class="gf-form-input width-10"
+          type="text" placeholder="#???"
+          ng-model="ctrl.getTraceConfig($index).settings.line.color" 
           ng-blur="ctrl.onConfigChanged()"
         />
         <span class="gf-form-label">
-          <spectrum-picker ng-model="ctrl.getTraceConfig($index).settings.line.color" ng-blur="ctrl.onConfigChanged()" />
+          <spectrum-picker 
+            ng-model="ctrl.getTraceConfig($index).settings.line.color" 
+            ng-change="ctrl.onConfigChanged()" />
         </span>
       </div>
 

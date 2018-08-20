@@ -46,13 +46,17 @@
 
     <div class="gf-form">
       <label class="gf-form-label width-7">Title</label>
-      <input class="gf-form-input width-7" ng-model="ctrl.cfg.layout.xaxis.title" ng-blur="ctrl.onConfigChanged();">
+      <input class="gf-form-input width-7" 
+        ng-model="ctrl.cfg.layout.xaxis.title" 
+        ng-change="ctrl.onConfigChanged();">
     </div>
 
     <div class="gf-form">
       <label class="gf-form-label width-7">Type</label>
       <div class="gf-form-select-wrapper max-width-14">
-        <select class="gf-form-input" ng-model="ctrl.cfg.layout.xaxis.type" ng-change="ctrl.onConfigChanged()">
+        <select class="gf-form-input" 
+          ng-model="ctrl.cfg.layout.xaxis.type" 
+          ng-change="ctrl.onConfigChanged()">
           <option value="-">auto</option>
           <option value="linear">Linear</option>
           <option value="log">Log</option>
