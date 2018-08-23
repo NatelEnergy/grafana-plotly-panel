@@ -28,7 +28,7 @@ yarn build
 
 #### Changelog
 
-##### v0.0.5 (not released yet)
+##### v0.0.5
 
 * Upgrade plotly (v1.39+)
 * Better support for light theme. (#24, @cscheuermann81)
