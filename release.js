@@ -1,5 +1,6 @@
 //
 // This script makes a new git release branch and adds the 'dist' folder to it
+// Run with: node release.js
 //
 
 const fs = require('fs');
