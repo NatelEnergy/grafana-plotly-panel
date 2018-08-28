@@ -132,7 +132,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.events.on('refresh', this.onRefresh.bind(this));
   }
 
-  getCssRule(selectorText) {
+  getCssRule(selectorText): CSSStyleRule | null {
     const styleSheets = document.styleSheets;
     for (let idx = 0; idx < styleSheets.length; idx += 1) {
       const styleSheet = styleSheets[idx] as CSSStyleSheet;
@@ -144,6 +144,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         }
       }
     }
+    return null;
   }
 
   onResize() {
@@ -426,10 +427,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       let refId = _.get(this.panel, 'targets[' + sidx + '].refId');
       if (!refId) {
         console.log('Missing Targets: ', this.panel.targets);
-        let refId = String.fromCharCode('A'.charCodeAt(0) + sidx);
+        refId = String.fromCharCode('A'.charCodeAt(0) + sidx);
       }
       if (series.columns) {
-        const length = series.rows.length;
         for (let i = 0; i < series.columns.length; i++) {
           finfo.push(new SeriesWrapperTable(refId, series, i));
         }

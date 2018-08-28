@@ -54,6 +54,7 @@ export class SeriesWrapperSeries extends SeriesWrapper {
           this.setFirst(arr[0]);
           return false;
         }
+        return true; // continue
       });
       return;
     }
