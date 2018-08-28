@@ -513,7 +513,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       };
 
       let mode: string = '';
-      if (false && config.show.markers) {
+      if (config.show.markers) {
         mode += '+markers';
         trace.marker = config.settings.marker;
 
@@ -585,7 +585,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           const s = this.seriesByKey.get(v.key);
           if (s) {
             _.set(trace, v.path, s.toArray());
-            console.warn('Set', v, s);
           } else {
             console.warn('Can not set', v);
           }

@@ -174,12 +174,12 @@ export class EditorHelper {
   getSeriesSegs(withRemove = false): Promise<any[]> {
     return new Promise((resolve, reject) => {
       let series = [];
-      if (withRemove) {
+      if (false && withRemove) {
         series.push(
           this.ctrl.uiSegmentSrv.newSegment({
-            fake: true,
-            html: '<i class="fa fa-cross "></i>',
-            type: 'plus-button',
+            fake: false,
+            value: null,
+            html: '<i class="fa fa-cross "></i> Remove',
             series: null,
             cssClass: 'query-part',
           })
