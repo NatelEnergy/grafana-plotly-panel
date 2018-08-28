@@ -4,7 +4,9 @@
     <div class="gf-form">
       <label class="gf-form-label width-7">Type</label>
       <div class="gf-form-select-wrapper max-width-14">
-        <select class="gf-form-input" ng-model="ctrl.cfg.settings.type" ng-change="ctrl.onConfigChanged()">
+        <select class="gf-form-input" 
+          ng-model="ctrl.cfg.settings.type" 
+          ng-change="ctrl.editor.onConfigChanged()">
           <option value="scatter">Scatter</option>
           <option value="scatter3d">Scatter (3d)</option>
           <!--
@@ -18,7 +20,9 @@
     <div class="gf-form">
       <label class="gf-form-label width-7">Drag</label>
       <div class="gf-form-select-wrapper max-width-14">
-        <select class="gf-form-input" ng-model="ctrl.cfg.layout.dragmode" ng-change="ctrl.onConfigChanged()">
+        <select class="gf-form-input" 
+          ng-model="ctrl.cfg.layout.dragmode" 
+          ng-change="ctrl.editor.onConfigChanged()">
           <option value="zoom">zoom</option>
           <option value="pan">pan</option>
           <option value="lasso">lasso</option>
@@ -27,7 +31,12 @@
       </div>
     </div>
 
-    <gf-form-switch class="gf-form" label="Toolbar" label-class="gf-form-label width-7" checked="ctrl.cfg.settings.displayModeBar" on-change="ctrl.onConfigChanged()"></gf-form-switch>
+    <gf-form-switch 
+      class="gf-form" 
+      label="Toolbar" 
+      label-class="gf-form-label width-7" 
+      checked="ctrl.cfg.settings.displayModeBar" 
+      on-change="ctrl.editor.onConfigChanged()"></gf-form-switch>
   </div>
 
   <div ng-repeat="axis in ctrl.editor.axis" class="section gf-form-group">
@@ -38,16 +47,16 @@
       <input class="gf-form-input width-7" 
         placeholder="No Label"
         ng-model="axis.title" 
-        ng-change="ctrl.onConfigChanged();">
+        ng-change="ctrl.editor.onConfigChanged();">
     </div>
 
     <div class="gf-form">
       <label class="gf-form-label width-7">Type</label>
       <div class="gf-form-select-wrapper max-width-14">
         <select class="gf-form-input" 
-          ng-model="axis.type" 
-          ng-change="ctrl.onConfigChanged()">
-          <option value="-">auto</option>
+          ng-model="axis.layout.type" 
+          ng-change="ctrl.editor.onConfigChanged()">
+          <option value="">auto</option>
           <option value="linear">Linear</option>
           <option value="log">Log</option>
           <option value="date">Date</option>
@@ -58,7 +67,7 @@
     <div class="gf-form">
       <label class="gf-form-label width-7">Range</label>
       <div class="gf-form-select-wrapper max-width-14">
-        <select class="gf-form-input" ng-model="axis.rangemode" ng-change="ctrl.onConfigChanged()">
+        <select class="gf-form-input" ng-model="axis.layout.rangemode" ng-change="ctrl.onConfigChanged()">
           <option value="normal">Auto</option>
           <option value="between">Between</option>
           <option value="tozero">To Zero</option>
@@ -71,7 +80,7 @@
       <label class="gf-form-label width-7">Min</label>
       <input class="gf-form-input width-10"
         placeholder="min" 
-        ng-model="axis.range[0]" 
+        ng-model="axis.layout.range[0]" 
         ng-blur="ctrl.onConfigChanged()"
       />
     </div>
@@ -79,7 +88,7 @@
       <label class="gf-form-label width-7">Max</label>
       <input class="gf-form-input width-10"
         placeholder="max" 
-        ng-model="axis.range[1]" 
+        ng-model="axis.layout.range[1]" 
         ng-blur="ctrl.onConfigChanged()"
       />
     </div>
@@ -91,3 +100,4 @@
 </div>
 
 
+<pre>{{ ctrl.editor.axis | json}}</pre>

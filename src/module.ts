@@ -23,6 +23,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       x: null,
       y: null,
       z: null,
+      text: null,
       color: null,
       size: null,
     },
@@ -425,7 +426,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         console.log('Missing Targets: ', this.panel.targets);
         let refId = String.fromCharCode('A'.charCodeAt(0) + sidx);
       }
-      console.log('READ', series, sidx);
       if (series.columns) {
         const length = series.rows.length;
         for (let i = 0; i < series.columns.length; i++) {
@@ -447,7 +447,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       });
     });
     this.series = finfo;
-    console.log('SERIES', finfo);
 
     this._updateTraceData();
     this.render();
@@ -512,36 +511,36 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         trace.lines = config.settings.lines;
       }
 
-      let mappings = config.mappings;
-      if (!mappings) {
-        mappings = tconfig.mappings = {};
+      let mapping = config.mapping;
+      if (!mapping) {
+        mapping = tconfig.mapping = {};
       }
 
       // Set the text
-      this.__addCopyPath(trace, mappings.text, 'text');
+      this.__addCopyPath(trace, mapping.text, 'text');
 
       if (config.color_option === 'ramp') {
-        if (!mappings.color) {
-          mappings.color = tconfig.mappings.color = defaultMappins.first;
+        if (!mapping.color) {
+          mapping.color = tconfig.mapping.color = defaultMappins.first;
         }
-        this.__addCopyPath(trace, mappings.color, 'marker.color');
+        this.__addCopyPath(trace, mapping.color, 'marker.color');
       }
 
       // Make sure a default value exists
-      if (!mappings.x) {
-        mappings.x = tconfig.mappings.x = defaultMappins.first;
+      if (!mapping.x) {
+        mapping.x = tconfig.mapping.x = defaultMappins.first;
       }
-      if (!mappings.y) {
-        mappings.y = tconfig.mappings.y = defaultMappins.time;
+      if (!mapping.y) {
+        mapping.y = tconfig.mapping.y = defaultMappins.time;
       }
-      this.__addCopyPath(trace, mappings.x, 'x');
-      this.__addCopyPath(trace, mappings.y, 'y');
+      this.__addCopyPath(trace, mapping.x, 'x');
+      this.__addCopyPath(trace, mapping.y, 'y');
 
       if (is3D) {
-        if (!mappings.z) {
-          mappings.z = tconfig.mappings.z = defaultMappins.first;
+        if (!mapping.z) {
+          mapping.z = tconfig.mapping.z = defaultMappins.first;
         }
-        this.__addCopyPath(trace, mappings.z, 'z');
+        this.__addCopyPath(trace, mapping.z, 'z');
       }
 
       // Set the trace mode

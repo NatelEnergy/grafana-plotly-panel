@@ -1,3 +1,9 @@
+<div ng-if="ctrl.dataWarnings">
+  <div ng-repeat="warn in ctrl.dataWarnings">
+    {{warn}}
+  </div>
+</div>
+
 <div class="edit-tab-with-sidemenu">
   <aside class="edit-sidemenu-aside" style="min-width: 100px">
     <ul class="edit-sidemenu">
@@ -31,7 +37,6 @@
   <div class="edit-tab-content">
 
     <div class="section gf-form-group">
-
       <h5 class="section-heading">Trace</h5>
       <div class="section gf-form-group gf-form-inline">
         <div class="gf-form">
@@ -47,42 +52,14 @@
       <h5 class="section-heading">Metrics</h5>
       <div class="section gf-form-inline">
         <div class="gf-form"  
-          ng-repeat="axis in ctrl.axis"
-          ng-value="metric = ctrl.getMetricFor( traceConfig, axis )ctrl.data[ctrl.editor.trace.mapping.x];">
+          ng-repeat="axis in ctrl.editor.axis">
           <label class="gf-form-label width-7">{{axis.label}}</label>
-          
-          <div class="gf-form-select-wrapper max-width-14">
-            <select class="gf-form-input" 
-              ng-model="ctrl.editor.trace.mapping.text" 
-              ng-change="ctrl.onConfigChanged()">
-              <option ng-repeat="key in ctrl.seriesKeys" value="{{key}}">{{key}}</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="gf-form" ng-value="yMetric = ctrl.data[ctrl.editor.trace.mapping.y];">
-          <label class="gf-form-label width-7">Y</label>
-          <div class="gf-form-select-wrapper max-width-14">
-            <select class="gf-form-input" ng-model="trace.y" ng-model-options="{ getterSetter: true }" ng-change="ctrl.onConfigChanged()">
-              <option ng-repeat="(key, value) in ctrl.data" value="{{key}}">{{key}}</option>
-            </select>
-          </div>
-          &nbsp; {{ yMetric.type }} &nbsp;&nbsp;
-          <span ng-if="yMetric.missing > 0">Missing: {{ yMetric.missing }}</span>
-        </div>
-
-        <div class="gf-form" ng-value="zMetric = ctrl.data[ctrl.editor.trace.mapping.z];" ng-if="ctrl.is3d();">
-          <label class="gf-form-label width-7">Z</label>
-          <div class="gf-form-select-wrapper max-width-14">
-            <select class="gf-form-input" ng-model="trace.z" ng-model-options="{ getterSetter: true }" ng-change="ctrl.onConfigChanged()">
-              <option ng-repeat="(key, value) in ctrl.data" value="{{ key }}">{{ key }}</option>
-            </select>
-          </div>
-          &nbsp; {{ zMetric.type }} &nbsp;&nbsp;
-          <span ng-if="zMetric.missing > 0">Missing: {{ zMetric.missing }}</span>
+          <metric-segment 
+            segment="axis.segment" 
+            get-options="ctrl.editor.getSeriesSegs()" 
+            on-change="ctrl.editor.onAxisSeriesChanged(axis)"></metric-segment>
         </div>
       </div>
-
     </div>
 
     <div class="section gf-form-group">
@@ -99,8 +76,8 @@
           <label class="gf-form-label width-7">Symbol</label>
           <metric-segment 
             segment="ctrl.editor.symbol" 
-            get-options="ctrl.getSymbolSegs()" 
-            on-change="ctrl.onSegsChanged($index)"></metric-segment>
+            get-options="ctrl.editor.getSymbolSegs()" 
+            on-change="ctrl.editor.onSymbolChanged()"></metric-segment>
         </div>
 
         <div class="gf-form">
@@ -261,17 +238,10 @@
 
       <div class="gf-form">
         <label class="gf-form-label width-7">Metric</label>
-        <div class="gf-form-select-wrapper max-width-14">
-          <select class="gf-form-input" 
-            ng-model="ctrl.editor.trace.mapping.text" 
-            ng-change="ctrl.onConfigChanged()">
-            <option ng-repeat="key in ctrl.seriesKeys" value="{{key}}">{{key}}</option>
-          </select>
-        </div>
-        <button 
-          ng-if="ctrl.editor.trace.mapping.text"
-          class="btn btn-inverse" 
-          ng-click="ctrl.editor.trace.mapping.text = null;">x</button>
+        <metric-segment 
+          segment="ctrl.editor.mapping.text" 
+          get-options="ctrl.editor.getSeriesSegs(true)" 
+          on-change="ctrl.editor.onTextMetricChanged()"></metric-segment>
       </div>
       
       <div class="gf-form" ng-if="ctrl.editor.trace.mapping.text">
@@ -289,3 +259,4 @@
   </div>
 </div>
 
+<pre>{{ ctrl.editor.mapping | json}}</pre>
