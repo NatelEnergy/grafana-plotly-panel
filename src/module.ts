@@ -64,7 +64,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       },
       layout: {
         showlegend: false,
-        legend: {orientation: 'v'},
+        legend: {
+          orientation: 'h',
+        },
         dragmode: 'lasso', // (enumerated: "zoom" | "pan" | "select" | "lasso" | "orbit" | "turntable" )
         hovermode: 'closest',
         font: {
