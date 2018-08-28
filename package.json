@@ -36,7 +36,7 @@
     "jquery": "^3.2.1",
     "lodash": "^4.17.10",
     "moment": "^2.22.1",
-    "plotly.js": "^1.39"
+    "plotly.js": "^1.40"
   },
   "devDependencies": {
     "@types/plotly.js": "^1.38.0",
@@ -47,7 +47,6 @@
     "babel-jest": "^23.0.1",
     "babel-loader": "^7.1.4",
     "babel-preset-env": "^1.7.0",
-    "create-file-webpack": "^1.0.0",
     "clean-webpack-plugin": "^0.1.19",
     "copy-webpack-plugin": "^4.5.1",
     "css-loader": "^1.0.0",
