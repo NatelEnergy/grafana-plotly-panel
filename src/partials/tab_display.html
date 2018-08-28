@@ -44,6 +44,16 @@
       label-class="gf-form-label width-7" 
       checked="ctrl.cfg.layout.showlegend" 
       on-change="ctrl.editor.onConfigChanged()"></gf-form-switch>
+
+    <div class="gf-form" ng-if="ctrl.cfg.layout.showlegend">
+        <label class="gf-form-label width-7">- Orientation</label>
+        <div class="gf-form-select-wrapper max-width-14">
+          <select class="gf-form-input" ng-model="ctrl.cfg.layout.legend.orientation" ng-change="ctrl.onConfigChanged()">
+            <option value="h">Horizontal</option>
+            <option value="v">Vertical</option>
+          </select>
+        </div>
+      </div>
   </div>
 
   <div ng-repeat="axis in ctrl.editor.axis" class="section gf-form-group">
