@@ -214,7 +214,7 @@ export class EditorHelper {
 
   getSeriesSegs(withRemove = false): Promise<any[]> {
     return new Promise((resolve, reject) => {
-      let series = [];
+      let series: any[] = [];
       if (false && withRemove) {
         series.push(
           this.ctrl.uiSegmentSrv.newSegment({
@@ -413,7 +413,7 @@ export class EditorHelper {
         'line-nw-open',
       ];
 
-      let segs = [];
+      let segs: any[] = [];
       _.forEach(txt, val => {
         segs.push(this.ctrl.uiSegmentSrv.newSegment(val));
       });
