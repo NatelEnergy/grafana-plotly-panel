@@ -95,6 +95,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   graphDiv: any;
   series: SeriesWrapper[];
   seriesByKey: Map<string, SeriesWrapper> = new Map();
+  seriesHash: string = '?';
 
   traces: Array<any>; // The data sent directly to Plotly -- with a special __copy element
   layout: any; // The layout used by Plotly
@@ -253,7 +254,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   };
 
   getProcessedLayout() {
-    console.log('BEFORE', this.cfg.layout);
     // Copy from config
     let layout = this.deepCopyWithTeplates(this.cfg.layout);
     layout.plot_bgcolor = 'transparent';
@@ -421,6 +421,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   onDataReceived(dataList) {
     let finfo: SeriesWrapper[] = [];
+    let seriesHash = '/';
     dataList.forEach((series, sidx) => {
       let refId = _.get(this.panel, 'targets[' + sidx + '].refId');
       if (!refId) {
@@ -442,13 +443,22 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     });
     this.seriesByKey.clear();
     finfo.forEach(s => {
-      this.seriesByKey.set(s.getRelativeKey(), s);
+      const key = s.getRelativeKey();
+      this.seriesByKey.set(key, s);
       s.getNamedKeys().forEach(k => {
         this.seriesByKey.set(k, s);
       });
+      seriesHash += '$' + key;
     });
     this.series = finfo;
 
+    // Now Process the loaded data
+    if (this.seriesHash !== seriesHash || !this.initalized) {
+      this.onConfigChanged();
+      this.seriesHash = seriesHash;
+    }
+
+    // Load the real data changes
     this._updateTraceData();
     this.render();
   }
@@ -493,6 +503,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.traces = this.cfg.traces.map((tconfig, idx) => {
       const config = this.deepCopyWithTeplates(tconfig) || {};
       _.defaults(config, PlotlyPanelCtrl.defaults);
+      let mapping = config.mapping;
 
       let trace: any = {
         name: config.name || EditorHelper.createTraceName(idx),
@@ -502,9 +513,23 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       };
 
       let mode: string = '';
-      if (config.show.markers) {
+      if (false && config.show.markers) {
         mode += '+markers';
         trace.marker = config.settings.marker;
+
+        delete trace.marker.sizemin;
+        delete trace.marker.sizemode;
+        delete trace.marker.sizeref;
+
+        if (config.settings.color_option === 'ramp') {
+          if (!mapping.color) {
+            mapping.color = tconfig.mapping.color = defaultMappins.first;
+          }
+          this.__addCopyPath(trace, mapping.color, 'marker.color');
+        } else {
+          delete trace.marker.colorscale;
+          delete trace.marker.showscale;
+        }
       }
 
       if (config.show.lines) {
@@ -512,20 +537,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         trace.line = config.settings.line;
       }
 
-      let mapping = config.mapping;
-      if (!mapping) {
-        mapping = tconfig.mapping = {};
-      }
-
       // Set the text
       this.__addCopyPath(trace, mapping.text, 'text');
-
-      if (config.color_option === 'ramp') {
-        if (!mapping.color) {
-          mapping.color = tconfig.mapping.color = defaultMappins.first;
-        }
-        this.__addCopyPath(trace, mapping.color, 'marker.color');
-      }
 
       // Make sure a default value exists
       if (!mapping.x) {
@@ -545,7 +558,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       }
 
       // Set the trace mode
-      if (trace.mode) {
+      if (mode) {
         trace.mode = mode.substring(1);
       }
       return trace;
@@ -572,10 +585,15 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           const s = this.seriesByKey.get(v.key);
           if (s) {
             _.set(trace, v.path, s.toArray());
+            console.warn('Set', v, s);
+          } else {
+            console.warn('Can not set', v);
           }
         });
       }
     });
+
+    console.log('SetDATA', this.traces);
   }
 
   onConfigChanged() {
@@ -592,7 +610,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         modeBarButtonsToRemove: ['sendDataToCloud'], //, 'select2d', 'lasso2d']
       };
       this.layout = this.getProcessedLayout();
-      console.log('LAYOUT', this.layout, this.traces);
+      console.log('Update-LAYOUT', this.layout, this.traces);
       Plotly.react(this.graphDiv, this.traces, this.layout, options);
     }
 
