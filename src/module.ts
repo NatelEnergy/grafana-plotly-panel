@@ -180,7 +180,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   onInitEditMode() {
     this.editor = new EditorHelper(this);
-
     this.addEditorTab(
       'Display',
       'public/plugins/natel-plotly-panel/partials/tab_display.html',
@@ -202,6 +201,16 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this.panel
     );
     console.log('.....');
+
+    // Remove some things that should not be saved
+    delete this.cfg.layout.plot_bgcolor;
+    delete this.cfg.layout.paper_bgcolor;
+    delete this.cfg.layout.autosize;
+    delete this.cfg.layout.height;
+    delete this.cfg.layout.width;
+    if (!this.is3d()) {
+      delete this.cfg.layout.zaxis;
+    }
 
     // Move from 'markers-lines' to checkbox
     if (this.cfg.settings.mode) {
@@ -244,16 +253,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   };
 
   getProcessedLayout() {
-    // Remove some things that should not be saved
-    delete this.cfg.layout.plot_bgcolor;
-    delete this.cfg.layout.paper_bgcolor;
-    delete this.cfg.layout.autosize;
-    delete this.cfg.layout.height;
-    delete this.cfg.layout.width;
-    if (!this.is3d()) {
-      delete this.cfg.layout.zaxis;
-    }
-
+    console.log('BEFORE', this.cfg.layout);
     // Copy from config
     let layout = this.deepCopyWithTeplates(this.cfg.layout);
     layout.plot_bgcolor = 'transparent';
@@ -283,6 +283,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         pad: 0,
       };
     } else {
+      delete layout.zaxis;
       delete layout.scene;
       layout.margin = {
         l: layout.yaxis.title ? 50 : 35,
@@ -458,7 +459,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       if (s) {
         trace.__set.push({
           key: s.getRelativeKey(),
-          path: 'property',
+          path: path,
         });
         return true;
       }
@@ -472,7 +473,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   // This will update all trace settings *except* the data
   _updateTracesFromConfigs() {
     this.dataWarnings = [];
-
     const defaultMappins =
       this.series && this.series.length > 1
         ? {
@@ -489,26 +489,27 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this.cfg.traces = [_.cloneDeep(PlotlyPanelCtrl.defaultTrace)];
     }
 
+    const is3D = this.is3d();
     this.traces = this.cfg.traces.map((tconfig, idx) => {
-      const config = this.deepCopyWithTeplates(tconfig.settings.marker) || {};
-      const is3D = this.is3d();
+      const config = this.deepCopyWithTeplates(tconfig) || {};
+      _.defaults(config, PlotlyPanelCtrl.defaults);
+
       let trace: any = {
-        name: config.name,
+        name: config.name || EditorHelper.createTraceName(idx),
+        type: this.cfg.settings.type,
+        mode: 'markers+lines', // really depends on config settings
         __set: [], // { key:? property:? }
       };
-      if (!trace.name) {
-        trace.name = tconfig.name = EditorHelper.createTraceName(idx);
-      }
+
       let mode: string = '';
-
-      if (_.get(config, 'settings.markers.show')) {
-        mode += '-markers';
-        trace.markers = config.settings.markers;
+      if (config.show.markers) {
+        mode += '+markers';
+        trace.marker = config.settings.marker;
       }
 
-      if (_.get(config, 'settings.markers.show')) {
-        mode += '-lines';
-        trace.lines = config.settings.lines;
+      if (config.show.lines) {
+        mode += '+lines';
+        trace.line = config.settings.line;
       }
 
       let mapping = config.mapping;
@@ -546,13 +547,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       // Set the trace mode
       if (trace.mode) {
         trace.mode = mode.substring(1);
-      } else {
-        trace.mode = 'markers';
       }
-
-      trace.type = this.cfg.settings.type;
       return trace;
     });
+    console.log('Set Traces', this.traces);
     this.refresh();
   }
 
@@ -587,7 +585,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     // Updates the layout and redraw
     if (this.initalized && this.graphDiv) {
       let s = this.cfg.settings;
-
       let options = {
         showLink: false,
         displaylogo: false,
@@ -595,6 +592,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         modeBarButtonsToRemove: ['sendDataToCloud'], //, 'select2d', 'lasso2d']
       };
       this.layout = this.getProcessedLayout();
+      console.log('LAYOUT', this.layout, this.traces);
       Plotly.react(this.graphDiv, this.traces, this.layout, options);
     }
 

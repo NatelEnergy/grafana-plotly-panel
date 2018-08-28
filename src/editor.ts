@@ -12,6 +12,7 @@ class AxisInfo {
 export class EditorHelper {
   axis = new Array<AxisInfo>();
   trace: any; // Trace Config
+  traceIndex: number = 0;
   traces: any[]; // array of configs;
 
   symbol: any; // The Grafana <metric-segment for this symbol
@@ -46,27 +47,35 @@ export class EditorHelper {
       return;
     }
 
-    this.axis.length = 0;
+    const layout = this.ctrl.cfg.layout;
+    if (!layout.xaxis) {
+      layout.xaxis = {};
+    }
+    if (!layout.yaxis) {
+      layout.yaxis = {};
+    }
+
+    this.axis = [];
     this.axis.push({
       label: 'X Axis',
-      layout: this.ctrl.cfg.layout.xaxis,
+      layout: layout.xaxis,
       property: 'x',
       segment: this.mapping.x,
     });
     this.axis.push({
       label: 'Y Axis',
-      layout: this.ctrl.cfg.layout.yaxis,
+      layout: layout.yaxis,
       property: 'y',
       segment: this.mapping.y,
     });
 
     if (this.ctrl.is3d()) {
-      if (!this.ctrl.cfg.layout.zaxis) {
-        this.ctrl.cfg.layout.zaxis = {};
+      if (!layout.zaxis) {
+        layout.zaxis = {};
       }
       this.axis.push({
         label: 'Z Axis',
-        layout: this.ctrl.cfg.layout.zaxis,
+        layout: layout.zaxis,
         property: 'z',
         segment: this.mapping.z,
       });
@@ -83,6 +92,8 @@ export class EditorHelper {
       this.traces = this.ctrl.cfg.traces = [_.deepClone(PlotlyPanelCtrl.defaultTrace)];
     }
     this.trace = this.ctrl.cfg.traces[index];
+    this.traceIndex = index;
+
     _.defaults(this.trace, PlotlyPanelCtrl.defaultTrace);
     if (!this.trace.name) {
       this.trace.name = EditorHelper.createTraceName(index);
@@ -96,14 +107,20 @@ export class EditorHelper {
     // Now set one for each key
     this.mapping = {};
     _.forEach(this.trace.mapping, (value, key) => {
-      let s = this.ctrl.seriesByKey.get(value);
-      let opts: any = {
-        value: value,
-        series: s,
-        fake: s == null,
-      };
-      // TODO more styling when missing?
-      this.mapping[key] = this.ctrl.uiSegmentSrv.newSegment(opts);
+      if (value) {
+        let s = this.ctrl.seriesByKey.get(value);
+        let opts: any = {
+          value: value,
+          series: s,
+          fake: s == null,
+        };
+        this.mapping[key] = this.ctrl.uiSegmentSrv.newSegment(opts);
+      } else {
+        this.mapping[key] = this.ctrl.uiSegmentSrv.newSegment({
+          value: 'Select Metric',
+          fake: true,
+        });
+      }
     });
 
     console.log('Editor Info', this);
@@ -188,8 +205,14 @@ export class EditorHelper {
   }
 
   onTextMetricChanged() {
-    const seg = this.mapping.get('text');
+    const seg = this.mapping.text;
     this.trace.mapping.text = seg.value;
+    this.onConfigChanged();
+  }
+
+  onColorChanged() {
+    const seg = this.mapping.color;
+    this.trace.mapping.color = seg.value;
     this.onConfigChanged();
   }
 

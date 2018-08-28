@@ -9,7 +9,7 @@
     <ul class="edit-sidemenu">
       <li
         ng-repeat="trace in ctrl.traces"
-        ng-class="{ active: ctrl.editor.trace === trace }"
+        ng-class="{ active: ctrl.editor.traceIndex === $index }"
       >
         <a ng-click="ctrl.editor.selectTrace( $index )">{{ trace.name }}</a>
       </li>
@@ -43,8 +43,8 @@
           <label class="gf-form-label width-7">Name</label>
           <input
             class="gf-form-input width-7"
-            ng-model="ctrl.editor.name" 
-            ng-blur="ctrl.onConfigChanged();"
+            ng-model="ctrl.editor.trace.name" 
+            ng-change="ctrl.onConfigChanged();"
           />
         </div>
       </div>
@@ -82,20 +82,15 @@
 
         <div class="gf-form">
           <label class="gf-form-label width-7">Size</label>
-          <div class="gf-form-select-wrapper max-width-14">
-            <select class="gf-form-input" ng-model="ctrl.cfg.mapping.size" ng-change="ctrl.onConfigChanged()">
-              <option value="">(fixed)</option>
-              <option ng-repeat="(key, value) in ctrl.data" value="{{key}}">{{key}}</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="gf-form" ng-if="!ctrl.cfg.mapping.size">
-          <label class="gf-form-label width-7">- Pixels</label>
-          <input type="number" class="gf-form-input width-7" ng-model="ctrl.editor.trace.settings.marker.size" spellcheck="false"
+          <input 
+            type="number" 
+            class="gf-form-input width-7" 
+            ng-model="ctrl.editor.trace.settings.marker.size" 
+            spellcheck="false"
             placeholder="5" ng-blur="ctrl.onConfigChanged()" />
         </div>
 
+        <!--
         <div class="gf-form" ng-if="ctrl.cfg.mapping.size">
           <label class="gf-form-label width-7">- Min</label>
           <input type="number" class="gf-form-input width-7" ng-model="ctrl.editor.trace.settings.marker.sizemin" spellcheck="false"
@@ -125,6 +120,7 @@
             <i class="fa fa-external-link" aria-hidden="true"></i>
           </a>
         </div>
+        -->
 
         <div class="gf-form">
           <label class="gf-form-label width-7">Color</label>
@@ -149,11 +145,10 @@
 
         <div class="gf-form" ng-if="ctrl.editor.trace.settings.color_option == 'ramp'">
           <label class="gf-form-label width-7">- Metric</label>
-          <div class="gf-form-select-wrapper max-width-14">
-            <select class="gf-form-input" ng-model="ctrl.editor.trace.mapping.color" ng-change="ctrl.onConfigChanged()">
-              <option ng-repeat="(key, value) in ctrl.data" value="{{key}}">{{key}}</option>
-            </select>
-          </div>
+          <metric-segment 
+            segment="ctrl.editor.mapping.color" 
+            get-options="ctrl.editor.getSeriesSegs()" 
+            on-change="ctrl.editor.onColorChanged()"></metric-segment>
         </div>
 
         <div class="gf-form" ng-if="ctrl.editor.trace.settings.color_option != 'solid'">
@@ -184,53 +179,61 @@
 
     <div class="section gf-form-group" ng-if="ctrl.cfg.settings.mode !== 'markers'">
       <h5 class="section-heading">Lines</h5>
+      <gf-form-switch 
+        class="gf-form" 
+        label="Show" 
+        label-class="gf-form-label width-7"
+        checked="ctrl.editor.trace.show.lines" 
+        on-change="ctrl.onConfigChanged()"></gf-form-switch>
 
-      <div class="gf-form">
-        <label class="gf-form-label width-7">Size</label>
-        <input type="number" class="gf-form-input width-6" ng-model="ctrl.editor.trace.settings.line.width" spellcheck="false" placeholder="2"
-          ng-blur="ctrl.onConfigChanged()" />
-      </div>
-      <div class="gf-form">
-        <label class="gf-form-label width-7">Shape</label>
-        <div class="gf-form-select-wrapper max-width-14">
-          <select class="gf-form-input" ng-model="ctrl.editor.trace.settings.line.shape" ng-change="ctrl.onConfigChanged()">
-            <option value="linear">linear</option>
-            <option value="spline">spline</option>
-            <option value="vhv">vhv</option>
-            <option value="hvh">hvh</option>
-            <option value="vh">vh</option>
-            <option value="hv">hv</option>
-          </select>
-        </div>
-      </div>
-      <div class="gf-form">
-        <label class="gf-form-label width-7">Dash</label>
-        <div class="gf-form-select-wrapper max-width-14">
-          <select class="gf-form-input" ng-model="ctrl.editor.trace.settings.line.dash" ng-change="ctrl.onConfigChanged()">
-            <option value="solid">solid</option>
-            <option value="dot">dot</option>
-            <option value="dash">dash</option>
-            <option value="longdash">longdash</option>
-            <option value="dashdot">dashdot</option>
-            <option value="longdashdot">longdashdot</option>
-          </select>
-        </div>
-      </div>
+      <div ng-if="ctrl.editor.trace.show.lines">
 
-      <div class="gf-form">
-        <label class="gf-form-label width-7">Color</label>
-        <input class="gf-form-input width-10"
-          type="text" placeholder="#???"
-          ng-model="ctrl.editor.trace.settings.line.color" 
-          ng-blur="ctrl.onConfigChanged()"
-        />
-        <span class="gf-form-label">
-          <spectrum-picker 
+        <div class="gf-form">
+          <label class="gf-form-label width-7">Size</label>
+          <input type="number" class="gf-form-input width-6" ng-model="ctrl.editor.trace.settings.line.width" spellcheck="false" placeholder="2"
+            ng-blur="ctrl.onConfigChanged()" />
+        </div>
+        <div class="gf-form">
+          <label class="gf-form-label width-7">Shape</label>
+          <div class="gf-form-select-wrapper max-width-14">
+            <select class="gf-form-input" ng-model="ctrl.editor.trace.settings.line.shape" ng-change="ctrl.onConfigChanged()">
+              <option value="linear">linear</option>
+              <option value="spline">spline</option>
+              <option value="vhv">vhv</option>
+              <option value="hvh">hvh</option>
+              <option value="vh">vh</option>
+              <option value="hv">hv</option>
+            </select>
+          </div>
+        </div>
+        <div class="gf-form">
+          <label class="gf-form-label width-7">Dash</label>
+          <div class="gf-form-select-wrapper max-width-14">
+            <select class="gf-form-input" ng-model="ctrl.editor.trace.settings.line.dash" ng-change="ctrl.onConfigChanged()">
+              <option value="solid">solid</option>
+              <option value="dot">dot</option>
+              <option value="dash">dash</option>
+              <option value="longdash">longdash</option>
+              <option value="dashdot">dashdot</option>
+              <option value="longdashdot">longdashdot</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="gf-form">
+          <label class="gf-form-label width-7">Color</label>
+          <input class="gf-form-input width-10"
+            type="text" placeholder="#???"
             ng-model="ctrl.editor.trace.settings.line.color" 
-            ng-change="ctrl.onConfigChanged()" />
-        </span>
+            ng-blur="ctrl.onConfigChanged()"
+          />
+          <span class="gf-form-label">
+            <spectrum-picker 
+              ng-model="ctrl.editor.trace.settings.line.color" 
+              ng-change="ctrl.onConfigChanged()" />
+          </span>
+        </div>
       </div>
-
     </div>
 
     <div class="section gf-form-group">
