@@ -434,8 +434,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           finfo.push(new SeriesWrapperTable(refId, series, i));
         }
       } else if (series.target) {
-        finfo.push(new SeriesWrapperSeries(refId, series, 'time'));
         finfo.push(new SeriesWrapperSeries(refId, series, 'value'));
+        finfo.push(new SeriesWrapperSeries(refId, series, 'time'));
         finfo.push(new SeriesWrapperSeries(refId, series, 'index'));
       } else {
         console.error('Unsupported Series response', sidx, series);
@@ -453,7 +453,14 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.series = finfo;
 
     // Now Process the loaded data
-    if (this.seriesHash !== seriesHash || !this.initalized) {
+    const hchanged = this.seriesHash !== seriesHash;
+    if (hchanged && EditorHelper.updateMappings(this)) {
+      if (this.editor) {
+        this.editor.selectTrace(this.editor.traceIndex);
+        this.editor.onConfigChanged();
+      }
+    }
+    if (hchanged || !this.initalized) {
       this.onConfigChanged();
       this.seriesHash = seriesHash;
     }
@@ -483,16 +490,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   // This will update all trace settings *except* the data
   _updateTracesFromConfigs() {
     this.dataWarnings = [];
-    const defaultMappins =
-      this.series && this.series.length > 1
-        ? {
-            first: this.series[0].getRelativeKey(),
-            time: this.series[1].getRelativeKey(),
-          }
-        : {
-            first: null,
-            time: null,
-          };
 
     // Make sure we have a trace
     if (this.cfg.traces == null || this.cfg.traces.length < 1) {
@@ -522,9 +519,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         delete trace.marker.sizeref;
 
         if (config.settings.color_option === 'ramp') {
-          if (!mapping.color) {
-            mapping.color = tconfig.mapping.color = defaultMappins.first;
-          }
           this.__addCopyPath(trace, mapping.color, 'marker.color');
         } else {
           delete trace.marker.colorscale;
@@ -539,21 +533,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
       // Set the text
       this.__addCopyPath(trace, mapping.text, 'text');
-
-      // Make sure a default value exists
-      if (!mapping.x) {
-        mapping.x = tconfig.mapping.x = defaultMappins.first;
-      }
-      if (!mapping.y) {
-        mapping.y = tconfig.mapping.y = defaultMappins.time;
-      }
       this.__addCopyPath(trace, mapping.x, 'x');
       this.__addCopyPath(trace, mapping.y, 'y');
 
       if (is3D) {
-        if (!mapping.z) {
-          mapping.z = tconfig.mapping.z = defaultMappins.first;
-        }
         this.__addCopyPath(trace, mapping.z, 'z');
       }
 
@@ -563,7 +546,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       }
       return trace;
     });
-    console.log('Set Traces', this.traces);
+    console.log('Set-Traces', this.traces);
     this.refresh();
   }
 
@@ -592,7 +575,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       }
     });
 
-    console.log('SetDATA', this.traces);
+    //console.log('SetDATA', this.traces);
   }
 
   onConfigChanged() {

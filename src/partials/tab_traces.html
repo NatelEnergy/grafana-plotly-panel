@@ -44,7 +44,7 @@
           <input
             class="gf-form-input width-7"
             ng-model="ctrl.editor.trace.name" 
-            ng-change="ctrl.onConfigChanged();"
+            ng-blur="ctrl.onConfigChanged();"
           />
         </div>
       </div>
@@ -262,4 +262,3 @@
   </div>
 </div>
 
-<pre>{{ ctrl.editor.mapping | json}}</pre>

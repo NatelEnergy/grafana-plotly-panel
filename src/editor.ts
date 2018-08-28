@@ -20,7 +20,43 @@ export class EditorHelper {
 
   /** @ngInject */
   constructor(public ctrl: PlotlyPanelCtrl) {
+    EditorHelper.updateMappings(ctrl);
     this.selectTrace(0);
+  }
+
+  // Callback when the query results changed
+  static updateMappings(ctrl: PlotlyPanelCtrl): boolean {
+    if (ctrl.series == null || ctrl.series.length < 1) {
+      return false;
+    }
+
+    const defaultMappins = {
+      first: ctrl.series[0].getRelativeKey(),
+      time: ctrl.series[1].getRelativeKey(),
+    };
+
+    let changed = false;
+    ctrl.cfg.traces.forEach(trace => {
+      _.defaults(trace, PlotlyPanelCtrl.defaultTrace);
+      let mapping = trace.mapping;
+      if (!mapping.color) {
+        mapping.color = defaultMappins.first;
+        changed = true;
+      }
+      if (!mapping.x) {
+        mapping.x = defaultMappins.time;
+        changed = true;
+      }
+      if (!mapping.y) {
+        mapping.y = defaultMappins.first;
+        changed = true;
+      }
+      if (ctrl.is3d() && !mapping.z) {
+        mapping.z = defaultMappins.first;
+        changed = true;
+      }
+    });
+    return changed;
   }
 
   onConfigChanged() {
@@ -91,6 +127,9 @@ export class EditorHelper {
     if (!this.traces || this.traces.length < 1) {
       this.traces = this.ctrl.cfg.traces = [_.deepClone(PlotlyPanelCtrl.defaultTrace)];
     }
+    if (index >= this.ctrl.cfg.traces.length) {
+      index = this.ctrl.cfg.traces.length - 1;
+    }
     this.trace = this.ctrl.cfg.traces[index];
     this.traceIndex = index;
 
@@ -154,7 +193,9 @@ export class EditorHelper {
         if (i >= this.traces.length) {
           i = this.traces.length - 1;
         }
+        this.ctrl.onConfigChanged();
         this.ctrl._updateTraceData(true);
+        this.selectTrace(i);
         this.ctrl.refresh();
         return;
       }
