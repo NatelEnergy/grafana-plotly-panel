@@ -238,15 +238,15 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this._updateTraceData(true);
   }
 
-  deepCopyWithTeplates = obj => {
+  deepCopyWithTemplates = obj => {
     if (_.isArray(obj)) {
-      return obj.map(val => this.deepCopyWithTeplates(val));
+      return obj.map(val => this.deepCopyWithTemplates(val));
     } else if (_.isString(obj)) {
       return this.templateSrv.replace(obj, this.panel.scopedVars);
     } else if (_.isObject(obj)) {
       let copy = {};
       _.forEach(obj, (v, k) => {
-        copy[k] = this.deepCopyWithTeplates(v);
+        copy[k] = this.deepCopyWithTemplates(v);
       });
       return copy;
     }
@@ -255,7 +255,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   getProcessedLayout() {
     // Copy from config
-    let layout = this.deepCopyWithTeplates(this.cfg.layout);
+    let layout = this.deepCopyWithTemplates(this.cfg.layout);
     layout.plot_bgcolor = 'transparent';
     layout.paper_bgcolor = layout.plot_bgcolor;
 
@@ -498,7 +498,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
     const is3D = this.is3d();
     this.traces = this.cfg.traces.map((tconfig, idx) => {
-      const config = this.deepCopyWithTeplates(tconfig) || {};
+      const config = this.deepCopyWithTemplates(tconfig) || {};
       _.defaults(config, PlotlyPanelCtrl.defaults);
       let mapping = config.mapping;
 
