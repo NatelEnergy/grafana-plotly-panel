@@ -16,17 +16,6 @@
     </div>
 
     <div class="gf-form">
-      <label class="gf-form-label width-7">Mode</label>
-      <div class="gf-form-select-wrapper max-width-14">
-        <select class="gf-form-input" ng-model="ctrl.cfg.settings.mode" ng-change="ctrl.onConfigChanged()">
-          <option value="markers">Markers</option>
-          <option value="lines">Lines</option>
-          <option value="lines+markers">Lines + Markers</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="gf-form">
       <label class="gf-form-label width-7">Drag</label>
       <div class="gf-form-select-wrapper max-width-14">
         <select class="gf-form-input" ng-model="ctrl.cfg.layout.dragmode" ng-change="ctrl.onConfigChanged()">
@@ -41,7 +30,7 @@
     <gf-form-switch class="gf-form" label="Toolbar" label-class="gf-form-label width-7" checked="ctrl.cfg.settings.displayModeBar" on-change="ctrl.onConfigChanged()"></gf-form-switch>
   </div>
 
-  <div ng-repeat="axis in ctrl.axis" class="section gf-form-group">
+  <div ng-repeat="axis in ctrl.editor.axis" class="section gf-form-group">
     <h5 class="section-heading">{{axis.label}}</h5>
 
     <div class="gf-form">
