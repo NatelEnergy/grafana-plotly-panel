@@ -16,7 +16,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   static configVersion = 1; // An index to help config migration
 
   initalized: boolean;
-  $tooltip: any;
+  //$tooltip: any;
 
   static defaultTrace = {
     mapping: {
@@ -115,7 +115,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
     this.initalized = false;
 
-    this.$tooltip = $('<div id="tooltip" class="graph-tooltip">');
+    //this.$tooltip = $('<div id="tooltip" class="graph-tooltip">');
 
     // defaults configs
     _.defaultsDeep(this.panel, PlotlyPanelCtrl.defaults);
@@ -123,6 +123,11 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.cfg = this.panel.pconfig;
 
     this.traces = [];
+
+    // ?? This seems needed for tests?!!
+    if (!this.events) {
+      return;
+    }
 
     this.events.on('init-edit-mode', this.onInitEditMode.bind(this));
     this.events.on('render', this.onRender.bind(this));
@@ -201,36 +206,37 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   processConfigMigration() {
     console.log(
-      'Migrating Plotly Configuration to ' + PlotlyPanelCtrl.configVersion,
-      this.panel
+      'Migrating Plotly Configuration to version: ' + PlotlyPanelCtrl.configVersion
     );
-    console.log('.....');
 
     // Remove some things that should not be saved
-    delete this.cfg.layout.plot_bgcolor;
-    delete this.cfg.layout.paper_bgcolor;
-    delete this.cfg.layout.autosize;
-    delete this.cfg.layout.height;
-    delete this.cfg.layout.width;
+    let cfg = this.panel.pconfig;
+    delete cfg.layout.plot_bgcolor;
+    delete cfg.layout.paper_bgcolor;
+    delete cfg.layout.autosize;
+    delete cfg.layout.height;
+    delete cfg.layout.width;
+    delete cfg.layout.margin;
     if (!this.is3d()) {
-      delete this.cfg.layout.zaxis;
+      delete cfg.layout.zaxis;
     }
 
     // Move from 'markers-lines' to checkbox
-    if (this.cfg.settings.mode) {
-      const old = this.cfg.settings.mode;
+    if (cfg.settings.mode) {
+      const old = cfg.settings.mode;
       const show = {
         markers: old.indexOf('markers') >= 0,
         lines: old.indexOf('lines') >= 0,
       };
-      _.forEach(this.cfg.traces, trace => {
+      _.forEach(cfg.traces, trace => {
         trace.show = show;
       });
-      delete this.cfg.settings.mode;
+      delete cfg.settings.mode;
     }
 
     // TODO... MORE Migrations
-
+    console.log('After Migration:', cfg);
+    this.cfg = cfg;
     this.panel.version = PlotlyPanelCtrl.configVersion;
   }
 
