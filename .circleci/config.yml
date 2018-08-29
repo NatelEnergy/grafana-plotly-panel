@@ -4,7 +4,7 @@ jobs:
     docker:
       # specify the version you desire here
       - image: circleci/node:8
-      
+
     working_directory: ~/repo
 
     steps:
@@ -21,11 +21,14 @@ jobs:
           key: dependency-cache-{{ checksum "yarn.lock" }}
           paths:
             - node_modules
-#      - run:
-#          name: test
-#          command: 'yarn test'
+      - run:
+          name: test
+          command: 'yarn test'
       - run:
           name: build
           command: 'yarn build'
+      - run:
+          name: zip dist
+          command: 'cd dist && zip -r9 ../grafana-plotly-panel-dev.zip *'
       - store_artifacts:
-          path: dist
+          path: grafana-plotly-panel-dev.zip
