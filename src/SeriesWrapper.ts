@@ -81,7 +81,7 @@ export class SeriesWrapperSeries extends SeriesWrapper {
   }
 
   getRelativeKey(): string {
-    return this.refId + '/' + this.value;
+    return this.refId + '@' + this.value;
   }
 
   getNamedKeys(): string[] {

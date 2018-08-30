@@ -217,6 +217,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     delete cfg.layout.height;
     delete cfg.layout.width;
     delete cfg.layout.margin;
+    delete cfg.layout.scene;
     if (!this.is3d()) {
       delete cfg.layout.zaxis;
     }
