@@ -486,8 +486,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     // Now Process the loaded data
     const hchanged = this.seriesHash !== seriesHash;
     if (hchanged && this.editor) {
-      //EditorHelper.updateMappings(this)) {
       if (this.editor) {
+        EditorHelper.updateMappings(this);
         this.editor.selectTrace(this.editor.traceIndex);
         this.editor.onConfigChanged();
       }
