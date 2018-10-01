@@ -502,21 +502,19 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.render();
   }
 
-  __addCopyPath(trace: any, key: string, path: string): boolean {
+  __addCopyPath(trace: any, key: string, path: string) {
     if (key) {
+      trace.__set.push({
+        key: key,
+        path: path,
+      });
       let s: SeriesWrapper = this.seriesByKey.get(key);
-      if (s) {
-        trace.__set.push({
-          key: s.getKey(),
-          path: path,
-        });
-        return true;
+      if (!s) {
+        this.dataWarnings.push(
+          'Unable to find: ' + key + ' for ' + trace.name + ' // ' + path
+        );
       }
-      this.dataWarnings.push(
-        'Unable to find: ' + key + ' for ' + trace.name + ' // ' + path
-      );
     }
-    return false;
   }
 
   // This will update all trace settings *except* the data
@@ -601,16 +599,29 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this._updateTracesFromConfigs();
     }
 
-    // Update the metric values
+    // Use zero when the metric value is missing
+    // Plotly gets lots of errors when the values are missing
+    let zero: any = [];
     this.traces.forEach(trace => {
       if (trace.__set) {
         trace.__set.forEach(v => {
           const s = this.seriesByKey.get(v.key);
+          let vals: any[] = zero;
           if (s) {
-            _.set(trace, v.path, s.toArray());
+            vals = s.toArray();
+            if (vals && vals.length > zero.length) {
+              zero = Array.from(Array(3), () => 0);
+            }
           } else {
-            console.warn('Can not set', v);
+            if (!this.error) {
+              this.error = '';
+            }
+            this.error += 'Unable to find: ' + v.key + ' (using zeros).  ';
           }
+          if (!vals) {
+            vals = zero;
+          }
+          _.set(trace, v.path, vals);
         });
       }
     });
