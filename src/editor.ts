@@ -9,6 +9,8 @@ class AxisInfo {
   segment: any; // The Grafana <metric-segment
 }
 
+const REMOVE_KEY = '-- remove --';
+
 export class EditorHelper {
   axis = new Array<AxisInfo>();
   trace: any; // Trace Config
@@ -30,7 +32,7 @@ export class EditorHelper {
       return false;
     }
 
-    const defaultMappins = {
+    const defaultMappings = {
       first: ctrl.series[0].getKey(),
       time: ctrl.series[1].getKey(),
     };
@@ -40,19 +42,19 @@ export class EditorHelper {
       _.defaults(trace, PlotlyPanelCtrl.defaultTrace);
       let mapping = trace.mapping;
       if (!mapping.color) {
-        mapping.color = defaultMappins.first;
+        mapping.color = defaultMappings.first;
         changed = true;
       }
       if (!mapping.x) {
-        mapping.x = defaultMappins.time;
+        mapping.x = defaultMappings.time;
         changed = true;
       }
       if (!mapping.y) {
-        mapping.y = defaultMappins.first;
+        mapping.y = defaultMappings.first;
         changed = true;
       }
       if (ctrl.is3d() && !mapping.z) {
-        mapping.z = defaultMappins.first;
+        mapping.z = defaultMappings.first;
         changed = true;
       }
     });
@@ -146,29 +148,44 @@ export class EditorHelper {
     // Now set one for each key
     this.mapping = {};
     _.forEach(this.trace.mapping, (value, key) => {
-      if (value) {
-        let s = this.ctrl.seriesByKey.get(value);
-        let opts: any = {
-          value: value,
-          series: s,
-        };
-        if (!s) {
-          opts.fake = true;
-          opts.html = value + '  <i class="fa fa-exclamation-triangle"></i>';
-        }
-        this.mapping[key] = this.ctrl.uiSegmentSrv.newSegment(opts);
-      } else {
-        this.mapping[key] = this.ctrl.uiSegmentSrv.newSegment({
-          value: 'Select Metric',
-          fake: true,
-        });
-      }
+      this.updateSegMapping(value, key);
     });
 
     console.log('Editor Info', this);
 
     this.onConfigChanged();
     this.ctrl.refresh();
+  }
+
+  private updateSegMapping(value, key, updateTrace = false) {
+    if (REMOVE_KEY === value) {
+      this.mapping[key] = this.ctrl.uiSegmentSrv.newSegment({
+        value: 'Select Metric',
+        fake: true,
+      });
+      value = null; // will set this value later
+    } else if (value) {
+      let s = this.ctrl.seriesByKey.get(value);
+      let opts: any = {
+        value: value,
+        series: s,
+      };
+      if (!s) {
+        //  opts.fake = true;
+        opts.html = value + '  <i class="fa fa-exclamation-triangle"></i>';
+      }
+      this.mapping[key] = this.ctrl.uiSegmentSrv.newSegment(opts);
+    } else {
+      this.mapping[key] = this.ctrl.uiSegmentSrv.newSegment({
+        value: 'Select Metric',
+        fake: true,
+      });
+    }
+
+    if (updateTrace) {
+      this.trace.mapping[key] = value;
+      console.log('SET', key, value, this.trace.mapping);
+    }
   }
 
   createTrace() {
@@ -219,14 +236,12 @@ export class EditorHelper {
     return new Promise((resolve, reject) => {
       let series: any[] = [];
 
-      if (false && withRemove) {
+      if (withRemove) {
         series.push(
           this.ctrl.uiSegmentSrv.newSegment({
-            fake: false,
-            value: null,
-            html: '<i class="fa fa-cross "></i> Remove',
+            fake: true,
+            value: REMOVE_KEY,
             series: null,
-            cssClass: 'query-part',
           })
         );
       }
@@ -239,27 +254,37 @@ export class EditorHelper {
         );
       });
 
-      console.log('GET Segments:', withRemove, series);
-      console.log('ALL Series:', this.ctrl.series);
+      //console.log('GET Segments:', withRemove, series);
+      //console.log('ALL Series:', this.ctrl.series);
       resolve(series);
     });
   }
 
   onAxisSeriesChanged(axis: AxisInfo) {
-    console.log('CHANGE', axis);
-    this.trace.mapping[axis.property] = axis.segment.value;
+    this.updateSegMapping(axis.segment.value, axis.property, true);
     this.onConfigChanged();
   }
 
-  onTextMetricChanged() {
+  getTextSegments(): any[] {
+    return [this.mapping.text];
+  }
+
+  onTextMetricChanged(sss: any) {
     const seg = this.mapping.text;
-    this.trace.mapping.text = seg.value;
+    this.updateSegMapping(seg.value, 'text', true);
     this.onConfigChanged();
+  }
+
+  getColorSegments(): any[] {
+    if (this.trace.settings.color_option == 'ramp') {
+      return [this.mapping.color];
+    }
+    return [];
   }
 
   onColorChanged() {
     const seg = this.mapping.color;
-    this.trace.mapping.color = seg.value;
+    this.updateSegMapping(seg.value, 'color', true);
     this.onConfigChanged();
   }
 
