@@ -1,4 +1,4 @@
-<div ng-if="ctrl.dataWarnings">
+<div ng-if="ctrl.dataWarnings" style="margin-bottom:20px;">
   <div ng-repeat="warn in ctrl.dataWarnings" style="margin-bottom:3px; padding:5px; border:1px solid red;">
     {{warn}}
   </div>
@@ -132,7 +132,9 @@
           </div>
         </div>
 
-        <div class="gf-form" ng-if="ctrl.editor.trace.settings.color_option == 'solid'">
+        <div class="gf-form" 
+          ng-if="ctrl.editor.trace.settings.color_option === 'solid'" 
+          >
           <label class="gf-form-label width-7">- Solid</label>
           <input type="text" placeholder="text" ng-model="ctrl.editor.trace.settings.marker.color" class="gf-form-input width-10"
             ng-blur="ctrl.onConfigChanged()" />
@@ -143,10 +145,11 @@
           </span>
         </div>
 
-        <div class="gf-form" ng-if="ctrl.editor.trace.settings.color_option == 'ramp'">
+        <div class="gf-form" 
+          ng-repeat="metric in ctrl.editor.getColorSegments()">
           <label class="gf-form-label width-7">- Metric</label>
           <metric-segment 
-            segment="ctrl.editor.mapping.color" 
+            segment="metric" 
             get-options="ctrl.editor.getSeriesSegs()" 
             on-change="ctrl.editor.onColorChanged()"></metric-segment>
         </div>
@@ -239,10 +242,11 @@
     <div class="section gf-form-group">
       <h5 class="section-heading">Text</h5>
 
-      <div class="gf-form">
+      <div class="gf-form"
+        ng-repeat="metric in ctrl.editor.getTextSegments()">
         <label class="gf-form-label width-7">Metric</label>
         <metric-segment 
-          segment="ctrl.editor.mapping.text" 
+          segment="metric" 
           get-options="ctrl.editor.getSeriesSegs(true)" 
           on-change="ctrl.editor.onTextMetricChanged()"></metric-segment>
       </div>
