@@ -179,7 +179,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   onDataError(err) {
     console.log('onDataError', err);
-    debugger;
   }
 
   onRefresh() {
@@ -576,7 +575,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       }
       return trace;
     });
-    console.log('Set-Traces', this.traces);
+    // console.log('Set-Traces', this.traces);
     this.refresh();
   }
 
@@ -630,7 +629,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         modeBarButtonsToRemove: ['sendDataToCloud'], //, 'select2d', 'lasso2d']
       };
       this.layout = this.getProcessedLayout();
-      console.log('Update-LAYOUT', this.layout, this.traces);
+      //console.log('Update-LAYOUT', this.layout, this.traces);
       Plotly.react(this.graphDiv, this.traces, this.layout, options);
     }
 
