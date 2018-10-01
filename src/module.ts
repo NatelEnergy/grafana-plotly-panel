@@ -178,7 +178,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   onDataError(err) {
-    console.log('onDataError', err);
+    // console.log('onDataError', err);
   }
 
   onRefresh() {
@@ -435,10 +435,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           this.initalized = false;
         }
       });
-    } else {
+      this.initalized = true;
+    } else if (this.initalized) {
       Plotly.redraw(this.graphDiv);
+    } else {
+      console.log('Not initalized yet!');
     }
-    this.initalized = true;
   }
 
   onDataSnapshotLoad(snapshot) {
@@ -483,7 +485,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
     // Now Process the loaded data
     const hchanged = this.seriesHash !== seriesHash;
-    if (hchanged && EditorHelper.updateMappings(this)) {
+    if (hchanged && this.editor) {
+      //EditorHelper.updateMappings(this)) {
       if (this.editor) {
         this.editor.selectTrace(this.editor.traceIndex);
         this.editor.onConfigChanged();
@@ -580,10 +583,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   // Fills in the required data into the trace values
-  _updateTraceData(force = false) {
+  _updateTraceData(force = false): boolean {
     if (!this.series) {
       // console.log('NO Series data yet!');
-      return;
+      return false;
     }
 
     if (force || !this.traces) {
@@ -613,6 +616,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     });
 
     //console.log('SetDATA', this.traces);
+    return true;
   }
 
   onConfigChanged() {
