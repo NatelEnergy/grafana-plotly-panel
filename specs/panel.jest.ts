@@ -1,12 +1,10 @@
 ///<reference path="../node_modules/@types/jest/index.d.ts" />
 
-import moment from 'moment';
-
-import TemplateSrv from './lib/template_srv_stub';
+//import TemplateSrv from './lib/template_srv_stub';
 import {PlotlyPanelCtrl, PanelCtrl} from '../src/module';
 
-import * as panel_json_v004 from './res/panel_json_v004.json';
-import {MetricsPanelCtrl} from 'app/plugins/sdk';
+import * as panel_json_v004a from './res/panel_json_v004a.json';
+//import {MetricsPanelCtrl} from 'app/plugins/sdk';
 
 describe('Plotly Panel', () => {
   const injector = {
@@ -64,7 +62,7 @@ describe('Plotly Panel', () => {
 
   describe('check migration from 0.0.4', () => {
     beforeEach(() => {
-      ctx.ctrl.panel = panel_json_v004;
+      ctx.ctrl.panel = panel_json_v004a;
       ctx.ctrl.onPanelInitalized();
     });
 

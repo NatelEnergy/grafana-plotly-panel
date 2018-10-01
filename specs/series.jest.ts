@@ -1,11 +1,9 @@
 ///<reference path="../node_modules/@types/jest/index.d.ts" />
 
-import moment from 'moment';
-
 import {
   SeriesWrapper,
   SeriesWrapperSeries,
-  SeriesWrapperTable,
+  //  SeriesWrapperTable,
 } from '../src/SeriesWrapper';
 
 describe('Check Series Helper', () => {
