@@ -25,8 +25,15 @@ export abstract class SeriesWrapper {
     }
   }
 
-  abstract getRelativeKey(): string;
-  abstract getNamedKeys(): string[];
+  // The best key for this field
+  getKey(): string {
+    return this.name;
+  }
+
+  // All ways to access this field
+  getAllKeys(): string[] {
+    return [this.getKey()];
+  }
 
   abstract toArray(): Array<string | number | boolean>;
 }
@@ -67,7 +74,7 @@ export class SeriesWrapperSeries extends SeriesWrapper {
   }
 
   toArray(): any[] {
-    if ('index' == this.value) {
+    if ('index' === this.value) {
       let arr = new Array(this.count);
       for (let i = 0; i < this.count; i++) {
         arr[i] = i;
@@ -80,12 +87,29 @@ export class SeriesWrapperSeries extends SeriesWrapper {
     });
   }
 
-  getRelativeKey(): string {
-    return this.refId + '@' + this.value;
+  getAllKeys(): string[] {
+    if (this.refId) {
+      return [this.name, this.refId + '@' + this.value, this.refId + '/' + this.name];
+    }
+    return [this.name];
+  }
+}
+
+export class SeriesWrapperTableRow extends SeriesWrapper {
+  /** @ngInject */
+  constructor(refId: string, public table: any) {
+    super(refId);
+
+    this.name = refId + '@row';
   }
 
-  getNamedKeys(): string[] {
-    return [this.name, this.refId + '/' + this.name];
+  toArray(): any[] {
+    const count = this.table.rows.length;
+    let arr = new Array(count);
+    for (let i = 0; i < count; i++) {
+      arr[i] = i;
+    }
+    return arr;
   }
 }
 
@@ -122,11 +146,14 @@ export class SeriesWrapperTable extends SeriesWrapper {
     });
   }
 
-  getRelativeKey(): string {
-    return this.refId + '/' + this.name;
-  }
-
-  getNamedKeys(): string[] {
-    return [this.name, this.refId + '[' + this.index + ']'];
+  getAllKeys(): string[] {
+    if (this.refId) {
+      return [
+        this.getKey(),
+        this.refId + '/' + this.name,
+        this.refId + '[' + this.index + ']',
+      ];
+    }
+    return [this.getKey()];
   }
 }

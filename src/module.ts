@@ -6,7 +6,12 @@ import _ from 'lodash';
 import moment from 'moment';
 import $ from 'jquery';
 
-import {SeriesWrapper, SeriesWrapperSeries, SeriesWrapperTable} from './SeriesWrapper';
+import {
+  SeriesWrapper,
+  SeriesWrapperSeries,
+  SeriesWrapperTable,
+  SeriesWrapperTableRow,
+} from './SeriesWrapper';
 import {EditorHelper} from './editor';
 
 import * as Plotly from './lib/plotly.min';
@@ -97,7 +102,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   graphDiv: any;
   series: SeriesWrapper[];
   seriesByKey: Map<string, SeriesWrapper> = new Map();
-  seriesHash: string = '?';
+  seriesHash = '?';
 
   traces: Array<any>; // The data sent directly to Plotly -- with a special __copy element
   layout: any; // The layout used by Plotly
@@ -174,6 +179,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   onDataError(err) {
     console.log('onDataError', err);
+    debugger;
   }
 
   onRefresh() {
@@ -276,11 +282,17 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     layout.width = rect.width;
 
     // Make sure it is something
-    if (!layout.xaxis) layout.xaxis = {};
-    if (!layout.yaxis) layout.yaxis = {};
+    if (!layout.xaxis) {
+      layout.xaxis = {};
+    }
+    if (!layout.yaxis) {
+      layout.yaxis = {};
+    }
 
     if (this.is3d()) {
-      if (!layout.zaxis) layout.zaxis = {};
+      if (!layout.zaxis) {
+        layout.zaxis = {};
+      }
 
       // 3d uses 'scene' for the axis names
       layout.scene = {
@@ -310,7 +322,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       const labelStyle = this.getCssRule('div.flot-text');
       if (labelStyle) {
         let color = labelStyle.style.color;
-        if (!layout.font) layout.font = {};
+        if (!layout.font) {
+          layout.font = {};
+        }
         layout.font.color = color;
 
         // make the grid a little more transparent
@@ -435,32 +449,36 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   onDataReceived(dataList) {
     let finfo: SeriesWrapper[] = [];
     let seriesHash = '/';
-    dataList.forEach((series, sidx) => {
-      let refId = _.get(this.panel, 'targets[' + sidx + '].refId');
-      if (!refId) {
-        console.log('Missing Targets: ', this.panel.targets);
-        refId = String.fromCharCode('A'.charCodeAt(0) + sidx);
-      }
-      if (series.columns) {
-        for (let i = 0; i < series.columns.length; i++) {
-          finfo.push(new SeriesWrapperTable(refId, series, i));
+    if (dataList && dataList.length > 0) {
+      const useRefID = dataList.length === this.panel.targets.length;
+      dataList.forEach((series, sidx) => {
+        let refId = '';
+        if (useRefID) {
+          refId = _.get(this.panel, 'targets[' + sidx + '].refId');
+          if (!refId) {
+            refId = String.fromCharCode('A'.charCodeAt(0) + sidx);
+          }
         }
-      } else if (series.target) {
-        finfo.push(new SeriesWrapperSeries(refId, series, 'value'));
-        finfo.push(new SeriesWrapperSeries(refId, series, 'time'));
-        finfo.push(new SeriesWrapperSeries(refId, series, 'index'));
-      } else {
-        console.error('Unsupported Series response', sidx, series);
-      }
-    });
+        if (series.columns) {
+          for (let i = 0; i < series.columns.length; i++) {
+            finfo.push(new SeriesWrapperTable(refId, series, i));
+          }
+          finfo.push(new SeriesWrapperTableRow(refId, series));
+        } else if (series.target) {
+          finfo.push(new SeriesWrapperSeries(refId, series, 'value'));
+          finfo.push(new SeriesWrapperSeries(refId, series, 'time'));
+          finfo.push(new SeriesWrapperSeries(refId, series, 'index'));
+        } else {
+          console.error('Unsupported Series response', sidx, series);
+        }
+      });
+    }
     this.seriesByKey.clear();
     finfo.forEach(s => {
-      const key = s.getRelativeKey();
-      this.seriesByKey.set(key, s);
-      s.getNamedKeys().forEach(k => {
+      s.getAllKeys().forEach(k => {
         this.seriesByKey.set(k, s);
+        seriesHash += '$' + k;
       });
-      seriesHash += '$' + key;
     });
     this.series = finfo;
 
@@ -487,7 +505,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       let s: SeriesWrapper = this.seriesByKey.get(key);
       if (s) {
         trace.__set.push({
-          key: s.getRelativeKey(),
+          key: s.getKey(),
           path: path,
         });
         return true;
@@ -521,7 +539,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         __set: [], // { key:? property:? }
       };
 
-      let mode: string = '';
+      let mode = '';
       if (config.show.markers) {
         mode += '+markers';
         trace.marker = config.settings.marker;
@@ -563,7 +581,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   // Fills in the required data into the trace values
-  _updateTraceData(force: boolean = false) {
+  _updateTraceData(force = false) {
     if (!this.series) {
       // console.log('NO Series data yet!');
       return;
@@ -571,7 +589,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
     if (force || !this.traces) {
       this._updateTracesFromConfigs();
-    } else if (this.traces.length != this.cfg.traces.length) {
+    } else if (this.traces.length !== this.cfg.traces.length) {
       console.log(
         'trace number mismatch.  Found: ' +
           this.traces.length +

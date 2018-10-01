@@ -7,6 +7,7 @@
     "dev": "webpack --mode development",
     "watch": "webpack --mode development --watch",
     "test": "jest --config jest.config.js",
+    "lint": "tslint -c tslint.json --project tsconfig.json",
     "release": "node release.js",
     "precommit": "pretty-quick --staged",
     "pretty": "prettier --write src/**/*.ts"
@@ -36,7 +37,7 @@
     "jquery": "^3.2.1",
     "lodash": "^4.17.10",
     "moment": "^2.22.1",
-    "plotly.js": "^1.40"
+    "plotly.js": "^1.41"
   },
   "devDependencies": {
     "@types/jest": "^23.3.1",

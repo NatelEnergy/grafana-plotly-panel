@@ -12,7 +12,7 @@ class AxisInfo {
 export class EditorHelper {
   axis = new Array<AxisInfo>();
   trace: any; // Trace Config
-  traceIndex: number = 0;
+  traceIndex = 0;
   traces: any[]; // array of configs;
 
   symbol: any; // The Grafana <metric-segment for this symbol
@@ -31,8 +31,8 @@ export class EditorHelper {
     }
 
     const defaultMappins = {
-      first: ctrl.series[0].getRelativeKey(),
-      time: ctrl.series[1].getRelativeKey(),
+      first: ctrl.series[0].getKey(),
+      time: ctrl.series[1].getKey(),
     };
 
     let changed = false;
@@ -151,8 +151,11 @@ export class EditorHelper {
         let opts: any = {
           value: value,
           series: s,
-          fake: s == null,
         };
+        if (!s) {
+          opts.fake = true;
+          opts.html = value + '  <i class="fa fa-exclamation-triangle"></i>';
+        }
         this.mapping[key] = this.ctrl.uiSegmentSrv.newSegment(opts);
       } else {
         this.mapping[key] = this.ctrl.uiSegmentSrv.newSegment({
@@ -215,6 +218,7 @@ export class EditorHelper {
   getSeriesSegs(withRemove = false): Promise<any[]> {
     return new Promise((resolve, reject) => {
       let series: any[] = [];
+
       if (false && withRemove) {
         series.push(
           this.ctrl.uiSegmentSrv.newSegment({
@@ -229,12 +233,14 @@ export class EditorHelper {
       this.ctrl.series.forEach(s => {
         series.push(
           this.ctrl.uiSegmentSrv.newSegment({
-            value: s.getRelativeKey(),
+            value: s.name,
             series: s,
           })
         );
       });
-      console.log('GET Series', series, this.ctrl.series);
+
+      console.log('GET Segments:', withRemove, series);
+      console.log('ALL Series:', this.ctrl.series);
       resolve(series);
     });
   }
