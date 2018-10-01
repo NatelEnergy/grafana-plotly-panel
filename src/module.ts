@@ -282,9 +282,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     if (this.is3d()) {
       if (!layout.zaxis) layout.zaxis = {};
 
-      layout.scene.xaxis.title = layout.xaxis.title;
-      layout.scene.yaxis.title = layout.yaxis.title;
-      layout.scene.zaxis.title = layout.zaxis.title;
+      // 3d uses 'scene' for the axis names
+      layout.scene = {
+        xaxis: {title: layout.xaxis.title},
+        yaxis: {title: layout.yaxis.title},
+        zaxis: {title: layout.zaxis.title},
+      };
       layout.margin = {
         l: 0,
         r: 0,
@@ -562,11 +565,19 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   // Fills in the required data into the trace values
   _updateTraceData(force: boolean = false) {
     if (!this.series) {
-      console.log('NO Series data yet!');
+      // console.log('NO Series data yet!');
       return;
     }
 
-    if (force || !this.traces || this.traces.length != this.cfg.traces.length) {
+    if (force || !this.traces) {
+      this._updateTracesFromConfigs();
+    } else if (this.traces.length != this.cfg.traces.length) {
+      console.log(
+        'trace number mismatch.  Found: ' +
+          this.traces.length +
+          ', expect: ' +
+          this.cfg.traces.length
+      );
       this._updateTracesFromConfigs();
     }
 
