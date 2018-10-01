@@ -89,7 +89,12 @@ export class SeriesWrapperSeries extends SeriesWrapper {
 
   getAllKeys(): string[] {
     if (this.refId) {
-      return [this.name, this.refId + '@' + this.value, this.refId + '/' + this.name];
+      let vals = [this.name, this.refId + '@' + this.value, this.refId + '/' + this.name];
+
+      if ('A' === this.refId) {
+        vals.push('@' + this.value);
+      }
+      return vals;
     }
     return [this.name];
   }
