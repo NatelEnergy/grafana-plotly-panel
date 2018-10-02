@@ -276,7 +276,7 @@ export class EditorHelper {
   }
 
   getColorSegments(): any[] {
-    if (this.trace.settings.color_option == 'ramp') {
+    if (this.trace.settings.color_option === 'ramp') {
       return [this.mapping.color];
     }
     return [];
