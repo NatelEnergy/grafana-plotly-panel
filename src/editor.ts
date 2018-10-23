@@ -64,14 +64,14 @@ export class EditorHelper {
   onConfigChanged() {
     this.onUpdateAxis(); // Every time????
 
-    //
+    // Initalize the axis
     for (let i = 0; i < this.axis.length; i++) {
       if (this.axis[i].layout.rangemode === 'between') {
-        if (this.axis[i].layout.range == null) {
+        if (!_.isArray(this.axis[i].layout.range)) {
           this.axis[i].layout.range = [0, null];
         }
       } else {
-        this.axis[i].layout.range = null;
+        delete this.axis[i].layout.range;
       }
     }
 

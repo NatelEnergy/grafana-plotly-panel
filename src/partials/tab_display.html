@@ -84,7 +84,9 @@
     <div class="gf-form">
       <label class="gf-form-label width-7">Range</label>
       <div class="gf-form-select-wrapper max-width-14">
-        <select class="gf-form-input" ng-model="axis.layout.rangemode" ng-change="ctrl.onConfigChanged()">
+        <select class="gf-form-input" 
+          ng-model="axis.layout.rangemode" 
+          ng-change="ctrl.editor.onConfigChanged()">
           <option value="normal">Auto</option>
           <option value="between">Between</option>
           <option value="tozero">To Zero</option>
@@ -97,6 +99,7 @@
       <label class="gf-form-label width-7">Min</label>
       <input class="gf-form-input width-10"
         placeholder="min" 
+        type="number"
         ng-model="axis.layout.range[0]" 
         ng-blur="ctrl.onConfigChanged()"
       />
@@ -105,6 +108,7 @@
       <label class="gf-form-label width-7">Max</label>
       <input class="gf-form-input width-10"
         placeholder="max" 
+        type="number"
         ng-model="axis.layout.range[1]" 
         ng-blur="ctrl.onConfigChanged()"
       />
