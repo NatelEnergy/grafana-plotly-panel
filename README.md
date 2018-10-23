@@ -39,6 +39,7 @@ yarn build
 - Template variable support
 - Improved metric mapping
 - Using webpack and basic jest tests
+- Fix axis range configuration bug [#49](https://github.com/NatelEnergy/grafana-plotly-panel/issues/49)
 
 ##### v0.0.4
 

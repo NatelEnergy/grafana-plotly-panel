@@ -93,7 +93,7 @@
       </div>
     </div>
 
-    <div class="gf-form" ng-if="axis.rangemode === 'between'">
+    <div class="gf-form" ng-if="axis.layout.rangemode === 'between'">
       <label class="gf-form-label width-7">Min</label>
       <input class="gf-form-input width-10"
         placeholder="min" 
@@ -101,7 +101,7 @@
         ng-blur="ctrl.onConfigChanged()"
       />
     </div>
-    <div class="gf-form" ng-if="axis.rangemode === 'between'">
+    <div class="gf-form" ng-if="axis.layout.rangemode === 'between'">
       <label class="gf-form-label width-7">Max</label>
       <input class="gf-form-input width-10"
         placeholder="max" 
@@ -110,8 +110,8 @@
       />
     </div>
 
-    <gf-form-switch class="gf-form" label="Show Grid:" label-class="gf-form-label width-7" checked="axis.showgrid" on-change="ctrl.onConfigChanged()"></gf-form-switch>
-    <gf-form-switch class="gf-form" label="Zero Line:" label-class="gf-form-label width-7" checked="axis.zeroline" on-change="ctrl.onConfigChanged()"></gf-form-switch>
+    <gf-form-switch class="gf-form" label="Show Grid:" label-class="gf-form-label width-7" checked="axis.layout.showgrid" on-change="ctrl.onConfigChanged()"></gf-form-switch>
+    <gf-form-switch class="gf-form" label="Zero Line:" label-class="gf-form-label width-7" checked="axis.layout.zeroline" on-change="ctrl.onConfigChanged()"></gf-form-switch>
   </div>
 
 </div>
