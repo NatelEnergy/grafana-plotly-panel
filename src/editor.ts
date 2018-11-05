@@ -40,7 +40,7 @@ export class EditorHelper {
     let changed = false;
     ctrl.cfg.traces.forEach(trace => {
       _.defaults(trace, PlotlyPanelCtrl.defaultTrace);
-      let mapping = trace.mapping;
+      const mapping = trace.mapping;
       if (!mapping.color) {
         mapping.color = defaultMappings.first;
         changed = true;
@@ -79,7 +79,7 @@ export class EditorHelper {
   }
 
   onUpdateAxis() {
-    let mapping = this.trace.mapping;
+    const mapping = this.trace.mapping;
     if (!mapping) {
       console.error('Missing mappings for trace', this.trace);
       return;
@@ -165,8 +165,8 @@ export class EditorHelper {
       });
       value = null; // will set this value later
     } else if (value) {
-      let s = this.ctrl.seriesByKey.get(value);
-      let opts: any = {
+      const s = this.ctrl.seriesByKey.get(value);
+      const opts: any = {
         value: value,
         series: s,
       };
@@ -234,7 +234,7 @@ export class EditorHelper {
 
   getSeriesSegs(withRemove = false): Promise<any[]> {
     return new Promise((resolve, reject) => {
-      let series: any[] = [];
+      const series: any[] = [];
 
       if (withRemove) {
         series.push(
@@ -299,7 +299,7 @@ export class EditorHelper {
 
   getSymbolSegs(): Promise<any[]> {
     return new Promise((resolve, reject) => {
-      let txt = [
+      const txt = [
         'circle',
         'circle-open',
         'circle-dot',
@@ -444,7 +444,7 @@ export class EditorHelper {
         'line-nw-open',
       ];
 
-      let segs: any[] = [];
+      const segs: any[] = [];
       _.forEach(txt, val => {
         segs.push(this.ctrl.uiSegmentSrv.newSegment(val));
       });

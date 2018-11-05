@@ -75,7 +75,7 @@ export class SeriesWrapperSeries extends SeriesWrapper {
 
   toArray(): any[] {
     if ('index' === this.value) {
-      let arr = new Array(this.count);
+      const arr = new Array(this.count);
       for (let i = 0; i < this.count; i++) {
         arr[i] = i;
       }
@@ -89,7 +89,11 @@ export class SeriesWrapperSeries extends SeriesWrapper {
 
   getAllKeys(): string[] {
     if (this.refId) {
-      let vals = [this.name, this.refId + '@' + this.value, this.refId + '/' + this.name];
+      const vals = [
+        this.name,
+        this.refId + '@' + this.value,
+        this.refId + '/' + this.name,
+      ];
 
       if ('A' === this.refId) {
         vals.push('@' + this.value);
@@ -110,7 +114,7 @@ export class SeriesWrapperTableRow extends SeriesWrapper {
 
   toArray(): any[] {
     const count = this.table.rows.length;
-    let arr = new Array(count);
+    const arr = new Array(count);
     for (let i = 0; i < count; i++) {
       arr[i] = i;
     }
@@ -126,7 +130,7 @@ export class SeriesWrapperTable extends SeriesWrapper {
 
     const col = table.columns[index];
     if (!col) {
-      throw 'Unkonwn Column: ' + index;
+      throw new Error('Unkonwn Column: ' + index);
     }
 
     this.name = col.text;
@@ -135,7 +139,7 @@ export class SeriesWrapperTable extends SeriesWrapper {
       this.first = table.rows[0][index];
     } else {
       for (let i = 0; i < this.count; i++) {
-        let v = table.rows[i][index];
+        const v = table.rows[i][index];
         if (v !== null) {
           // 0 is an ok value so cant use if(v)
           this.setFirst(v);

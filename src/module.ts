@@ -104,7 +104,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   seriesByKey: Map<string, SeriesWrapper> = new Map();
   seriesHash = '?';
 
-  traces: Array<any>; // The data sent directly to Plotly -- with a special __copy element
+  traces: any[]; // The data sent directly to Plotly -- with a special __copy element
   layout: any; // The layout used by Plotly
 
   mouse: any;
@@ -163,12 +163,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     setTimeout(() => {
       if (this.graphDiv && this.layout) {
         // https://github.com/alonho/angular-plotly/issues/26
-        let e = window.getComputedStyle(this.graphDiv).display;
+        const e = window.getComputedStyle(this.graphDiv).display;
         if (!e || 'none' === e) {
           // not drawn!
           console.warn('resize a plot that is not drawn yet');
         } else {
-          let rect = this.graphDiv.getBoundingClientRect();
+          const rect = this.graphDiv.getBoundingClientRect();
           this.layout.width = rect.width;
           this.layout.height = this.height;
           Plotly.redraw(this.graphDiv);
@@ -215,7 +215,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     );
 
     // Remove some things that should not be saved
-    let cfg = this.panel.pconfig;
+    const cfg = this.panel.pconfig;
     delete cfg.layout.plot_bgcolor;
     delete cfg.layout.paper_bgcolor;
     delete cfg.layout.autosize;
@@ -259,7 +259,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     } else if (_.isString(obj)) {
       return this.templateSrv.replace(obj, this.panel.scopedVars);
     } else if (_.isObject(obj)) {
-      let copy = {};
+      const copy = {};
       _.forEach(obj, (v, k) => {
         copy[k] = this.deepCopyWithTemplates(v);
       });
@@ -270,12 +270,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   getProcessedLayout() {
     // Copy from config
-    let layout = this.deepCopyWithTemplates(this.cfg.layout);
+    const layout = this.deepCopyWithTemplates(this.cfg.layout);
     layout.plot_bgcolor = 'transparent';
     layout.paper_bgcolor = layout.plot_bgcolor;
 
     // Update the size
-    let rect = this.graphDiv.getBoundingClientRect();
+    const rect = this.graphDiv.getBoundingClientRect();
     layout.autosize = false; // height is from the div
     layout.height = this.height;
     layout.width = rect.width;
@@ -347,9 +347,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     }
 
     if (!this.initalized) {
-      let s = this.cfg.settings;
+      const s = this.cfg.settings;
 
-      let options = {
+      const options = {
         showLink: false,
         displaylogo: false,
         displayModeBar: s.displayModeBar,
@@ -365,10 +365,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           return;
         }
         for (let i = 0; i < data.points.length; i++) {
-          let idx = data.points[i].pointNumber;
-          let ts = this.traces[0].ts[idx];
+          const idx = data.points[i].pointNumber;
+          const ts = this.traces[0].ts[idx];
           // console.log( 'CLICK!!!', ts, data );
-          let msg =
+          const msg =
             data.points[i].x.toPrecision(4) + ', ' + data.points[i].y.toPrecision(4);
           this.$rootScope.appEvent('alert-success', [
             msg,
@@ -412,8 +412,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         let max = Number.MIN_SAFE_INTEGER;
 
         for (let i = 0; i < data.points.length; i++) {
-          let idx = data.points[i].pointNumber;
-          let ts = this.traces[0].ts[idx];
+          const idx = data.points[i].pointNumber;
+          const ts = this.traces[0].ts[idx];
           min = Math.min(min, ts);
           max = Math.max(max, ts);
         }
@@ -422,7 +422,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         min -= 1000;
         max += 1000;
 
-        let range = {from: moment.utc(min), to: moment.utc(max)};
+        const range = {from: moment.utc(min), to: moment.utc(max)};
 
         console.log('SELECTED!!!', min, max, data.points.length, range);
 
@@ -448,7 +448,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   onDataReceived(dataList) {
-    let finfo: SeriesWrapper[] = [];
+    const finfo: SeriesWrapper[] = [];
     let seriesHash = '/';
     if (dataList && dataList.length > 0) {
       const useRefID = dataList.length === this.panel.targets.length;
@@ -508,7 +508,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         key: key,
         path: path,
       });
-      let s: SeriesWrapper = this.seriesByKey.get(key);
+      const s: SeriesWrapper = this.seriesByKey.get(key);
       if (!s) {
         this.dataWarnings.push(
           'Unable to find: ' + key + ' for ' + trace.name + ' // ' + path
@@ -530,9 +530,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.traces = this.cfg.traces.map((tconfig, idx) => {
       const config = this.deepCopyWithTemplates(tconfig) || {};
       _.defaults(config, PlotlyPanelCtrl.defaults);
-      let mapping = config.mapping;
+      const mapping = config.mapping;
 
-      let trace: any = {
+      const trace: any = {
         name: config.name || EditorHelper.createTraceName(idx),
         type: this.cfg.settings.type,
         mode: 'markers+lines', // really depends on config settings
@@ -636,8 +636,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
     // Updates the layout and redraw
     if (this.initalized && this.graphDiv) {
-      let s = this.cfg.settings;
-      let options = {
+      const s = this.cfg.settings;
+      const options = {
         showLink: false,
         displaylogo: false,
         displayModeBar: s.displayModeBar,
