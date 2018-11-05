@@ -28,6 +28,10 @@ yarn build
 
 #### Changelog
 
+##### v0.0.6-dev
+
+- Fix axis range configuration bug [#49](https://github.com/NatelEnergy/grafana-plotly-panel/issues/49)
+
 ##### v0.0.5-dev
 
 - Upgrade plotly (v1.41+)
@@ -39,7 +43,6 @@ yarn build
 - Template variable support
 - Improved metric mapping
 - Using webpack and basic jest tests
-- Fix axis range configuration bug [#49](https://github.com/NatelEnergy/grafana-plotly-panel/issues/49)
 
 ##### v0.0.4
 
