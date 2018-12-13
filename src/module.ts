@@ -18,6 +18,41 @@ import {EditorHelper} from './editor';
 
 import * as Plotly from './lib/plotly.min';
 
+class Annotations {
+  public static LAYOUT_YAXIS = 99;
+
+  private static defaultTrace = {
+    type: 'bar',
+    name: null,
+    yaxis: `y${Annotations.LAYOUT_YAXIS}`,
+    hoverinfo: 'x+text',
+    x: [],
+    y: [],
+    hovertext: [],
+    showscale: false,
+    width: .1,
+    marker: {
+      color: [],
+      opacity: 0.5,
+    },
+  };
+
+  private trace = _.cloneDeep(Annotations.defaultTrace);
+
+  constructor(grafana_annotations) {
+    grafana_annotations.forEach((a) => {
+      this.trace.x.push(a.time);
+      this.trace.y.push(1);
+      this.trace.hovertext.push(a.text);
+      this.trace.marker.color.push(a.annotation.iconColor);
+    });
+  }
+
+  traces() {
+    return this.trace;
+  }
+}
+
 class PlotlyPanelCtrl extends MetricsPanelCtrl {
   static templateUrl = 'partials/module.html';
   static configVersion = 1; // An index to help config migration
@@ -97,12 +132,21 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           type: 'linear',
           rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" )
         },
+        ['yaxis' + Annotations.LAYOUT_YAXIS]: {
+          anchor: 'free',
+          overlaying: 'y',
+          showgrid: false,
+          zeroline: false,
+          autotick: false,
+          ticks: '',
+          showticklabels: false,
+        },
       },
     },
   };
 
   graphDiv: any;
-  annotations: any = { shapes: [] };
+  annotations: Annotations = new Annotations([]);
   annotationsPromise: any;
   series: SeriesWrapper[];
   seriesByKey: Map<string, SeriesWrapper> = new Map();
@@ -195,9 +239,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   onDataError(err) {
     this.series = [];
-    this.annotations.shapes = [];
+    this.annotations = new Annotations([]);
     this.render();
-
     // console.log('onDataError', err);
   }
 
@@ -300,9 +343,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     layout.height = this.height;
     layout.width = rect.width;
 
-    // Append the shapes from the annotations
-    layout.shapes = this.annotations.shapes.concat(layout.shapes);
-
     // Make sure it is something
     if (!layout.xaxis) {
       layout.xaxis = {};
@@ -380,7 +420,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       };
 
       this.layout = this.getProcessedLayout();
-      Plotly.react(this.graphDiv, this.traces, this.layout, this.annotations, options);
+      Plotly.react(this.graphDiv, this.traces.concat(this.annotations.traces()), this.layout, options);
 
       this.graphDiv.on('plotly_click', data => {
         if (data === undefined || data.points === undefined) {
@@ -477,12 +517,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   onDataReceived(dataList) {
     this.annotationsPromise.then(
       result => {
-        this.annotations.shapes = this.__annotationsToShapes(result.annotations);
+        this.annotations = new Annotations(result.annotations);
         this.initialized = false;
         this.render();
       },
       () => {
-        this.annotations.shapes = [];
+        this.annotations = new Annotations([]);
         this.initialized = false;
         this.render();
       }
@@ -539,27 +579,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     // Load the real data changes
     this._updateTraceData();
     this.render();
-  }
-
-  __annotationsToShapes(annotations: any[]) {
-    let ret = annotations.map((a) => {
-      return {
-        type: 'line',
-        xref: 'x0',
-        yref: 'paper',
-        x0: a.time,
-        x1: a.time,
-        y0: 0,
-        y1: 1,
-        line: {
-          color: 'rgb(55, 128, 191)',
-          width: 1,
-          dash: 'dot',
-        }
-      }
-    });
-
-    return ret;
   }
 
   __addCopyPath(trace: any, key: string, path: string) {
@@ -705,7 +724,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       };
       this.layout = this.getProcessedLayout();
       //console.log('Update-LAYOUT', this.layout, this.traces);
-      Plotly.react(this.graphDiv, this.traces, this.layout, options);
+      Plotly.react(this.graphDiv, this.traces.concat(this.annotations.traces()), this.layout, options);
     }
 
     // Will query and then update metrics
