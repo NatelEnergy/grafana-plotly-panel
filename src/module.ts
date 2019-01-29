@@ -1,3 +1,5 @@
+/* -*- Mode: typescript; indent-tabs-mode: nil; typescript-indent-level: 2 -*- */
+
 ///<reference path="../node_modules/grafana-sdk-mocks/app/headers/common.d.ts" />
 
 import {MetricsPanelCtrl} from 'app/plugins/sdk';
@@ -16,11 +18,46 @@ import {EditorHelper} from './editor';
 
 import * as Plotly from './lib/plotly.min';
 
+class Annotations {
+  public static LAYOUT_YAXIS = 99;
+
+  private static defaultTrace = {
+    type: 'bar',
+    name: null,
+    yaxis: `y${Annotations.LAYOUT_YAXIS}`,
+    hoverinfo: 'x+text',
+    x: [],
+    y: [],
+    hovertext: [],
+    showscale: false,
+    width: .1,
+    marker: {
+      color: [],
+      opacity: 0.5,
+    },
+  };
+
+  private trace = _.cloneDeep(Annotations.defaultTrace);
+
+  constructor(grafana_annotations) {
+    grafana_annotations.forEach((a) => {
+      this.trace.x.push(a.time);
+      this.trace.y.push(1);
+      this.trace.hovertext.push(a.text);
+      this.trace.marker.color.push(a.annotation.iconColor);
+    });
+  }
+
+  traces() {
+    return this.trace;
+  }
+}
+
 class PlotlyPanelCtrl extends MetricsPanelCtrl {
   static templateUrl = 'partials/module.html';
   static configVersion = 1; // An index to help config migration
 
-  initalized: boolean;
+  initialized: boolean;
   //$tooltip: any;
 
   static defaultTrace = {
@@ -87,7 +124,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           showgrid: true,
           zeroline: false,
           type: 'linear',
-          rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" )
+          rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" ),
         },
         zaxis: {
           showgrid: true,
@@ -95,11 +132,22 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           type: 'linear',
           rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" )
         },
+        ['yaxis' + Annotations.LAYOUT_YAXIS]: {
+          anchor: 'free',
+          overlaying: 'y',
+          showgrid: false,
+          zeroline: false,
+          autotick: false,
+          ticks: '',
+          showticklabels: false,
+        },
       },
     },
   };
 
   graphDiv: any;
+  annotations: Annotations = new Annotations([]);
+  annotationsPromise: any;
   series: SeriesWrapper[];
   seriesByKey: Map<string, SeriesWrapper> = new Map();
   seriesHash = '?';
@@ -115,10 +163,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   dataWarnings: string[]; // warnings about loading data
 
   /** @ngInject **/
-  constructor($scope, $injector, $window, private $rootScope, public uiSegmentSrv) {
+  constructor($scope, $injector, $window, private $rootScope, public uiSegmentSrv, private annotationsSrv) {
     super($scope, $injector);
 
-    this.initalized = false;
+    this.initialized = false;
 
     //this.$tooltip = $('<div id="tooltip" class="graph-tooltip">');
 
@@ -138,7 +186,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.events.on('render', this.onRender.bind(this));
     this.events.on('data-received', this.onDataReceived.bind(this));
     this.events.on('data-error', this.onDataError.bind(this));
-    this.events.on('panel-initialized', this.onPanelInitalized.bind(this));
+    this.events.on('panel-initialized', this.onPanelInitialized.bind(this));
     this.events.on('panel-size-changed', this.onResize.bind(this));
     this.events.on('data-snapshot-load', this.onDataSnapshotLoad.bind(this));
     this.events.on('refresh', this.onRefresh.bind(this));
@@ -177,7 +225,22 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     }, 75);
   }
 
+  issueQueries(datasource) {
+    this.annotationsPromise = this.annotationsSrv.getAnnotations({
+      dashboard: this.dashboard,
+      panel: this.panel,
+      range: this.range,
+    });
+
+    return this.annotationsSrv.datasourcePromises.then(r => {
+      return super.issueQueries(datasource);
+    });
+  }
+
   onDataError(err) {
+    this.series = [];
+    this.annotations = new Annotations([]);
+    this.render();
     // console.log('onDataError', err);
   }
 
@@ -187,7 +250,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       return;
     }
 
-    if (this.graphDiv && this.initalized) {
+    if (this.graphDiv && this.initialized) {
       Plotly.redraw(this.graphDiv);
     }
   }
@@ -246,7 +309,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.panel.version = PlotlyPanelCtrl.configVersion;
   }
 
-  onPanelInitalized() {
+  onPanelInitialized() {
     if (!this.panel.version || PlotlyPanelCtrl.configVersion > this.panel.version) {
       this.processConfigMigration();
     }
@@ -346,7 +409,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       return;
     }
 
-    if (!this.initalized) {
+    if (!this.initialized) {
       const s = this.cfg.settings;
 
       const options = {
@@ -357,8 +420,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       };
 
       this.layout = this.getProcessedLayout();
-
-      Plotly.react(this.graphDiv, this.traces, this.layout, options);
+      Plotly.react(this.graphDiv, this.traces.concat(this.annotations.traces()), this.layout, options);
 
       this.graphDiv.on('plotly_click', data => {
         if (data === undefined || data.points === undefined) {
@@ -432,22 +494,40 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         if (this.graphDiv) {
           Plotly.Plots.purge(this.graphDiv);
           this.graphDiv.innerHTML = '';
-          this.initalized = false;
+          this.initialized = false;
         }
       });
-      this.initalized = true;
-    } else if (this.initalized) {
+      this.initialized = true;
+    } else if (this.initialized) {
       Plotly.redraw(this.graphDiv);
     } else {
-      console.log('Not initalized yet!');
+      console.log('Not initialized yet!');
     }
   }
 
   onDataSnapshotLoad(snapshot) {
+    this.annotationsPromise = this.annotationsSrv.getAnnotations({
+      dashboard: this.dashboard,
+      panel: this.panel,
+      range: this.range,
+    });
     this.onDataReceived(snapshot);
   }
 
   onDataReceived(dataList) {
+    this.annotationsPromise.then(
+      result => {
+        this.annotations = new Annotations(result.annotations);
+        this.initialized = false;
+        this.render();
+      },
+      () => {
+        this.annotations = new Annotations([]);
+        this.initialized = false;
+        this.render();
+      }
+    );
+
     const finfo: SeriesWrapper[] = [];
     let seriesHash = '/';
     if (dataList && dataList.length > 0) {
@@ -486,13 +566,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     // Now Process the loaded data
     const hchanged = this.seriesHash !== seriesHash;
     if (hchanged && this.editor) {
-      if (this.editor) {
-        EditorHelper.updateMappings(this);
-        this.editor.selectTrace(this.editor.traceIndex);
-        this.editor.onConfigChanged();
-      }
+      EditorHelper.updateMappings(this);
+      this.editor.selectTrace(this.editor.traceIndex);
+      this.editor.onConfigChanged();
     }
-    if (hchanged || !this.initalized) {
+
+    if (hchanged || !this.initialized) {
       this.onConfigChanged();
       this.seriesHash = seriesHash;
     }
@@ -635,7 +714,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this._updateTraceData(true);
 
     // Updates the layout and redraw
-    if (this.initalized && this.graphDiv) {
+    if (this.initialized && this.graphDiv) {
       const s = this.cfg.settings;
       const options = {
         showLink: false,
@@ -645,7 +724,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       };
       this.layout = this.getProcessedLayout();
       //console.log('Update-LAYOUT', this.layout, this.traces);
-      Plotly.react(this.graphDiv, this.traces, this.layout, options);
+      Plotly.react(this.graphDiv, this.traces.concat(this.annotations.traces()), this.layout, options);
     }
 
     // Will query and then update metrics
@@ -658,7 +737,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   link(scope, elem, attrs, ctrl) {
     this.graphDiv = elem.find('.plotly-spot')[0];
-    this.initalized = false;
+    this.initialized = false;
     elem.on('mousemove', evt => {
       this.mouse = evt;
     });

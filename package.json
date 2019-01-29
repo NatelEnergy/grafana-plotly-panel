@@ -1,6 +1,6 @@
 {
   "name": "natel-plotly-panel",
-  "version": "0.0.6-dev",
+  "version": "0.0.6.1-dev",
   "description": "Plot.ly Panel Plugin for Grafana",
   "scripts": {
     "build": "webpack --config webpack.config.prod.js",
@@ -10,7 +10,8 @@
     "lint": "tslint -c tslint.json --project tsconfig.json",
     "release": "node release.js",
     "precommit": "pretty-quick --staged",
-    "pretty": "prettier --write src/**/*.ts"
+    "pretty": "prettier --write src/**/*.ts",
+    "zip": "yarn build && rm -f ../grafana-plotly-panel.zip && zip -r ../grafana-plotly-panel.zip dist"
   },
   "author": "ryantxu",
   "license": "MIT",
