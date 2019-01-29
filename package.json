@@ -61,6 +61,7 @@
     "ts-jest": "^23",
     "ts-loader": "^4.3.0",
     "typescript": "^3",
+    "uglifyjs-webpack-plugin": "^2.1.1",
     "webpack": "^4.9.1",
     "webpack-cli": "^3.1"
   }
