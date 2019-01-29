@@ -31,8 +31,9 @@ yarn build
 ##### v0.0.6-dev
 
 - Fix axis range configuration bug [#49](https://github.com/NatelEnergy/grafana-plotly-panel/issues/49)
+- Add basic annotations support #57 (tchernobog)
 
-##### v0.0.5-dev
+##### v0.0.5
 
 - Upgrade plotly (v1.41+)
 - Better support for light theme. (#24, @cscheuermann81)
