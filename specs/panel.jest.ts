@@ -35,7 +35,7 @@ describe('Plotly Panel', () => {
 
   const ctx = <any>{};
   beforeEach(() => {
-    ctx.ctrl = new PlotlyPanelCtrl(scope, injector, null, null, null);
+    ctx.ctrl = new PlotlyPanelCtrl(scope, injector, null, null, null, null);
     ctx.ctrl.events = {
       emit: () => {},
     };
@@ -63,7 +63,7 @@ describe('Plotly Panel', () => {
   describe('check migration from 0.0.4', () => {
     beforeEach(() => {
       ctx.ctrl.panel = panel_json_v004;
-      ctx.ctrl.onPanelInitalized();
+      ctx.ctrl.onPanelInitialized();
     });
 
     it('it should now have have a version', () => {
