@@ -24,6 +24,7 @@ class Annotations {
   private static defaultTrace = {
     type: 'bar',
     name: null,
+    showlegend: false,
     yaxis: `y${Annotations.LAYOUT_YAXIS}`,
     hoverinfo: 'x+text',
     x: [],
