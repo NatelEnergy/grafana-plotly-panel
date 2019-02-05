@@ -28,10 +28,14 @@ module.exports = {
     'prismjs',
     'slate-plain-serializer',
     'slate-react',
-    './lib/plotly.min',
     function(context, request, callback) {
       var prefix = 'app/';
       if (request.indexOf(prefix) === 0) {
+        return callback(null, request);
+      }
+      // The plotly.min.js
+      if (request.indexOf('./lib/') === 0) {
+        console.log( 'SKIP', request );
         return callback(null, request);
       }
       callback();
@@ -42,6 +46,8 @@ module.exports = {
     new webpack.optimize.OccurrenceOrderPlugin(),
     new CopyWebpackPlugin([
       {from: '../node_modules/plotly.js/dist/plotly.min.js', to: 'lib'},
+      {from: '../node_modules/plotly.js/dist/plotly-cartesian.min.js', to: 'lib'},
+      {from: '../node_modules/plotly.js/dist/plotly-gl3d.min.js', to: 'lib'},
       {from: 'plugin.json', to: '.'},
       {from: '../README.md', to: '.'},
       {from: '../LICENSE', to: '.'},

@@ -17,6 +17,7 @@ import {
 import {EditorHelper} from './editor';
 
 import * as Plotly from './lib/plotly.min';
+//import * as Plotly from './lib/plotly-cartesian.min'
 
 class Annotations {
   public static LAYOUT_YAXIS = 99;
