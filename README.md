@@ -32,6 +32,7 @@ yarn build
 
 - Fix axis range configuration bug [#49](https://github.com/NatelEnergy/grafana-plotly-panel/issues/49)
 - Add basic annotations support #57 (tchernobog)
+- Improve loading times for plotly.js and support loading from CDN
 
 ##### v0.0.5
 

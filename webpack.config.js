@@ -47,7 +47,6 @@ module.exports = {
     new CopyWebpackPlugin([
       {from: '../node_modules/plotly.js/dist/plotly.min.js', to: 'lib'},
       {from: '../node_modules/plotly.js/dist/plotly-cartesian.min.js', to: 'lib'},
-      {from: '../node_modules/plotly.js/dist/plotly-gl3d.min.js', to: 'lib'},
       {from: 'plugin.json', to: '.'},
       {from: '../README.md', to: '.'},
       {from: '../LICENSE', to: '.'},
