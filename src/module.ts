@@ -345,11 +345,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     } else {
       delete layout.zaxis;
       delete layout.scene;
+      const isDate = (layout.xaxis.type === 'date');
       layout.margin = {
         l: layout.yaxis.title ? 50 : 35,
         r: 5,
         t: 0,
-        b: layout.xaxis.title ? 65 : 30,
+        b: layout.xaxis.title ? 65 : ( isDate ? 40 : 30),
         pad: 2,
       };
 
