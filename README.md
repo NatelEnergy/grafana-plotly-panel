@@ -6,7 +6,7 @@
 
 Render metrics using the plot.ly javascript framework
 
-Works with grafana 4 and 5
+Works with grafana 4, 5, and 6
 
 ### Screenshots
 
