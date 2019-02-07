@@ -17,44 +17,10 @@ import {
 import {EditorHelper} from './editor';
 
 import {loadPlotly, loadIfNecessary} from './libLoader';
+import {processAnnotations} from './anno';
+import {Shape} from 'plotly.js';
 
-let Plotly:any; // Loaded dynamically!
-
-class Annotations {
-  public static LAYOUT_YAXIS = 99;
-
-  private static defaultTrace = {
-    type: 'bar',
-    name: null,
-    showlegend: false,
-    yaxis: `y${Annotations.LAYOUT_YAXIS}`,
-    hoverinfo: 'x+text',
-    x: [],
-    y: [],
-    hovertext: [],
-    showscale: false,
-    width: .1,
-    marker: {
-      color: [],
-      opacity: 0.5,
-    },
-  };
-
-  private trace = _.cloneDeep(Annotations.defaultTrace);
-
-  constructor(grafana_annotations) {
-    grafana_annotations.forEach((a) => {
-      this.trace.x.push(a.time);
-      this.trace.y.push(1);
-      this.trace.hovertext.push(a.text);
-      this.trace.marker.color.push(a.annotation.iconColor);
-    });
-  }
-
-  traces() {
-    return this.trace;
-  }
-}
+let Plotly: any; // Loaded dynamically!
 
 class PlotlyPanelCtrl extends MetricsPanelCtrl {
   static templateUrl = 'partials/module.html';
@@ -136,22 +102,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           type: 'linear',
           rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" )
         },
-        ['yaxis' + Annotations.LAYOUT_YAXIS]: {
-          anchor: 'free',
-          overlaying: 'y',
-          showgrid: false,
-          zeroline: false,
-          autotick: false,
-          ticks: '',
-          showticklabels: false,
-        },
       },
     },
   };
 
   graphDiv: any;
-  annotations: Annotations = new Annotations([]);
-  annotationsPromise: any;
+  annotations: Shape[];
   series: SeriesWrapper[];
   seriesByKey: Map<string, SeriesWrapper> = new Map();
   seriesHash = '?';
@@ -167,7 +123,14 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   dataWarnings: string[]; // warnings about loading data
 
   /** @ngInject **/
-  constructor($scope, $injector, $window, private $rootScope, public uiSegmentSrv, private annotationsSrv) {
+  constructor(
+    $scope,
+    $injector,
+    $window,
+    private $rootScope,
+    public uiSegmentSrv,
+    private annotationsSrv
+  ) {
     super($scope, $injector);
 
     this.initialized = false;
@@ -188,7 +151,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
     loadPlotly(this.cfg).then(v => {
       Plotly = v;
-      console.log( 'Plotly', v );
+      console.log('Plotly', v);
 
       // Wait till plotly exists has loaded before we handle any data
       this.events.on('render', this.onRender.bind(this));
@@ -197,7 +160,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this.events.on('panel-size-changed', this.onResize.bind(this));
       this.events.on('data-snapshot-load', this.onDataSnapshotLoad.bind(this));
       this.events.on('refresh', this.onRefresh.bind(this));
-      
+
       // Refresh after plotly is loaded
       this.refresh();
     });
@@ -223,7 +186,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   // Don't call resize too quickly
-  doResize = _.debounce(() => { 
+  doResize = _.debounce(() => {
     // https://github.com/alonho/angular-plotly/issues/26
     const e = window.getComputedStyle(this.graphDiv).display;
     if (!e || 'none' === e) {
@@ -235,7 +198,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this.layout.height = this.height;
       Plotly.redraw(this.graphDiv);
     }
-  }, 50 );
+  }, 50);
 
   onResize() {
     if (this.graphDiv && this.layout && Plotly) {
@@ -243,27 +206,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     }
   }
 
-  issueQueries(datasource) {
-    if(!Plotly) {
-      return Promise.resolve({data:[]});
-    }
-
-    this.annotationsPromise = this.annotationsSrv.getAnnotations({
-      dashboard: this.dashboard,
-      panel: this.panel,
-      range: this.range,
-    });
-
-    return this.annotationsSrv.datasourcePromises.then(r => {
-      return super.issueQueries(datasource);
-    });
-  }
-
   onDataError(err) {
     this.series = [];
-    this.annotations = new Annotations([]);
+    this.annotations = [];
     this.render();
-    // console.log('onDataError', err);
   }
 
   onRefresh() {
@@ -293,7 +239,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.onConfigChanged(); // Sets up the axis info
 
     // Check the size in a little bit
-    setTimeout( ()=> {
+    setTimeout(() => {
       console.log('RESIZE in editor');
       this.onResize();
     }, 500);
@@ -436,8 +382,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       return;
     }
 
-    if(!Plotly) {
-      return; 
+    if (!Plotly) {
+      return;
     }
 
     if (!this.initialized) {
@@ -451,7 +397,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       };
 
       this.layout = this.getProcessedLayout();
-      Plotly.react(this.graphDiv, this.traces.concat(this.annotations.traces()), this.layout, options);
+      this.layout.shapes = this.annotations;
+      Plotly.react(this.graphDiv, this.traces, this.layout, options);
 
       this.graphDiv.on('plotly_click', data => {
         if (data === undefined || data.points === undefined) {
@@ -470,8 +417,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         }
       });
 
-      // if(false) {
-      //   this.graph.on('plotly_hover', (data, xxx) => {
+      // if(true) {
+      //   this.graphDiv.on('plotly_hover', (data, xxx) => {
       //     console.log( 'HOVER!!!', data, xxx, this.mouse );
       //     if(data.points.length>0) {
       //       var idx = 0;
@@ -482,10 +429,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       //       body += pt.x + ', '+pt.y;
       //       body += "</center>";
 
-      //       this.$tooltip.html( body ).place_tt( this.mouse.pageX + 10, this.mouse.pageY );
+      //       //this.$tooltip.html( body ).place_tt( this.mouse.pageX + 10, this.mouse.pageY );
       //     }
       //   }).on('plotly_unhover', (data) => {
-      //     this.$tooltip.detach();
+      //     //this.$tooltip.detach();
       //   });
       // }
 
@@ -537,28 +484,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   onDataSnapshotLoad(snapshot) {
-    this.annotationsPromise = this.annotationsSrv.getAnnotations({
-      dashboard: this.dashboard,
-      panel: this.panel,
-      range: this.range,
-    });
     this.onDataReceived(snapshot);
   }
 
   onDataReceived(dataList) {
-    // this.annotationsPromise.then(
-    //   result => {
-    //     this.annotations = new Annotations(result.annotations);
-    //     this.initialized = false;
-    //     this.render();
-    //   },
-    //   () => {
-    //     this.annotations = new Annotations([]);
-    //     this.initialized = false;
-    //     this.render();
-    //   }
-    // );
-
     const finfo: SeriesWrapper[] = [];
     let seriesHash = '/';
     if (dataList && dataList.length > 0) {
@@ -605,6 +534,23 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     if (hchanged || !this.initialized) {
       this.onConfigChanged();
       this.seriesHash = seriesHash;
+    }
+
+    // Support Annotations
+    if(this.is3d()) {
+      this.annotations = [];
+      this.layout.shapes = this.annotations;
+    }
+    else {
+      this.annotationsSrv.getAnnotations({
+        dashboard: this.dashboard,
+        panel: this.panel,
+        range: this.range,
+      })
+      .then(results => {
+        this.annotations = processAnnotations(results);
+        this.layout.shapes = this.annotations;
+      });
     }
 
     // Load the real data changes
@@ -742,14 +688,14 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     // Force reloading the traces
     this._updateTraceData(true);
 
-    if(!Plotly) {
+    if (!Plotly) {
       return;
     }
 
     // Check if the plotly library changed
-    loadIfNecessary(this.cfg).then( res => {
-      if(res) {
-        if(Plotly) {
+    loadIfNecessary(this.cfg).then(res => {
+      if (res) {
+        if (Plotly) {
           Plotly.purge(this.graphDiv);
         }
         Plotly = res;
@@ -765,8 +711,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           modeBarButtonsToRemove: ['sendDataToCloud'], //, 'select2d', 'lasso2d']
         };
         this.layout = this.getProcessedLayout();
-        //console.log('Update-LAYOUT', this.layout, this.traces);
-        Plotly.react(this.graphDiv, this.traces.concat(this.annotations.traces()), this.layout, options);
+        this.layout.shapes = this.annotations;
+        Plotly.react(this.graphDiv, this.traces, this.layout, options);
       }
 
       this.render(); // does not query again!
