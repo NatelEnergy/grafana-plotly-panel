@@ -537,20 +537,20 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     }
 
     // Support Annotations
-    if(this.is3d()) {
+    if (this.is3d()) {
       this.annotations = [];
       this.layout.shapes = this.annotations;
-    }
-    else {
-      this.annotationsSrv.getAnnotations({
-        dashboard: this.dashboard,
-        panel: this.panel,
-        range: this.range,
-      })
-      .then(results => {
-        this.annotations = processAnnotations(results);
-        this.layout.shapes = this.annotations;
-      });
+    } else {
+      this.annotationsSrv
+        .getAnnotations({
+          dashboard: this.dashboard,
+          panel: this.panel,
+          range: this.range,
+        })
+        .then(results => {
+          this.annotations = processAnnotations(results);
+          this.layout.shapes = this.annotations;
+        });
     }
 
     // Load the real data changes
