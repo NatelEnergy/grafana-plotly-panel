@@ -1,6 +1,6 @@
 import $script from "scriptjs";
 
-let loaded; // Plotly Library
+let loaded: any; // Plotly Library
 let isFull = false;
 let wasCDN = false;
 
@@ -21,7 +21,6 @@ export function loadPlotly(cfg:any) : Promise<any> {
     url = 'public/plugins/natel-plotly-panel/lib/plotly.min.js';
   }
   return new Promise((resolve, reject) => {
-    console.log( 'loading', url );
     $script(url, resolve); 
   }).then( res => {
     isFull = needsFull;

@@ -87,7 +87,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         size: 15,
         symbol: 'circle',
         color: '#33B5E5',
-        colorscale: 'YIOrRd',
+        colorscale: 'YlOrRd',
         sizemode: 'diameter',
         sizemin: 3,
         sizeref: 0.2,
@@ -95,7 +95,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           color: '#DDD',
           width: 0,
         },
-        showscale: true,
+        showscale: false,
       },
       color_option: 'ramp',
     },
@@ -121,7 +121,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         xaxis: {
           showgrid: true,
           zeroline: false,
-          type: 'linear',
+          type: 'auto',
           rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" )
         },
         yaxis: {
@@ -188,7 +188,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
     loadPlotly(this.cfg).then(v => {
       Plotly = v;
-      console.log( 'GOT', v );
+      console.log( 'Plotly', v );
 
       // Wait till plotly exists has loaded before we handle any data
       this.events.on('render', this.onRender.bind(this));
@@ -245,12 +245,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   issueQueries(datasource) {
     if(!Plotly) {
-      console.log( 'SKIP Query', datasource );
-      return Promise.resolve([]);
+      return Promise.resolve({data:[]});
     }
 
-
-    console.log( 'Issue Query', datasource );
     this.annotationsPromise = this.annotationsSrv.getAnnotations({
       dashboard: this.dashboard,
       panel: this.panel,
@@ -294,7 +291,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     );
     //  this.editorTabIndex = 1;
     this.onConfigChanged(); // Sets up the axis info
-    this.onResize();
+
+    // Check the size in a little bit
+    setTimeout( ()=> {
+      console.log('RESIZE in editor');
+      this.onResize();
+    }, 500);
   }
 
   processConfigMigration() {
@@ -767,8 +769,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         Plotly.react(this.graphDiv, this.traces.concat(this.annotations.traces()), this.layout, options);
       }
 
-      // Will query and then update metrics
-      console.log( 'Config changed!' );
       this.render(); // does not query again!
     });
   }
