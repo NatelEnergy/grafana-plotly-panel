@@ -43,6 +43,8 @@ env GITHUB_TOKEN=your_token yarn release-it patch
 - Add basic annotations support #57 (tchernobog)
 - Improve loading times for plotly.js and support loading from CDN
 - Assume date x-axis when 'auto' and the mapping has 'time'
+- Support Fixed-Ratio Axes
+
 
 ##### v0.0.5
 

@@ -77,6 +77,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   static defaults = {
     pconfig: {
       loadFromCDN: false,
+      showAnnotations: true,
+      fixScale: '',
       traces: [PlotlyPanelCtrl.defaultTrace],
       settings: {
         type: 'scatter',
@@ -390,6 +392,19 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       // Set the second axis
       layout.yaxis2 = PlotlyPanelCtrl.yaxis2;
     }
+
+    if(this.cfg.fixScale) {
+      if('x'=== this.cfg.fixScale) {
+        layout.yaxis.scaleanchor = 'x';
+      }
+      else if('y'=== this.cfg.fixScale) {
+        layout.xaxis.scaleanchor = 'y';
+      }
+      else if('z'=== this.cfg.fixScale) {
+        layout.xaxis.scaleanchor = 'z';
+        layout.yaxis.scaleanchor = 'z';
+      }
+    }
     return layout;
   }
 
@@ -561,7 +576,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
     // Support Annotations
     let annotationPromise = Promise.resolve();
-    if (this.is3d()) {
+    if (!this.cfg.showAnnotations || this.is3d()) {
       this.annotations.clear();
       if (this.layout) {
         if (this.layout.shapes) {
@@ -738,6 +753,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
       // Updates the layout and redraw
       if (this.initialized && this.graphDiv) {
+        if(!this.cfg.showAnnotations) {
+          this.annotations.clear();
+        }
+
         const s = this.cfg.settings;
         const options = {
           showLink: false,
