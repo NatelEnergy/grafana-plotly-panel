@@ -343,6 +343,15 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     } else {
       delete layout.zaxis;
       delete layout.scene;
+
+      // Check if the X axis should be a date
+      if (!layout.xaxis.type || layout.xaxis.type === 'auto') {
+        const mapping = _.get(this.cfg, 'traces[0].mapping.x');
+        if (mapping && mapping.indexOf('time') >= 0) {
+          layout.xaxis.type = 'date';
+        }
+      }
+
       const isDate = layout.xaxis.type === 'date';
       layout.margin = {
         l: layout.yaxis.title ? 50 : 35,
@@ -351,6 +360,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         b: layout.xaxis.title ? 65 : isDate ? 40 : 30,
         pad: 2,
       };
+
+      if (isDate && !layout.xaxis.range) {
+        const range = this.timeSrv.timeRange();
+        layout.xaxis.range = [range.from.valueOf(), range.to.valueOf()];
+        console.log('AUTO range', range, layout.xaxis);
+      }
 
       // get the css rule of grafana graph axis text
       const labelStyle = this.getCssRule('div.flot-text');
