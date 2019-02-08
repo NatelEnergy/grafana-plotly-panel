@@ -324,17 +324,36 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       layout.yaxis = {};
     }
 
+    // Fixed scales
+    if(this.cfg.fixScale) {
+      if('x'=== this.cfg.fixScale) {
+        layout.yaxis.scaleanchor = 'x';
+      }
+      else if('y'=== this.cfg.fixScale) {
+        layout.xaxis.scaleanchor = 'y';
+      }
+      else if('z'=== this.cfg.fixScale) {
+        layout.xaxis.scaleanchor = 'z';
+        layout.yaxis.scaleanchor = 'z';
+      }
+    }
+
     if (this.is3d()) {
       if (!layout.zaxis) {
         layout.zaxis = {};
       }
 
-      // 3d uses 'scene' for the axis names
+      // 3d uses 'scene' for the axis
       layout.scene = {
-        xaxis: {title: layout.xaxis.title},
-        yaxis: {title: layout.yaxis.title},
-        zaxis: {title: layout.zaxis.title},
+        xaxis: layout.xaxis,
+        yaxis: layout.yaxis,
+        zaxis: layout.zaxis,
       };
+
+      delete layout.xaxis;
+      delete layout.yaxis;
+      delete layout.zaxis;
+
       layout.margin = {
         l: 0,
         r: 0,
@@ -363,10 +382,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         pad: 2,
       };
 
+      // Set the range to the query window
       if (isDate && !layout.xaxis.range) {
         const range = this.timeSrv.timeRange();
         layout.xaxis.range = [range.from.valueOf(), range.to.valueOf()];
-        console.log('AUTO range', range, layout.xaxis);
       }
 
       // get the css rule of grafana graph axis text
@@ -392,19 +411,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       // Set the second axis
       layout.yaxis2 = PlotlyPanelCtrl.yaxis2;
     }
-
-    if(this.cfg.fixScale) {
-      if('x'=== this.cfg.fixScale) {
-        layout.yaxis.scaleanchor = 'x';
-      }
-      else if('y'=== this.cfg.fixScale) {
-        layout.xaxis.scaleanchor = 'y';
-      }
-      else if('z'=== this.cfg.fixScale) {
-        layout.xaxis.scaleanchor = 'z';
-        layout.yaxis.scaleanchor = 'z';
-      }
-    }
+    console.log( 'LAYOUT', layout );
     return layout;
   }
 
