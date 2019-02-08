@@ -225,16 +225,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   onInitEditMode() {
     this.editor = new EditorHelper(this);
-    this.addEditorTab(
-      'Display',
-      'public/plugins/natel-plotly-panel/partials/tab_display.html',
-      2
-    );
-    this.addEditorTab(
-      'Traces',
-      'public/plugins/natel-plotly-panel/partials/tab_traces.html',
-      3
-    );
+    this.addEditorTab('Display', 'public/plugins/natel-plotly-panel/partials/tab_display.html', 2);
+    this.addEditorTab('Traces', 'public/plugins/natel-plotly-panel/partials/tab_traces.html', 3);
     //  this.editorTabIndex = 1;
     this.onConfigChanged(); // Sets up the axis info
 
@@ -246,9 +238,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 
   processConfigMigration() {
-    console.log(
-      'Migrating Plotly Configuration to version: ' + PlotlyPanelCtrl.configVersion
-    );
+    console.log('Migrating Plotly Configuration to version: ' + PlotlyPanelCtrl.configVersion);
 
     // Remove some things that should not be saved
     const cfg = this.panel.pconfig;
@@ -345,12 +335,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     } else {
       delete layout.zaxis;
       delete layout.scene;
-      const isDate = (layout.xaxis.type === 'date');
+      const isDate = layout.xaxis.type === 'date';
       layout.margin = {
         l: layout.yaxis.title ? 50 : 35,
         r: 5,
         t: 0,
-        b: layout.xaxis.title ? 65 : ( isDate ? 40 : 30),
+        b: layout.xaxis.title ? 65 : isDate ? 40 : 30,
         pad: 2,
       };
 
@@ -409,8 +399,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           const idx = data.points[i].pointNumber;
           const ts = this.traces[0].ts[idx];
           // console.log( 'CLICK!!!', ts, data );
-          const msg =
-            data.points[i].x.toPrecision(4) + ', ' + data.points[i].y.toPrecision(4);
+          const msg = data.points[i].x.toPrecision(4) + ', ' + data.points[i].y.toPrecision(4);
           this.$rootScope.appEvent('alert-success', [
             msg,
             '@ ' + this.dashboard.formatDate(moment(ts)),
@@ -567,9 +556,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       });
       const s: SeriesWrapper = this.seriesByKey.get(key);
       if (!s) {
-        this.dataWarnings.push(
-          'Unable to find: ' + key + ' for ' + trace.name + ' // ' + path
-        );
+        this.dataWarnings.push('Unable to find: ' + key + ' for ' + trace.name + ' // ' + path);
       }
     }
   }

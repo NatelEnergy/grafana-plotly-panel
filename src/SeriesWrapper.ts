@@ -89,11 +89,7 @@ export class SeriesWrapperSeries extends SeriesWrapper {
 
   getAllKeys(): string[] {
     if (this.refId) {
-      const vals = [
-        this.name,
-        this.refId + '@' + this.value,
-        this.refId + '/' + this.name,
-      ];
+      const vals = [this.name, this.refId + '@' + this.value, this.refId + '/' + this.name];
 
       if ('A' === this.refId) {
         vals.push('@' + this.value);
@@ -157,11 +153,7 @@ export class SeriesWrapperTable extends SeriesWrapper {
 
   getAllKeys(): string[] {
     if (this.refId) {
-      return [
-        this.getKey(),
-        this.refId + '/' + this.name,
-        this.refId + '[' + this.index + ']',
-      ];
+      return [this.getKey(), this.refId + '/' + this.name, this.refId + '[' + this.index + ']'];
     }
     return [this.getKey()];
   }

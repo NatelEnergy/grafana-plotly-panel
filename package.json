@@ -7,10 +7,9 @@
     "dev": "webpack --mode development",
     "watch": "webpack --mode development --watch",
     "test": "jest --config jest.config.js",
-    "lint": "tslint -c tslint.json --project tsconfig.json",
-    "release": "node release.js",
     "precommit": "pretty-quick --staged",
-    "pretty": "prettier --write src/**/*.ts",
+    "lint": "tslint -c tslint.json --project tsconfig.json",
+    "format": "prettier-eslint --write \"src/**/*.{ts,tsx,json,css,js,jsx}\"",
     "zip": "yarn build && rm -f ../grafana-plotly-panel.zip && zip -r ../grafana-plotly-panel.zip dist"
   },
   "author": "ryantxu",
@@ -26,13 +25,16 @@
     "type": "git",
     "url": "https://github.com/NatelEnergy/grafana-plotly-panel.git"
   },
+  "lint-staged": {
+    "src/**/*.{ts,tsx,json,css,js,jsx}": [
+      "prettier-eslint"
+    ]
+  },
   "prettier": {
-    "singleQuote": true,
     "trailingComma": "es5",
-    "useTabs": false,
-    "printWidth": 90,
+    "singleQuote": true,
     "bracketSpacing": false,
-    "semi": true
+    "printWidth": 100
   },
   "dependencies": {
     "jquery": "^3.2.1",
@@ -56,8 +58,10 @@
     "grafana-sdk-mocks": "github:ryantxu/grafana-sdk-mocks",
     "jest": "^24.1.0",
     "ng-annotate-webpack-plugin": "^0.3.0",
-    "prettier": "^1.14",
-    "pretty-quick": "^1.4.1",
+    "prettier": "^1.15.3",
+    "prettier-eslint": "^8.8.0",
+    "prettier-eslint-cli": "^4.7.0",
+    "pretty-quick": "^1.10.0",
     "replace-in-file-webpack-plugin": "^1.0.6",
     "style-loader": "^0.23.1",
     "ts-jest": "^23",
