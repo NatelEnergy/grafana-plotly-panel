@@ -83,6 +83,5 @@ env GITHUB_TOKEN=your_token yarn release-it patch
 
 ### Wishlist (help wanted)
 
-- sizeref helper. I think this depends on the data. likely need to find the range and pick a good value?
-- load plotly.js from CDN?
+- sizeref helper. I think this depends on the data. likely need to find the range and pick a good value? From react?
 - nice to have: https://plot.ly/javascript/parallel-coordinates-plot/

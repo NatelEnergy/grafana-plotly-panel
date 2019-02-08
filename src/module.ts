@@ -17,8 +17,8 @@ import {
 import {EditorHelper} from './editor';
 
 import {loadPlotly, loadIfNecessary} from './libLoader';
-import {processAnnotations} from './anno';
-import {Shape} from 'plotly.js';
+import {AnnoInfo} from './anno';
+import {Axis} from 'plotly.js';
 
 let Plotly: any; // Loaded dynamically!
 
@@ -66,6 +66,14 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       color_option: 'ramp',
     },
   };
+
+  static yaxis2: Partial<Axis> = {
+    title: 'Annotations',
+    type: 'linear',
+    range: [0, 1],
+    visible: false,
+  };
+
   static defaults = {
     pconfig: {
       loadFromCDN: false,
@@ -107,7 +115,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   };
 
   graphDiv: any;
-  annotations: Shape[];
+  annotations = new AnnoInfo();
   series: SeriesWrapper[];
   seriesByKey: Map<string, SeriesWrapper> = new Map();
   seriesHash = '?';
@@ -208,7 +216,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   onDataError(err) {
     this.series = [];
-    this.annotations = [];
+    this.annotations.clear();
     this.render();
   }
 
@@ -363,6 +371,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         layout.xaxis.gridcolor = color;
         layout.yaxis.gridcolor = color;
       }
+
+      // Set the second axis
+      layout.yaxis2 = PlotlyPanelCtrl.yaxis2;
     }
     return layout;
   }
@@ -388,8 +399,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       };
 
       this.layout = this.getProcessedLayout();
-      this.layout.shapes = this.annotations;
-      Plotly.react(this.graphDiv, this.traces, this.layout, options);
+      this.layout.shapes = this.annotations.shapes;
+      let traces = this.traces;
+      if (this.annotations.shapes.length > 0) {
+        traces = this.traces.concat(this.annotations.trace);
+      }
+      Plotly.react(this.graphDiv, traces, this.layout, options);
 
       this.graphDiv.on('plotly_click', data => {
         if (data === undefined || data.points === undefined) {
@@ -442,8 +457,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         let max = Number.MIN_SAFE_INTEGER;
 
         for (let i = 0; i < data.points.length; i++) {
-          const idx = data.points[i].pointNumber;
-          const ts = this.traces[0].ts[idx];
+          const found = data.points[i];
+          const idx = found.pointNumber;
+          const ts = found.fullData.x[idx];
           min = Math.min(min, ts);
           max = Math.max(max, ts);
         }
@@ -476,6 +492,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   onDataSnapshotLoad(snapshot) {
     this.onDataReceived(snapshot);
   }
+
+  _hadAnno = false;
 
   onDataReceived(dataList) {
     const finfo: SeriesWrapper[] = [];
@@ -527,25 +545,39 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     }
 
     // Support Annotations
+    let annotationPromise = Promise.resolve();
     if (this.is3d()) {
-      this.annotations = [];
-      this.layout.shapes = this.annotations;
+      this.annotations.clear();
+      if (this.layout) {
+        if (this.layout.shapes) {
+          this.onConfigChanged();
+        }
+        this.layout.shapes = [];
+      }
     } else {
-      this.annotationsSrv
+      annotationPromise = this.annotationsSrv
         .getAnnotations({
           dashboard: this.dashboard,
           panel: this.panel,
           range: this.range,
         })
         .then(results => {
-          this.annotations = processAnnotations(results);
-          this.layout.shapes = this.annotations;
+          const hasAnno = this.annotations.update(results);
+          if (this.layout) {
+            if (hasAnno !== this._hadAnno) {
+              this.onConfigChanged();
+            }
+            this.layout.shapes = this.annotations.shapes;
+          }
+          this._hadAnno = hasAnno;
         });
     }
 
     // Load the real data changes
-    this._updateTraceData();
-    this.render();
+    annotationPromise.then(() => {
+      this._updateTraceData();
+      this.render();
+    });
   }
 
   __addCopyPath(trace: any, key: string, path: string) {
@@ -699,8 +731,13 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           modeBarButtonsToRemove: ['sendDataToCloud'], //, 'select2d', 'lasso2d']
         };
         this.layout = this.getProcessedLayout();
-        this.layout.shapes = this.annotations;
-        Plotly.react(this.graphDiv, this.traces, this.layout, options);
+        this.layout.shapes = this.annotations.shapes;
+        let traces = this.traces;
+        if (this.annotations.shapes.length > 0) {
+          traces = this.traces.concat(this.annotations.trace);
+        }
+        console.log('ConfigChanged (traces)', traces);
+        Plotly.react(this.graphDiv, traces, this.layout, options);
       }
 
       this.render(); // does not query again!
