@@ -325,14 +325,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     }
 
     // Fixed scales
-    if(this.cfg.fixScale) {
-      if('x'=== this.cfg.fixScale) {
+    if (this.cfg.fixScale) {
+      if ('x' === this.cfg.fixScale) {
         layout.yaxis.scaleanchor = 'x';
-      }
-      else if('y'=== this.cfg.fixScale) {
+      } else if ('y' === this.cfg.fixScale) {
         layout.xaxis.scaleanchor = 'y';
-      }
-      else if('z'=== this.cfg.fixScale) {
+      } else if ('z' === this.cfg.fixScale) {
         layout.xaxis.scaleanchor = 'z';
         layout.yaxis.scaleanchor = 'z';
       }
@@ -411,7 +409,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       // Set the second axis
       layout.yaxis2 = PlotlyPanelCtrl.yaxis2;
     }
-    console.log( 'LAYOUT', layout );
     return layout;
   }
 
@@ -760,7 +757,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
       // Updates the layout and redraw
       if (this.initialized && this.graphDiv) {
-        if(!this.cfg.showAnnotations) {
+        if (!this.cfg.showAnnotations) {
           this.annotations.clear();
         }
 

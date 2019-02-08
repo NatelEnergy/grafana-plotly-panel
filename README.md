@@ -37,13 +37,14 @@ env GITHUB_TOKEN=your_token yarn release-it patch
 
 #### Changelog
 
-##### v0.0.6-dev
+##### v0.0.6
 
 - Fix axis range configuration bug [#49](https://github.com/NatelEnergy/grafana-plotly-panel/issues/49)
 - Add basic annotations support #57 (tchernobog)
 - Improve loading times for plotly.js and support loading from CDN
 - Assume date x-axis when 'auto' and the mapping has 'time'
 - Support Fixed-Ratio Axes
+- Tested with Grafana 6
 
 
 ##### v0.0.5
