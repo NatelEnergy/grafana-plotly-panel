@@ -10,7 +10,7 @@ export function loadPlotly(cfg: any): Promise<any> {
     return Promise.resolve(loaded);
   }
 
-  const needsFull = cfg.settings.type !== 'scatter';
+  const needsFull = cfg.settings.type === 'scatter3d';
   let url = 'public/plugins/natel-plotly-panel/lib/plotly-cartesian.min.js';
   if (cfg.loadFromCDN) {
     url = needsFull
@@ -40,7 +40,7 @@ export function loadIfNecessary(cfg: any): Promise<any> {
     return loadPlotly(cfg);
   }
 
-  const needsFull = cfg.settings.type !== 'scatter';
+  const needsFull = cfg.settings.type === 'scatter3d';
   if (needsFull && !isFull) {
     console.log('Switching to the full plotly library');
     loaded = null;

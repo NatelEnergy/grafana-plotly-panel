@@ -83,8 +83,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       settings: {
         type: 'scatter',
         displayModeBar: false,
+        orientation: 'v',
       },
       layout: {
+        barmode: 'group',
         showlegend: false,
         legend: {
           orientation: 'h',
@@ -645,6 +647,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       const trace: any = {
         name: config.name || EditorHelper.createTraceName(idx),
         type: this.cfg.settings.type,
+        orientation: this.cfg.settings.orientation,
         mode: 'markers+lines', // really depends on config settings
         __set: [], // { key:? property:? }
       };

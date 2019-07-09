@@ -9,10 +9,34 @@
           ng-change="ctrl.editor.onConfigChanged()">
           <option value="scatter">Scatter</option>
           <option value="scatter3d">Scatter (3d)</option>
-          <!--
           <option value="bar">Bar</option>
+          <!--
           <option value="histogram">Histogram</option>
           -->
+        </select>
+      </div>
+    </div>
+
+    <div class="gf-form" ng-if="ctrl.cfg.settings.type === 'bar'">
+      <label class="gf-form-label width-7">- Orientation</label>
+      <div class="gf-form-select-wrapper max-width-14">
+        <select class="gf-form-input"
+                ng-model="ctrl.cfg.settings.orientation"
+                ng-change="ctrl.onConfigChanged()">
+          <option value="v">Vertical</option>
+          <option value="h">Horizontal</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="gf-form" ng-if="ctrl.cfg.settings.type === 'bar'">
+      <label class="gf-form-label width-7">- Mode</label>
+      <div class="gf-form-select-wrapper max-width-14">
+        <select class="gf-form-input"
+                ng-model="ctrl.cfg.layout.barmode"
+                ng-change="ctrl.onConfigChanged()">
+          <option value="group">Grouped</option>
+          <option value="stack">Stacked</option>
         </select>
       </div>
     </div>
