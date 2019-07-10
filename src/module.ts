@@ -100,19 +100,34 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           showgrid: true,
           zeroline: false,
           type: 'auto',
-          rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" )
+          rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" ),
+          tickangle: 0,
+          autotick: true,
+          ticks: 'outside',
+          tick0: 0,
+          dtick: 1,
         },
         yaxis: {
           showgrid: true,
           zeroline: false,
           type: 'linear',
           rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" ),
+          tickangle: 0,
+          autotick: true,
+          ticks: 'outside',
+          tick0: 0,
+          dtick: 1,
         },
         zaxis: {
           showgrid: true,
           zeroline: false,
           type: 'linear',
-          rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" )
+          rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" ),
+          tickangle: 0,
+          autotick: true,
+          ticks: 'outside',
+          tick0: 0,
+          dtick: 1,
         },
       },
     },
@@ -326,6 +341,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       layout.yaxis = {};
     }
 
+    // If tickangle is 0, remove it to enable default behaviour,
+    // which is to use 0 if it fits and otherwise 90.
+    if (layout.tickangle === 0) {
+      delete layout.tickangle;
+    }
+
     // Fixed scales
     if (this.cfg.fixScale) {
       if ('x' === this.cfg.fixScale) {
@@ -381,6 +402,11 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         b: layout.xaxis.title ? 65 : isDate ? 40 : 30,
         pad: 2,
       };
+
+      // Add a bit more bottom margin if the tick angle isn't 0.
+      // Leave enough room for at least a 4 digit number running vertically.
+      if (layout.xaxis.tickangle !== 0)
+        layout.margin.b += 20;
 
       // Set the range to the query window
       if (isDate && !layout.xaxis.range) {

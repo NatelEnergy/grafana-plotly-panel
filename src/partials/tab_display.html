@@ -165,8 +165,52 @@
       />
     </div>
 
-    <gf-form-switch class="gf-form" label="Show Grid:" label-class="gf-form-label width-7" checked="axis.layout.showgrid" on-change="ctrl.onConfigChanged()"></gf-form-switch>
-    <gf-form-switch class="gf-form" label="Zero Line:" label-class="gf-form-label width-7" checked="axis.layout.zeroline" on-change="ctrl.onConfigChanged()"></gf-form-switch>
+    <gf-form-switch class="gf-form" label="Show Grid" label-class="gf-form-label width-7" checked="axis.layout.showgrid" on-change="ctrl.onConfigChanged()"></gf-form-switch>
+    <gf-form-switch class="gf-form" label="Zero Line" label-class="gf-form-label width-7" checked="axis.layout.zeroline" on-change="ctrl.onConfigChanged()"></gf-form-switch>
+
+    <div class="gf-form">
+      <label class="gf-form-label width-7">Tick angle</label>
+      <input class="gf-form-input width-10"
+        placeholder="0" 
+        type="number"
+        ng-model="axis.layout.tickangle" 
+        ng-change="ctrl.onConfigChanged()"
+      />
+    </div>
+    
+    <gf-form-switch class="gf-form" label="Auto tick" label-class="gf-form-label width-7" checked="axis.layout.autotick" on-change="ctrl.onConfigChanged()"></gf-form-switch>
+    
+    <div class="gf-form" ng-if="!axis.layout.autotick">
+      <label class="gf-form-label width-7">- Location</label>
+      <div class="gf-form-select-wrapper max-width-14">
+        <select class="gf-form-input" 
+          ng-model="axis.layout.ticks" 
+          ng-change="ctrl.editor.onConfigChanged()">
+          <option value="outside">Outside</option>
+          <option value="inside">Inside</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="gf-form" ng-if="!axis.layout.autotick">
+      <label class="gf-form-label width-7">- Start</label>
+      <input class="gf-form-input width-10"
+        placeholder="0"
+        type="number"
+        ng-model="axis.layout.tick0" 
+        ng-change="ctrl.onConfigChanged()"
+      />
+    </div>
+
+    <div class="gf-form" ng-if="!axis.layout.autotick">
+      <label class="gf-form-label width-7">- Interval</label>
+      <input class="gf-form-input width-10"
+        placeholder="1"
+        type="number"
+        ng-model="axis.layout.dtick" 
+        ng-change="ctrl.onConfigChanged()"
+      />
+    </div>
   </div>
 
 </div>
