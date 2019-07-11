@@ -400,7 +400,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
       const isDate = layout.xaxis.type === 'date';
       layout.margin = {
-        l: layout.yaxis.title ? 50 : 35,
+        l: layout.yaxis.title ? 70 : 55,
         r: 5,
         t: 0,
         b: layout.xaxis.title ? 65 : isDate ? 40 : 30,
