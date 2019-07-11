@@ -63,6 +63,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         },
         showscale: false,
       },
+      barmarker: {
+        color: '#33B5E5',
+        width: 1,
+      },
       color_option: 'ramp',
     },
   };
@@ -665,6 +669,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     }
 
     const is3D = this.is3d();
+    const isBar = this.isBar();
     this.traces = this.cfg.traces.map((tconfig, idx) => {
       const config = this.deepCopyWithTemplates(tconfig) || {};
       _.defaults(config, PlotlyPanelCtrl.defaults);
@@ -674,30 +679,42 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         name: config.name || EditorHelper.createTraceName(idx),
         type: this.cfg.settings.type,
         orientation: this.cfg.settings.orientation,
-        mode: 'markers+lines', // really depends on config settings
         __set: [], // { key:? property:? }
       };
 
-      let mode = '';
-      if (config.show.markers) {
-        mode += '+markers';
-        trace.marker = config.settings.marker;
+      if (isBar) {
+        trace.marker = config.settings.barmarker;
+      } else {
+        let mode = '';
+        if (config.show.markers) {
+          mode += '+markers';
+          trace.marker = config.settings.marker;
 
-        delete trace.marker.sizemin;
-        delete trace.marker.sizemode;
-        delete trace.marker.sizeref;
+          delete trace.marker.sizemin;
+          delete trace.marker.sizemode;
+          delete trace.marker.sizeref;
 
-        if (config.settings.color_option === 'ramp') {
-          this.__addCopyPath(trace, mapping.color, 'marker.color');
-        } else {
-          delete trace.marker.colorscale;
-          delete trace.marker.showscale;
+          if (config.settings.color_option === 'ramp') {
+            this.__addCopyPath(trace, mapping.color, 'marker.color');
+          } else {
+            delete trace.marker.colorscale;
+            delete trace.marker.showscale;
+          }
         }
-      }
 
-      if (config.show.lines) {
-        mode += '+lines';
-        trace.line = config.settings.line;
+        if (config.show.lines) {
+          mode += '+lines';
+          trace.line = config.settings.line;
+        }
+
+        if (is3D) {
+          this.__addCopyPath(trace, mapping.z, 'z');
+        }
+
+        // Set the trace mode
+        if (mode) {
+          trace.mode = mode.substring(1);
+        }
       }
 
       // Set the text
@@ -705,14 +722,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this.__addCopyPath(trace, mapping.x, 'x');
       this.__addCopyPath(trace, mapping.y, 'y');
 
-      if (is3D) {
-        this.__addCopyPath(trace, mapping.z, 'z');
-      }
-
-      // Set the trace mode
-      if (mode) {
-        trace.mode = mode.substring(1);
-      }
       return trace;
     });
   }
@@ -813,6 +822,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   is3d() {
     return this.cfg.settings.type === 'scatter3d';
+  }
+
+  isBar() {
+    return this.cfg.settings.type === 'bar';
   }
 
   link(scope, elem, attrs, ctrl) {
