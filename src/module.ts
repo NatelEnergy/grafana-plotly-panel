@@ -812,7 +812,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         if (this.annotations.shapes.length > 0) {
           traces = this.traces.concat(this.annotations.trace);
         }
-        console.log('ConfigChanged (traces)', traces);
         Plotly.react(this.graphDiv, traces, this.layout, options);
       }
 
