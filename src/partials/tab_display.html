@@ -91,6 +91,13 @@
       
     <gf-form-switch 
       class="gf-form" 
+      label="Auto trace" 
+      label-class="gf-form-label width-7" 
+      checked="ctrl.cfg.settings.autotrace" 
+      on-change="ctrl.editor.onConfigChanged()"></gf-form-switch>
+
+    <gf-form-switch 
+      class="gf-form" 
       label="Legend" 
       label-class="gf-form-label width-7" 
       checked="ctrl.cfg.layout.showlegend" 

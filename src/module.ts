@@ -88,6 +88,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         type: 'scatter',
         displayModeBar: false,
         orientation: 'v',
+        autotrace: false,
       },
       layout: {
         barmode: 'group',
@@ -563,15 +564,51 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   onDataReceived(dataList) {
     const finfo: SeriesWrapper[] = [];
+    const autotrace = this.cfg.settings.autotrace;
     let seriesHash = '/';
+    let autotraceDataSeries = {};
     if (dataList && dataList.length > 0) {
+      if (autotrace) {
+        // Check input is of expected form.
+        dataList.forEach((series, sidx) => {
+          if (series.columns && series.columns.length === 3 && series.type === 'table') {
+            series.rows.forEach((val) => {
+              const sname = val[0];
+              if (!(sname in autotraceDataSeries)) {
+                autotraceDataSeries[sname] = {
+                  columns: series.columns,
+                  rows: [],
+                  type: 'table',
+                  name: sname,
+                }
+              };
+              autotraceDataSeries[sname].rows.push(val);
+            });
+          } else {
+            console.error('Autotrace needs table input with 3 columns', sidx, series);
+            throw new Error('Autotrace needs table input with 3 columns');
+          }
+        });
+
+        let autotraceDataList: any = [];
+        for (var key in autotraceDataSeries) {
+          autotraceDataList.push(autotraceDataSeries[key]);
+        }
+        this._updateAutoTraces(autotraceDataSeries);
+        dataList = autotraceDataList;
+      }
+
       const useRefID = dataList.length === this.panel.targets.length;
       dataList.forEach((series, sidx) => {
         let refId = '';
-        if (useRefID) {
-          refId = _.get(this.panel, 'targets[' + sidx + '].refId');
-          if (!refId) {
-            refId = String.fromCharCode('A'.charCodeAt(0) + sidx);
+        if (autotrace) {
+          refId = series.name;
+        } else {
+          if (useRefID) {
+            refId = _.get(this.panel, 'targets[' + sidx + '].refId');
+            if (!refId) {
+              refId = String.fromCharCode('A'.charCodeAt(0) + sidx);
+            }
           }
         }
         if (series.columns) {
@@ -661,6 +698,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   // This will update all trace settings *except* the data
   _updateTracesFromConfigs() {
+    // If we're in autotrace mode, trace creation happens elsewhere.
+    if (this.cfg.settings.autotrace)
+      return;
+
     this.dataWarnings = [];
 
     // Make sure we have a trace
@@ -726,16 +767,48 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     });
   }
 
+  // Autotrace. Recreate the traces to those found in the data.
+  _updateAutoTraces(series) {
+    this.dataWarnings = [];
+
+    delete this.traces;
+
+    this.traces = [];
+
+    for (var key in series) {
+      const trace: any = {
+        name: key,
+        type: this.cfg.settings.type,
+        orientation: this.cfg.settings.orientation,
+        __set: [], // { key:? property:? }
+      };
+
+      // Set the text
+      this.__addCopyPath(trace, key + '/' + series[key].columns[1].text, 'x');
+      this.__addCopyPath(trace, key + '/' + series[key].columns[2].text, 'y');
+      if (trace.orientation === 'v')
+        this.__addCopyPath(trace, key + '/' + series[key].columns[2].text, 'text');
+      else
+        this.__addCopyPath(trace, key + '/' + series[key].columns[1].text, 'text');
+
+      this.traces.push(trace);
+    }
+
+    if (this.traces.length < 1) {
+      this.traces = [_.cloneDeep(PlotlyPanelCtrl.defaultTrace)];
+    }
+  }
+
   // Fills in the required data into the trace values
   _updateTraceData(force = false): boolean {
     if (!this.series) {
-      // console.log('NO Series data yet!');
+      // console.log('No series data yet!');
       return false;
     }
 
     if (force || !this.traces) {
       this._updateTracesFromConfigs();
-    } else if (this.traces.length !== this.cfg.traces.length) {
+    } else if (!this.cfg.settings.autotrace && this.traces.length !== this.cfg.traces.length) {
       console.log(
         'trace number mismatch.  Found: ' +
           this.traces.length +
