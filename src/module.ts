@@ -144,6 +144,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   series: SeriesWrapper[];
   seriesByKey: Map<string, SeriesWrapper> = new Map();
   seriesHash = '?';
+  seriesIsTimeseries = true;
 
   traces: any[]; // The data sent directly to Plotly -- with a special __copy element
   layout: any; // The layout used by Plotly
@@ -514,6 +515,11 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           return;
         }
 
+        if (!this.seriesIsTimeseries) {
+          console.log('Not timeseries data, time zoom disabled');
+          return;
+        }
+
         if (data.points.length === 0) {
           console.log('Nothing Selected', data);
           return;
@@ -600,6 +606,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       }
 
       const useRefID = dataList.length === this.panel.targets.length;
+      this.seriesIsTimeseries = true;
       dataList.forEach((series, sidx) => {
         let refId = '';
         if (autotrace) {
@@ -624,6 +631,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         } else {
           console.error('Unsupported Series response', sidx, series);
         }
+        if (series.type === 'table')
+          this.seriesIsTimeseries = false;
       });
     }
     this.seriesByKey.clear();
