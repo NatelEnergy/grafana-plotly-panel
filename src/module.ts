@@ -96,11 +96,16 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         legend: {
           orientation: 'h',
           traceorder: 'normal',
+          font: {
+            family: 'Roboto, Helvetica, Arial, sans-serif',
+            size: 11,
+          },
         },
         dragmode: 'lasso', // (enumerated: "zoom" | "pan" | "select" | "lasso" | "orbit" | "turntable" )
         hovermode: 'closest',
         font: {
-          family: '"Open Sans", Helvetica, Arial, sans-serif',
+          family: 'Roboto, Helvetica, Arial, sans-serif',
+          size: 10.8,
         },
         xaxis: {
           showgrid: true,
@@ -112,6 +117,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           ticks: 'outside',
           tick0: 0,
           dtick: 1,
+          titlefont: {
+            family: 'Roboto, Helvetica, Arial, sans-serif',
+            size: 12,
+          },
         },
         yaxis: {
           showgrid: true,
@@ -123,6 +132,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           ticks: 'outside',
           tick0: 0,
           dtick: 1,
+          titlefont: {
+            family: 'Roboto, Helvetica, Arial, sans-serif',
+            size: 12,
+          },
         },
         zaxis: {
           showgrid: true,
@@ -134,6 +147,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           ticks: 'outside',
           tick0: 0,
           dtick: 1,
+          titlefont: {
+            family: 'Roboto, Helvetica, Arial, sans-serif',
+            size: 12,
+          },
         },
       },
     },
