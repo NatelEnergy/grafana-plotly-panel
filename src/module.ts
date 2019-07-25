@@ -129,7 +129,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           type: 'linear',
           rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" ),
           tickangle: 0,
-          tickmargin: 55,
+          tickmargin: 45,
           autotick: true,
           ticks: 'outside',
           tick0: 0,
