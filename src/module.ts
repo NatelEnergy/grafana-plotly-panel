@@ -113,6 +113,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           type: 'auto',
           rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" ),
           tickangle: 0,
+          tickmargin: 30,
           autotick: true,
           ticks: 'outside',
           tick0: 0,
@@ -128,6 +129,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           type: 'linear',
           rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" ),
           tickangle: 0,
+          tickmargin: 55,
           autotick: true,
           ticks: 'outside',
           tick0: 0,
@@ -143,6 +145,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           type: 'linear',
           rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" ),
           tickangle: 0,
+          tickmargin: 30,
           autotick: true,
           ticks: 'outside',
           tick0: 0,
@@ -418,21 +421,22 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         }
       }
 
-      const isDate = layout.xaxis.type === 'date';
       layout.margin = {
-        l: layout.yaxis.title ? 70 : 55,
+        l: layout.yaxis.tickmargin,
         r: 5,
         t: 0,
-        b: layout.xaxis.title ? 65 : isDate ? 40 : 30,
+        b: layout.xaxis.tickmargin,
         pad: 2,
       };
 
-      // Add a bit more bottom margin if the tick angle isn't 0.
-      // Leave enough room for at least a 4 digit number running vertically.
-      if (layout.xaxis.tickangle !== 0)
-        layout.margin.b += 20;
+      // Add a bit more margin if there is an axis title.
+      if (layout.xaxis.title)
+        layout.margin.b += 25;
+      if (layout.yaxis.title)
+        layout.margin.l += 25;
 
       // Set the range to the query window
+      const isDate = layout.xaxis.type === 'date';
       if (isDate && !layout.xaxis.range) {
         const range = this.timeSrv.timeRange();
         layout.xaxis.range = [range.from.valueOf(), range.to.valueOf()];

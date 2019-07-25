@@ -196,7 +196,17 @@
         ng-change="ctrl.onConfigChanged()"
       />
     </div>
-    
+
+    <div class="gf-form">
+      <label class="gf-form-label width-7">Tick margin</label>
+      <input class="gf-form-input width-10"
+        placeholder="0" 
+        type="number"
+        ng-model="axis.layout.tickmargin" 
+        ng-change="ctrl.onConfigChanged()"
+      />
+    </div>
+
     <gf-form-switch class="gf-form" label="Auto tick" label-class="gf-form-label width-7" checked="axis.layout.autotick" on-change="ctrl.onConfigChanged()"></gf-form-switch>
     
     <div class="gf-form" ng-if="!axis.layout.autotick">
