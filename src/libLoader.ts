@@ -13,9 +13,7 @@ export function loadPlotly(cfg: any): Promise<any> {
   const needsFull = cfg.settings.type !== 'scatter';
   let url = 'public/plugins/natel-plotly-panel/lib/plotly-cartesian.min.js';
   if (cfg.loadFromCDN) {
-    url = needsFull
-      ? 'https://cdn.plot.ly/plotly-latest.min.js'
-      : 'https://cdn.plot.ly/plotly-cartesian-latest.min.js';
+    url = needsFull ? 'https://cdn.plot.ly/plotly-latest.min.js' : 'https://cdn.plot.ly/plotly-cartesian-latest.min.js';
   } else if (needsFull) {
     url = 'public/plugins/natel-plotly-panel/lib/plotly.min.js';
   }

@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-import {PlotlyPanelCtrl} from './module';
+import { PlotlyPanelCtrl } from './module';
 
 class AxisInfo {
   label: string;
