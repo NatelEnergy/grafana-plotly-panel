@@ -4975,9 +4975,9 @@ graceful-fs@^4.1.11, graceful-fs@^4.1.15, graceful-fs@^4.1.2:
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.1.15.tgz#ffb703e1066e8a0eeaa4c8b80ba9253eeefbfb00"
   integrity sha512-6uHUhOPEBgQ24HM+r6b/QwWfZq+yiFcipKFrOFiBEnWdy5sdzYoi+pJeQaPI5qOLRFqWmAXUPQNsielzdLoecA==
 
-"grafana-sdk-mocks@github:ryantxu/grafana-sdk-mocks":
+"grafana-sdk-mocks@github:grafana/grafana-sdk-mocks":
   version "1.0.0"
-  resolved "https://codeload.github.com/ryantxu/grafana-sdk-mocks/tar.gz/0df804e3044c6f88713b508cfa2a555b883496e8"
+  resolved "https://codeload.github.com/grafana/grafana-sdk-mocks/tar.gz/8022ff1856048f8716d00b15b4423795b81f8369"
 
 gray-matter@^3.0.8:
   version "3.1.1"
