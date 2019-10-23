@@ -40,7 +40,7 @@ export class AnnoInfo {
     this.shapes = results.annotations.map(a => {
       x.push(a.time);
       y.push(0);
-      text.push('XXXX');
+      text.push(a.text);
       color.push(a.annotation.iconColor);
 
       return {

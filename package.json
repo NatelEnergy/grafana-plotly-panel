@@ -20,6 +20,11 @@
     "type": "git",
     "url": "https://github.com/NatelEnergy/grafana-plotly-panel.git"
   },
+  "jest": {
+    "moduleNameMapper": {
+      "grafana/app/plugins/sdk": "<rootDir>/node_modules/grafana-sdk-mocks/app/plugins/sdk.ts"
+    }
+  },
   "dependencies": {
     "jquery": "^3.2.1",
     "lodash": "^4.17.10",
@@ -28,7 +33,8 @@
     "scriptjs": "^2.5.9"
   },
   "devDependencies": {
-    "@grafana/toolkit": "next",
-    "@types/grafana": "github:CorpGlory/types-grafana.git"
+    "@grafana/toolkit": "latest",
+    "@types/grafana": "github:CorpGlory/types-grafana.git",
+    "grafana-sdk-mocks": "github:grafana/grafana-sdk-mocks"
   }
 }
