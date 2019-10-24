@@ -775,3 +775,5 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 }
 
 export { PlotlyPanelCtrl, PlotlyPanelCtrl as PanelCtrl };
+
+console.log('XXXXXXXXXXXXXXXXXXXX', PlotlyPanelCtrl);
