@@ -82,6 +82,25 @@
 
         <div class="gf-form">
           <label class="gf-form-label width-7">Size</label>
+          <div class="gf-form-select-wrapper max-width-14">
+            <select class="gf-form-input" ng-model="ctrl.editor.trace.settings.size_option" ng-change="ctrl.onConfigChanged()">
+              <option value="fixed">Fixed</option>
+              <option value="proportional">Proportional</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="gf-form" 
+          ng-repeat="metric in ctrl.editor.getSizeSegments()">
+          <label class="gf-form-label width-7">- Metric</label>
+          <metric-segment 
+            segment="metric" 
+            get-options="ctrl.editor.getSeriesSegs()" 
+            on-change="ctrl.editor.onSizeChanged()"></metric-segment>
+        </div>
+        
+        <div class="gf-form" ng-if="ctrl.editor.trace.settings.size_option === 'fixed'">
+          <label class="gf-form-label width-7">- Value</label>
           <input 
             type="number" 
             class="gf-form-input width-7" 
@@ -90,25 +109,28 @@
             placeholder="5" ng-blur="ctrl.onConfigChanged()" />
         </div>
 
-        <!--
-        <div class="gf-form" ng-if="ctrl.cfg.mapping.size">
+        <div class="gf-form" ng-if="ctrl.editor.trace.settings.size_option === 'proportional'">
           <label class="gf-form-label width-7">- Min</label>
           <input type="number" class="gf-form-input width-7" ng-model="ctrl.editor.trace.settings.marker.sizemin" spellcheck="false"
             placeholder="5" ng-blur="ctrl.onConfigChanged()" />
+          <!--
           <a href="https://plot.ly/javascript/reference/#scatter-marker-sizemin">
             <i class="fa fa-external-link" aria-hidden="true"></i>
           </a>
+          -->
         </div>
 
-        <div class="gf-form" ng-if="ctrl.cfg.mapping.size">
+        <div class="gf-form" ng-if="ctrl.editor.trace.settings.size_option === 'proportional'">
           <label class="gf-form-label width-7">- Ref</label>
           <input type="number" class="gf-form-input width-7" ng-model="ctrl.editor.trace.settings.marker.sizeref" spellcheck="false"
             placeholder="5" ng-blur="ctrl.onConfigChanged()" />
+          <!--
           <a href="https://plot.ly/javascript/reference/#scatter-marker-sizeref">
             <i class="fa fa-external-link" aria-hidden="true"></i>
           </a>
+          -->
         </div>
-        <div class="gf-form" ng-if="ctrl.cfg.mapping.size">
+        <div class="gf-form" ng-if="ctrl.editor.trace.settings.size_option === 'proportional'">
           <label class="gf-form-label width-7">- Mode</label>
           <div class="gf-form-select-wrapper max-width-14">
             <select class="gf-form-input" ng-model="ctrl.editor.trace.settings.marker.sizemode" ng-change="ctrl.onConfigChanged()">
@@ -116,11 +138,12 @@
               <option value="area">Area</option>
             </select>
           </div>
+          <!--
           <a href="https://plot.ly/javascript/reference/#scatter-marker-sizemode">
             <i class="fa fa-external-link" aria-hidden="true"></i>
           </a>
+          -->
         </div>
-        -->
 
         <div class="gf-form">
           <label class="gf-form-label width-7">Color</label>

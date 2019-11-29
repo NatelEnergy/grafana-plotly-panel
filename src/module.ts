@@ -63,6 +63,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         },
         showscale: false,
       },
+      size_option: 'fixed',
       color_option: 'ramp',
     },
   };
@@ -654,9 +655,13 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         mode += '+markers';
         trace.marker = config.settings.marker;
 
-        delete trace.marker.sizemin;
-        delete trace.marker.sizemode;
-        delete trace.marker.sizeref;
+        if (config.settings.size_option === 'proportional') {
+          this.__addCopyPath(trace, mapping.size, 'marker.size');
+        } else {
+          delete trace.marker.sizemin;
+          delete trace.marker.sizemode;
+          delete trace.marker.sizeref;
+        }
 
         if (config.settings.color_option === 'ramp') {
           this.__addCopyPath(trace, mapping.color, 'marker.color');
