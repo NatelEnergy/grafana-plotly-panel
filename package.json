@@ -33,7 +33,7 @@
     "scriptjs": "^2.5.9"
   },
   "devDependencies": {
-    "@grafana/toolkit": "canary",
+    "@grafana/toolkit": "next",
     "@types/grafana": "github:CorpGlory/types-grafana.git",
     "grafana-sdk-mocks": "github:grafana/grafana-sdk-mocks"
   }

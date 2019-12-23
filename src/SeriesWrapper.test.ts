@@ -10,7 +10,11 @@ describe('Check Series Helper', () => {
   // Skip those for now because they rely on real template expansion
   describe('check Series Helper', () => {
     const series = {
-      datapoints: [[1.23, 100], [2.24, 101], [3.45, 102]],
+      datapoints: [
+        [1.23, 100],
+        [2.24, 101],
+        [3.45, 102],
+      ],
     };
     const helperValue: SeriesWrapper = new SeriesWrapperSeries('AAA', series, 'value');
     const helperTime: SeriesWrapper = new SeriesWrapperSeries('AAA', series, 'time');
