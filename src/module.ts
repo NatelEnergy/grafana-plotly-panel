@@ -1,24 +1,15 @@
-/* -*- Mode: typescript; indent-tabs-mode: nil; typescript-indent-level: 2 -*- */
-
-///<reference path="../node_modules/grafana-sdk-mocks/app/headers/common.d.ts" />
-
-import {MetricsPanelCtrl} from 'app/plugins/sdk';
+import { MetricsPanelCtrl } from 'grafana/app/plugins/sdk';
 
 import _ from 'lodash';
 import moment from 'moment';
 import $ from 'jquery';
 
-import {
-  SeriesWrapper,
-  SeriesWrapperSeries,
-  SeriesWrapperTable,
-  SeriesWrapperTableRow,
-} from './SeriesWrapper';
-import {EditorHelper} from './editor';
+import { SeriesWrapper, SeriesWrapperSeries, SeriesWrapperTable, SeriesWrapperTableRow } from './SeriesWrapper';
+import { EditorHelper } from './editor';
 
-import {loadPlotly, loadIfNecessary} from './libLoader';
-import {AnnoInfo} from './anno';
-import {Axis} from 'plotly.js';
+import { loadPlotly, loadIfNecessary } from './libLoader';
+import { AnnoInfo } from './anno';
+import { Axis } from 'plotly.js';
 
 let Plotly: any; // Loaded dynamically!
 
@@ -132,15 +123,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   editor: EditorHelper;
   dataWarnings: string[]; // warnings about loading data
 
-  /** @ngInject **/
-  constructor(
-    $scope,
-    $injector,
-    $window,
-    private $rootScope,
-    public uiSegmentSrv,
-    private annotationsSrv
-  ) {
+  /** @ngInject */
+  constructor($scope, $injector, $window, private $rootScope, public uiSegmentSrv, private annotationsSrv) {
     super($scope, $injector);
 
     this.initialized = false;
@@ -449,10 +433,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           const ts = this.traces[0].ts[idx];
           // console.log( 'CLICK!!!', ts, data );
           const msg = data.points[i].x.toPrecision(4) + ', ' + data.points[i].y.toPrecision(4);
-          this.$rootScope.appEvent('alert-success', [
-            msg,
-            '@ ' + this.dashboard.formatDate(moment(ts)),
-          ]);
+          this.$rootScope.appEvent('alert-success', [msg, '@ ' + this.dashboard.formatDate(moment(ts))]);
         }
       });
 
@@ -502,7 +483,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         min -= 1000;
         max += 1000;
 
-        const range = {from: moment.utc(min), to: moment.utc(max)};
+        const range = { from: moment.utc(min), to: moment.utc(max) };
 
         console.log('SELECTED!!!', min, max, data.points.length, range);
 
@@ -622,7 +603,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         key: key,
         path: path,
       });
-      const s: SeriesWrapper = this.seriesByKey.get(key);
+      const s = this.seriesByKey.get(key);
       if (!s) {
         this.dataWarnings.push('Unable to find: ' + key + ' for ' + trace.name + ' // ' + path);
       }
@@ -700,12 +681,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     if (force || !this.traces) {
       this._updateTracesFromConfigs();
     } else if (this.traces.length !== this.cfg.traces.length) {
-      console.log(
-        'trace number mismatch.  Found: ' +
-          this.traces.length +
-          ', expect: ' +
-          this.cfg.traces.length
-      );
+      console.log('trace number mismatch.  Found: ' + this.traces.length + ', expect: ' + this.cfg.traces.length);
       this._updateTracesFromConfigs();
     }
 
@@ -720,7 +696,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           if (s) {
             vals = s.toArray();
             if (vals && vals.length > zero.length) {
-              zero = Array.from(Array(3), () => 0);
+              zero = Array.from(new Array(3), () => 0);
             }
           } else {
             if (!this.error) {
@@ -800,4 +776,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   }
 }
 
-export {PlotlyPanelCtrl, PlotlyPanelCtrl as PanelCtrl};
+export { PlotlyPanelCtrl, PlotlyPanelCtrl as PanelCtrl };
+
+console.log('XXXXXXXXXXXXXXXXXXXX', PlotlyPanelCtrl);

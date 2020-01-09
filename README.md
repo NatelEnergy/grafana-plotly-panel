@@ -37,6 +37,11 @@ env GITHUB_TOKEN=your_token yarn release-it patch
 
 #### Changelog
 
+
+##### v0.0.7
+- build with toolkit
+
+
 ##### v0.0.6
 
 - Fix axis range configuration bug [#49](https://github.com/NatelEnergy/grafana-plotly-panel/issues/49)

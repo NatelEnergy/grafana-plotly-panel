@@ -1,4 +1,4 @@
-import {Shape, Data} from 'plotly.js';
+import { Shape, Data } from 'plotly.js';
 
 export class AnnoInfo {
   trace: Data;
@@ -66,7 +66,7 @@ export class AnnoInfo {
     });
 
     // Overwrite it with new points
-    this.trace = {...this.trace, x, y, text};
+    this.trace = { ...this.trace, x, y, text };
     this.trace.marker!.color = color;
     return x.length > 0;
   }

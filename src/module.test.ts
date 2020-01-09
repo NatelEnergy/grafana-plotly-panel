@@ -1,10 +1,6 @@
-///<reference path="../node_modules/@types/jest/index.d.ts" />
+import { PlotlyPanelCtrl } from './module';
 
-//import TemplateSrv from './lib/template_srv_stub';
-import {PlotlyPanelCtrl} from '../src/module';
-
-import * as panel_json_v004 from './res/panel_json_v004.json';
-//import {MetricsPanelCtrl} from 'app/plugins/sdk';
+import * as panel_json_v004 from './__test_data/panel_json_v004.json';
 
 describe('Plotly Panel', () => {
   const injector = {
@@ -33,7 +29,7 @@ describe('Plotly Panel', () => {
     },
   };
 
-  const ctx = <any>{};
+  const ctx = {} as any;
   beforeEach(() => {
     ctx.ctrl = new PlotlyPanelCtrl(scope, injector, null, null, null, null);
     ctx.ctrl.events = {
@@ -54,9 +50,7 @@ describe('Plotly Panel', () => {
     it('it should use default configs', () => {
       // console.log('SAME:', ctx.ctrl.panel.pconfig);
       // console.log(' >>>:', PlotlyPanelCtrl.defaults.pconfig);
-      expect(JSON.stringify(ctx.ctrl.panel.pconfig)).toBe(
-        JSON.stringify(PlotlyPanelCtrl.defaults.pconfig)
-      );
+      expect(JSON.stringify(ctx.ctrl.panel.pconfig)).toBe(JSON.stringify(PlotlyPanelCtrl.defaults.pconfig));
     });
   });
 

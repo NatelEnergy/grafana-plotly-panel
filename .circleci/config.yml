@@ -1,31 +1,115 @@
 version: 2
 jobs:
-  build:
+  build_plugin:
     docker:
-      # specify the version you desire here
-      - image: circleci/node:8
-
-    working_directory: ~/repo
-
+    - image: circleci/node:10
+    working_directory: ~/plugin
     steps:
-      - checkout
-      - restore_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
-      - run:
-          name: yarn install
-          command: 'yarn install --pure-lockfile --no-progress'
-      - save_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
-          paths:
-            - node_modules
-      - run:
-          name: test
-          command: 'yarn test'
-      - run:
-          name: build
-          command: 'yarn build'
-      - run:
-          name: zip dist
-          command: 'cd dist && zip -r9 ../grafana-plotly-panel-dev.zip *'
-      - store_artifacts:
-          path: grafana-plotly-panel-dev.zip
+    - checkout
+    - restore_cache:
+        keys:
+        - yarn-packages-{{ checksum "yarn.lock" }}
+    - run:
+        name: Install yarn
+        command: |
+          yarn install --pure-lockfile
+    - run:
+        name: Run Toolkit Build
+        command: npx grafana-toolkit plugin:ci-build
+    - save_cache:
+        paths:
+        - node_modules
+        key: yarn-packages-{{ checksum "yarn.lock" }}
+    - persist_to_workspace:
+        root: .
+        paths:
+        - ci
+  package:
+    docker:
+    - image: circleci/node:10
+    working_directory: ~/plugin
+    steps:
+    - checkout
+    - attach_workspace:
+        at: .
+    - restore_cache:
+        keys:
+        - yarn-packages-{{ checksum "yarn.lock" }}
+    - run:
+        name: Package Distribution
+        command: npx grafana-toolkit plugin:ci-package
+    - persist_to_workspace:
+        root: .
+        paths:
+        - ci/jobs/package
+        - ci/packages
+        - ci/dist
+        - ci/grafana-test-env
+  test_6_5_1:
+    docker:
+    - image: circleci/node:10-browsers
+    working_directory: ~/plugin
+    steps:
+    - checkout
+    - attach_workspace:
+        at: .
+    - restore_cache:
+        keys:
+        - yarn-packages-{{ checksum "yarn.lock" }}
+    - run:
+        name: Setup Grafana (local install)
+        command: |
+          wget https://dl.grafana.com/oss/release/grafana_6.5.1_amd64.deb
+          sudo apt-get install -y adduser libfontconfig1
+          sudo dpkg -i grafana_6.5.1_amd64.deb
+          sudo apt-get install locate
+          sudo updatedb
+          sudo locate grafana
+          sudo cat /etc/grafana/grafana.ini
+          sudo echo ------------------------
+          sudo cp ci/grafana-test-env/custom.ini /usr/share/grafana/conf/custom.ini
+          sudo cp ci/grafana-test-env/custom.ini /etc/grafana/grafana.ini
+          sudo service grafana-server start
+          sudo grafana-cli --version
+    - run:
+        name: Run e2e tests
+        command: |
+          npx grafana-toolkit plugin:ci-test
+    - persist_to_workspace:
+        root: .
+        paths:
+        - ci/jobs/test_6_5_1
+    - store_test_results:
+        path: ci/jobs/test_6_5_1
+    - store_artifacts:
+        path: ci/jobs/test_6_5_1
+  report:
+    docker:
+    - image: circleci/node:10
+    working_directory: ~/plugin
+    steps:
+    - checkout
+    - attach_workspace:
+        at: .
+    - restore_cache:
+        keys:
+        - yarn-packages-{{ checksum "yarn.lock" }}
+    - run:
+        name: Toolkit Report
+        command: npx grafana-toolkit plugin:ci-report
+    - store_artifacts:
+        path: ci
+workflows:
+  version: 2
+  plugin_workflow:
+    jobs:
+    - build_plugin
+    - package:
+        requires:
+        - build_plugin
+    - test_6_5_1:
+        requires:
+        - package
+    - report:
+        requires:
+        - test_6_5_1

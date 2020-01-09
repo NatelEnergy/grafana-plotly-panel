@@ -5,19 +5,18 @@ let isFull = false;
 let wasCDN = false;
 
 export function loadPlotly(cfg: any): Promise<any> {
+  console.log('LOAD PLOTLY', cfg);
   if (loaded) {
     console.log('using already loaded value');
     return Promise.resolve(loaded);
   }
 
   const needsFull = cfg.settings.type !== 'scatter';
-  let url = 'public/plugins/natel-plotly-panel/lib/plotly-cartesian.min.js';
+  let url = 'public/plugins/natel-plotly-panel/libs/plotly-cartesian.min.js';
   if (cfg.loadFromCDN) {
-    url = needsFull
-      ? 'https://cdn.plot.ly/plotly-latest.min.js'
-      : 'https://cdn.plot.ly/plotly-cartesian-latest.min.js';
+    url = needsFull ? 'https://cdn.plot.ly/plotly-latest.min.js' : 'https://cdn.plot.ly/plotly-cartesian-latest.min.js';
   } else if (needsFull) {
-    url = 'public/plugins/natel-plotly-panel/lib/plotly.min.js';
+    url = 'public/plugins/natel-plotly-panel/libs/plotly.min.js';
   }
   return new Promise((resolve, reject) => {
     $script(url, resolve);
