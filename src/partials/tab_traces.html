@@ -130,6 +130,13 @@
           </a>
           -->
         </div>
+
+        <div class="gf-form" ng-if="ctrl.editor.trace.settings.size_option === 'proportional'">
+          <label class="gf-form-label width-7">- Max</label>
+          <input type="number" class="gf-form-input width-7" ng-model="ctrl.editor.trace.settings.marker.sizemax" spellcheck="false"
+            placeholder="5" ng-blur="ctrl.onConfigChanged()" />
+        </div>
+
         <div class="gf-form" ng-if="ctrl.editor.trace.settings.size_option === 'proportional'">
           <label class="gf-form-label width-7">- Mode</label>
           <div class="gf-form-select-wrapper max-width-14">

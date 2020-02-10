@@ -693,6 +693,23 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     });
   }
 
+  // Terminate trace initialisation, once data are set
+  _postUpdateTrace(trace: any) {
+    if (trace.marker.sizemax) {	
+	  trace.marker.sizeref = this._max(trace.marker.size) / (2 * trace.marker.sizemax);
+    }	
+  }
+
+  _max(array: number[]): number {
+	let max = 0;
+	for (let v of array) {
+	  if (v > max) {
+		max = v;
+	  }
+	}
+	return max;
+  }
+
   // Fills in the required data into the trace values
   _updateTraceData(force = false): boolean {
     if (!this.series) {
@@ -735,6 +752,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
             vals = zero;
           }
           _.set(trace, v.path, vals);
+    	  this._postUpdateTrace(trace);
         });
       }
     });
