@@ -67,6 +67,13 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         cmax: 1,
         cmid: null,
       },
+      hover: {
+        type: '',
+        hovertemplate: '',
+        hoverlabel: {
+          align: '',
+        },
+      },
       color_option: 'ramp',
     },
   };
@@ -690,6 +697,20 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       if (mode) {
         trace.mode = mode.substring(1);
       }
+
+      if (config.settings.hover) {
+        if (config.settings.hover.hovertemplate) {
+          trace.hovertemplate = config.settings.hover.hovertemplate;
+        }
+        if (config.settings.hover.hoverlabel) {
+          trace.hoverlabel = config.settings.hover.hoverlabel;
+        }
+        if (config.settings.hover.type) {
+          trace.hovertype = config.settings.hover.type;
+        } else {
+          trace.hovertype = '';
+        }
+      }
       return trace;
     });
   }
@@ -735,7 +756,15 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           if (!vals) {
             vals = zero;
           }
-          _.set(trace, v.path, vals);
+          let tempVals = vals;
+          if (v.path === 'text' && trace.hovertype === 'Date'){
+            let tempDate: Date[] = [];
+            vals.forEach( x => {
+              tempDate.push(new Date(x));
+            });
+            tempVals = tempDate;
+          }
+          _.set(trace, v.path, tempVals);
         });
       }
     });
