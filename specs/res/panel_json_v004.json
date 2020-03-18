@@ -1,0 +1,103 @@
+{
+  "datasource": "-- Grafana --",
+  "gridPos": {
+    "h": 9,
+    "w": 12,
+    "x": 0,
+    "y": 0
+  },
+  "id": 2,
+  "pconfig": {
+    "layout": {
+      "autosize": false,
+      "dragmode": "lasso",
+      "font": {
+        "color": "#D8D9DA",
+        "family": "\"Open Sans\", Helvetica, Arial, sans-serif"
+      },
+      "hovermode": "closest",
+      "legend": {
+        "orientation": "v"
+      },
+      "margin": {
+        "b": 45,
+        "l": 65,
+        "r": 20,
+        "t": 0
+      },
+      "paper_bgcolor": "rgba(0,0,0,0)",
+      "plot_bgcolor": "#1f1d1d",
+      "scene": {
+        "xaxis": {
+          "title": "X AXIS"
+        },
+        "yaxis": {
+          "title": "Y AXIS"
+        },
+        "zaxis": {
+          "title": "Z AXIS"
+        }
+      },
+      "showlegend": false,
+      "xaxis": {
+        "gridcolor": "#444444",
+        "range": null,
+        "rangemode": "normal",
+        "showgrid": true,
+        "type": "date",
+        "zeroline": false
+      },
+      "yaxis": {
+        "gridcolor": "#444444",
+        "range": null,
+        "rangemode": "normal",
+        "showgrid": true,
+        "type": "linear",
+        "zeroline": false
+      }
+    },
+    "mapping": {
+      "color": "A-series",
+      "size": "",
+      "x": "@time",
+      "y": "A-series",
+      "z": null
+    },
+    "settings": {
+      "color_option": "ramp",
+      "displayModeBar": false,
+      "line": {
+        "color": "#005f81",
+        "dash": "solid",
+        "shape": "linear",
+        "width": 6
+      },
+      "marker": {
+        "color": "#33B5E5",
+        "colorscale": "YIGnBu",
+        "line": {
+          "color": "#DDD",
+          "width": 0
+        },
+        "showscale": true,
+        "size": 15,
+        "sizemin": 3,
+        "sizemode": "diameter",
+        "sizeref": 0.2,
+        "symbol": "circle"
+      },
+      "mode": "lines+markers",
+      "type": "scatter"
+    }
+  },
+  "targets": [
+    {
+      "refId": "A",
+      "resultFormat": "time_series",
+      "scenarioId": "random_walk",
+      "target": "select metric"
+    }
+  ],
+  "title": "Panel Title",
+  "type": "natel-plotly-panel"
+}

@@ -1,0 +1,18 @@
+{
+  "github": {
+    "release": true,
+    "assets": ["dist/*.zip"]
+  },
+  "git": {
+    "tagName": "v${version}",
+    "requireCleanWorkingDir": true
+  },
+  "scripts": {
+    "afterBump": "git checkout -b build-${version}; yarn build; git add --verbose --force dist/;",
+    "beforeStage": "cd dist; zip -r natel-plotly-panel-${version}.zip *",
+    "afterRelease": "echo Successfully released ${name} v${version} to ${repo.repository}."
+  },
+  "npm": {
+    "publish": false
+  }
+}

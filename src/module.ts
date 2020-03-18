@@ -1,158 +1,186 @@
+/* -*- Mode: typescript; indent-tabs-mode: nil; typescript-indent-level: 2 -*- */
+
 ///<reference path="../node_modules/grafana-sdk-mocks/app/headers/common.d.ts" />
 
 import {MetricsPanelCtrl} from 'app/plugins/sdk';
 
 import _ from 'lodash';
 import moment from 'moment';
-import angular from 'angular';
 import $ from 'jquery';
 
-import * as Plotly from './lib/plotly.min';
+import {
+  SeriesWrapper,
+  SeriesWrapperSeries,
+  SeriesWrapperTable,
+  SeriesWrapperTableRow,
+} from './SeriesWrapper';
+import {EditorHelper} from './editor';
+
+import {loadPlotly, loadIfNecessary} from './libLoader';
+import {AnnoInfo} from './anno';
+import {Axis} from 'plotly.js';
+
+let Plotly: any; // Loaded dynamically!
 
 class PlotlyPanelCtrl extends MetricsPanelCtrl {
   static templateUrl = 'partials/module.html';
+  static configVersion = 1; // An index to help config migration
 
-  sizeChanged: boolean;
-  initalized: boolean;
-  $tooltip: any;
+  initialized: boolean;
+  //$tooltip: any;
 
-  defaults = {
-    pconfig: {
-      mapping: {
-        x: null,
-        y: null,
-        z: null,
-        color: null,
-        size: null,
+  static defaultTrace = {
+    mapping: {
+      x: null,
+      y: null,
+      z: null,
+      text: null,
+      color: null,
+      size: null,
+    },
+    show: {
+      line: true,
+      markers: true,
+    },
+    settings: {
+      line: {
+        color: '#005f81',
+        width: 6,
+        dash: 'solid',
+        shape: 'linear',
       },
+      marker: {
+        size: 15,
+        symbol: 'circle',
+        color: '#33B5E5',
+        colorscale: 'YlOrRd',
+        sizemode: 'diameter',
+        sizemin: 3,
+        sizeref: 0.2,
+        line: {
+          color: '#DDD',
+          width: 0,
+        },
+        showscale: false,
+      },
+      color_option: 'ramp',
+    },
+  };
+
+  static yaxis2: Partial<Axis> = {
+    title: 'Annotations',
+    type: 'linear',
+    range: [0, 1],
+    visible: false,
+  };
+
+  static defaults = {
+    pconfig: {
+      loadFromCDN: false,
+      showAnnotations: true,
+      fixScale: '',
+      traces: [PlotlyPanelCtrl.defaultTrace],
       settings: {
         type: 'scatter',
-        mode: 'lines+markers',
         displayModeBar: false,
-        line: {
-          color: '#005f81',
-          width: 6,
-          dash: 'solid',
-          shape: 'linear',
-        },
-        marker: {
-          size: 15,
-          symbol: 'circle',
-          color: '#33B5E5',
-          colorscale: 'YIOrRd',
-          sizemode: 'diameter',
-          sizemin: 3,
-          sizeref: 0.2,
-          line: {
-            color: '#DDD',
-            width: 0,
-          },
-          showscale: true,
-        },
-        color_option: 'ramp',
       },
       layout: {
-        autosize: false,
         showlegend: false,
-        legend: {orientation: 'v'},
+        legend: {
+          orientation: 'h',
+        },
         dragmode: 'lasso', // (enumerated: "zoom" | "pan" | "select" | "lasso" | "orbit" | "turntable" )
         hovermode: 'closest',
-        plot_bgcolor: 'transparent',
-        paper_bgcolor: 'transparent', // transparent?
         font: {
-          color: '#D8D9DA',
           family: '"Open Sans", Helvetica, Arial, sans-serif',
-        },
-        margin: {
-          t: 0,
-          b: 45,
-          l: 65,
-          r: 20,
         },
         xaxis: {
           showgrid: true,
           zeroline: false,
-          type: 'linear',
-          gridcolor: '#444444',
+          type: 'auto',
           rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" )
         },
         yaxis: {
           showgrid: true,
           zeroline: false,
           type: 'linear',
-          gridcolor: '#444444',
-          rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" )
+          rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" ),
         },
-        scene: {
-          xaxis: {title: 'X AXIS'},
-          yaxis: {title: 'Y AXIS'},
-          zaxis: {title: 'Z AXIS'},
+        zaxis: {
+          showgrid: true,
+          zeroline: false,
+          type: 'linear',
+          rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" )
         },
       },
     },
   };
 
-  trace: any;
-  layout: any;
-  graph: any;
-  seriesList: Array<any>;
-  axis: Array<any>;
-  segs: any;
-  mouse: any;
-  data: any;
+  graphDiv: any;
+  annotations = new AnnoInfo();
+  series: SeriesWrapper[];
+  seriesByKey: Map<string, SeriesWrapper> = new Map();
+  seriesHash = '?';
 
-  // Used for the editor control
-  subTabIndex: 0;
+  traces: any[]; // The data sent directly to Plotly -- with a special __copy element
+  layout: any; // The layout used by Plotly
+
+  mouse: any;
+  cfg: any;
+
+  // For editor
+  editor: EditorHelper;
+  dataWarnings: string[]; // warnings about loading data
 
   /** @ngInject **/
-  constructor($scope, $injector, $window, private $rootScope, private uiSegmentSrv) {
+  constructor(
+    $scope,
+    $injector,
+    $window,
+    private $rootScope,
+    public uiSegmentSrv,
+    private annotationsSrv
+  ) {
     super($scope, $injector);
 
-    this.sizeChanged = true;
-    this.initalized = false;
+    this.initialized = false;
 
-    this.$tooltip = $('<div id="tooltip" class="graph-tooltip">');
+    //this.$tooltip = $('<div id="tooltip" class="graph-tooltip">');
 
     // defaults configs
-    _.defaultsDeep(this.panel, this.defaults);
+    _.defaultsDeep(this.panel, PlotlyPanelCtrl.defaults);
 
-    // Update existing configurations
-    this.panel.pconfig.layout.paper_bgcolor = 'transparent';
-    this.panel.pconfig.layout.plot_bgcolor = this.panel.pconfig.layout.paper_bgcolor;
+    this.cfg = this.panel.pconfig;
 
-    // get the css rule of grafana graph axis text
-    const labelStyle = this.getCssRule('div.flot-text');
-    if (labelStyle) {
-      let color = labelStyle.style.color || this.panel.pconfig.layout.font.color;
-      // set the panel font color to grafana graph axis text color
-      this.panel.pconfig.layout.font.color = color;
+    this.traces = [];
 
-      // make color more transparent
-      color = $.color
-        .parse(color)
-        .scale('a', 0.22)
-        .toString();
-
-      // set gridcolor (like grafana graph)
-      this.panel.pconfig.layout.xaxis.gridcolor = color;
-      this.panel.pconfig.layout.yaxis.gridcolor = color;
+    // ?? This seems needed for tests?!!
+    if (!this.events) {
+      return;
     }
 
-    let cfg = this.panel.pconfig;
-    this.trace = {};
-    this.layout = $.extend(true, {}, this.panel.pconfig.layout);
+    loadPlotly(this.cfg).then(v => {
+      Plotly = v;
+      console.log('Plotly', v);
 
+      // Wait till plotly exists has loaded before we handle any data
+      this.events.on('render', this.onRender.bind(this));
+      this.events.on('data-received', this.onDataReceived.bind(this));
+      this.events.on('data-error', this.onDataError.bind(this));
+      this.events.on('panel-size-changed', this.onResize.bind(this));
+      this.events.on('data-snapshot-load', this.onDataSnapshotLoad.bind(this));
+      this.events.on('refresh', this.onRefresh.bind(this));
+
+      // Refresh after plotly is loaded
+      this.refresh();
+    });
+
+    // Standard handlers
     this.events.on('init-edit-mode', this.onInitEditMode.bind(this));
-    this.events.on('render', this.onRender.bind(this));
-    this.events.on('data-received', this.onDataReceived.bind(this));
-    this.events.on('data-error', this.onDataError.bind(this));
-    this.events.on('panel-initialized', this.onPanelInitalized.bind(this));
-    this.events.on('panel-size-changed', this.onResize.bind(this));
-    this.events.on('data-snapshot-load', this.onDataSnapshotLoad.bind(this));
-    this.events.on('refresh', this.onRefresh.bind(this));
+    this.events.on('panel-initialized', this.onPanelInitialized.bind(this));
   }
 
-  getCssRule(selectorText) {
+  getCssRule(selectorText): CSSStyleRule | null {
     const styleSheets = document.styleSheets;
     for (let idx = 0; idx < styleSheets.length; idx += 1) {
       const styleSheet = styleSheets[idx] as CSSStyleSheet;
@@ -164,16 +192,34 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         }
       }
     }
+    return null;
   }
 
+  // Don't call resize too quickly
+  doResize = _.debounce(() => {
+    // https://github.com/alonho/angular-plotly/issues/26
+    const e = window.getComputedStyle(this.graphDiv).display;
+    if (!e || 'none' === e) {
+      // not drawn!
+      console.warn('resize a plot that is not drawn yet');
+    } else {
+      const rect = this.graphDiv.getBoundingClientRect();
+      this.layout.width = rect.width;
+      this.layout.height = this.height;
+      Plotly.redraw(this.graphDiv);
+    }
+  }, 50);
+
   onResize() {
-    this.sizeChanged = true;
+    if (this.graphDiv && this.layout && Plotly) {
+      this.doResize(); // Debounced
+    }
   }
 
   onDataError(err) {
-    this.seriesList = [];
-    this.render([]);
-    console.log('onDataError', err);
+    this.series = [];
+    this.annotations.clear();
+    this.render();
   }
 
   onRefresh() {
@@ -182,119 +228,227 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       return;
     }
 
-    if (this.graph && this.initalized) {
-      Plotly.redraw(this.graph);
+    if (this.graphDiv && this.initialized && Plotly) {
+      Plotly.redraw(this.graphDiv);
     }
   }
 
   onInitEditMode() {
-    this.addEditorTab(
-      'Display',
-      'public/plugins/natel-plotly-panel/partials/tab_display.html',
-      2
-    );
+    this.editor = new EditorHelper(this);
+    this.addEditorTab('Display', 'public/plugins/natel-plotly-panel/partials/tab_display.html', 2);
+    this.addEditorTab('Traces', 'public/plugins/natel-plotly-panel/partials/tab_traces.html', 3);
     //  this.editorTabIndex = 1;
-    this.refresh();
-    this.segs = {
-      symbol: this.uiSegmentSrv.newSegment({
-        value: this.panel.pconfig.settings.marker.symbol,
-      }),
-    };
-    this.subTabIndex = 0; // select the options
+    this.onConfigChanged(); // Sets up the axis info
 
-    let cfg = this.panel.pconfig;
-    this.axis = [
-      {
-        disp: 'X Axis',
-        idx: 1,
-        config: cfg.layout.xaxis,
-        metric: name => {
-          if (name) {
-            cfg.mapping.x = name;
-          }
-          return cfg.mapping.x;
-        },
-      },
-      {
-        disp: 'Y Axis',
-        idx: 2,
-        config: cfg.layout.yaxis,
-        metric: name => {
-          if (name) {
-            cfg.mapping.y = name;
-          }
-          return cfg.mapping.y;
-        },
-      },
-      {
-        disp: 'Z Axis',
-        idx: 3,
-        config: cfg.layout.yaxis,
-        metric: name => {
-          if (name) {
-            cfg.mapping.z = name;
-          }
-          return cfg.mapping.z;
-        },
-      },
-    ];
+    // Check the size in a little bit
+    setTimeout(() => {
+      console.log('RESIZE in editor');
+      this.onResize();
+    }, 500);
   }
 
-  isAxisVisible(axis) {
-    if (axis.idx === 3) {
-      return this.panel.pconfig.settings.type === 'scatter3d';
+  processConfigMigration() {
+    console.log('Migrating Plotly Configuration to version: ' + PlotlyPanelCtrl.configVersion);
+
+    // Remove some things that should not be saved
+    const cfg = this.panel.pconfig;
+    delete cfg.layout.plot_bgcolor;
+    delete cfg.layout.paper_bgcolor;
+    delete cfg.layout.autosize;
+    delete cfg.layout.height;
+    delete cfg.layout.width;
+    delete cfg.layout.margin;
+    delete cfg.layout.scene;
+    if (!this.is3d()) {
+      delete cfg.layout.zaxis;
     }
-    return true;
+
+    // Move from 'markers-lines' to checkbox
+    if (cfg.settings.mode) {
+      const old = cfg.settings.mode;
+      const show = {
+        markers: old.indexOf('markers') >= 0,
+        lines: old.indexOf('lines') >= 0,
+      };
+      _.forEach(cfg.traces, trace => {
+        trace.show = show;
+      });
+      delete cfg.settings.mode;
+    }
+
+    // TODO... MORE Migrations
+    console.log('After Migration:', cfg);
+    this.cfg = cfg;
+    this.panel.version = PlotlyPanelCtrl.configVersion;
   }
 
-  onSegsChanged() {
-    this.panel.pconfig.settings.marker.symbol = this.segs.symbol.value;
-    this.onConfigChanged();
-
-    console.log(this.segs.symbol, this.panel.pconfig);
+  onPanelInitialized() {
+    if (!this.panel.version || PlotlyPanelCtrl.configVersion > this.panel.version) {
+      this.processConfigMigration();
+    }
+    this._updateTraceData(true);
   }
 
-  onPanelInitalized() {
-    this.onConfigChanged();
+  deepCopyWithTemplates = obj => {
+    if (_.isArray(obj)) {
+      return obj.map(val => this.deepCopyWithTemplates(val));
+    } else if (_.isString(obj)) {
+      return this.templateSrv.replace(obj, this.panel.scopedVars);
+    } else if (_.isObject(obj)) {
+      const copy = {};
+      _.forEach(obj, (v, k) => {
+        copy[k] = this.deepCopyWithTemplates(v);
+      });
+      return copy;
+    }
+    return obj;
+  };
+
+  getProcessedLayout() {
+    // Copy from config
+    const layout = this.deepCopyWithTemplates(this.cfg.layout);
+    layout.plot_bgcolor = 'transparent';
+    layout.paper_bgcolor = layout.plot_bgcolor;
+
+    // Update the size
+    const rect = this.graphDiv.getBoundingClientRect();
+    layout.autosize = false; // height is from the div
+    layout.height = this.height;
+    layout.width = rect.width;
+
+    // Make sure it is something
+    if (!layout.xaxis) {
+      layout.xaxis = {};
+    }
+    if (!layout.yaxis) {
+      layout.yaxis = {};
+    }
+
+    // Fixed scales
+    if (this.cfg.fixScale) {
+      if ('x' === this.cfg.fixScale) {
+        layout.yaxis.scaleanchor = 'x';
+      } else if ('y' === this.cfg.fixScale) {
+        layout.xaxis.scaleanchor = 'y';
+      } else if ('z' === this.cfg.fixScale) {
+        layout.xaxis.scaleanchor = 'z';
+        layout.yaxis.scaleanchor = 'z';
+      }
+    }
+
+    if (this.is3d()) {
+      if (!layout.zaxis) {
+        layout.zaxis = {};
+      }
+
+      // 3d uses 'scene' for the axis
+      layout.scene = {
+        xaxis: layout.xaxis,
+        yaxis: layout.yaxis,
+        zaxis: layout.zaxis,
+      };
+
+      delete layout.xaxis;
+      delete layout.yaxis;
+      delete layout.zaxis;
+
+      layout.margin = {
+        l: 0,
+        r: 0,
+        t: 0,
+        b: 5,
+        pad: 0,
+      };
+    } else {
+      delete layout.zaxis;
+      delete layout.scene;
+
+      // Check if the X axis should be a date
+      if (!layout.xaxis.type || layout.xaxis.type === 'auto') {
+        const mapping = _.get(this.cfg, 'traces[0].mapping.x');
+        if (mapping && mapping.indexOf('time') >= 0) {
+          layout.xaxis.type = 'date';
+        }
+      }
+
+      const isDate = layout.xaxis.type === 'date';
+      layout.margin = {
+        l: layout.yaxis.title ? 50 : 35,
+        r: 5,
+        t: 0,
+        b: layout.xaxis.title ? 65 : isDate ? 40 : 30,
+        pad: 2,
+      };
+
+      // Set the range to the query window
+      if (isDate && !layout.xaxis.range) {
+        const range = this.timeSrv.timeRange();
+        layout.xaxis.range = [range.from.valueOf(), range.to.valueOf()];
+      }
+
+      // get the css rule of grafana graph axis text
+      const labelStyle = this.getCssRule('div.flot-text');
+      if (labelStyle) {
+        let color = labelStyle.style.color;
+        if (!layout.font) {
+          layout.font = {};
+        }
+        layout.font.color = color;
+
+        // make the grid a little more transparent
+        color = $.color
+          .parse(color)
+          .scale('a', 0.22)
+          .toString();
+
+        // set gridcolor (like grafana graph)
+        layout.xaxis.gridcolor = color;
+        layout.yaxis.gridcolor = color;
+      }
+
+      // Set the second axis
+      layout.yaxis2 = PlotlyPanelCtrl.yaxis2;
+    }
+    return layout;
   }
 
   onRender() {
     // ignore fetching data if another panel is in fullscreen
-    if (this.otherPanelInFullscreenMode() || !this.graph) {
+    if (this.otherPanelInFullscreenMode() || !this.graphDiv) {
       return;
     }
 
-    if (!this.initalized) {
-      let s = this.panel.pconfig.settings;
+    if (!Plotly) {
+      return;
+    }
 
-      let options = {
+    if (!this.initialized) {
+      const s = this.cfg.settings;
+
+      const options = {
         showLink: false,
         displaylogo: false,
         displayModeBar: s.displayModeBar,
         modeBarButtonsToRemove: ['sendDataToCloud'], //, 'select2d', 'lasso2d']
       };
 
-      let data = [this.trace];
-      let rect = this.graph.getBoundingClientRect();
-
-      let old = this.layout;
-      this.layout = $.extend(true, {}, this.panel.pconfig.layout);
-      this.layout.height = this.height;
-      this.layout.width = rect.width;
-      if (old) {
-        this.layout.xaxis.title = old.xaxis.title;
-        this.layout.yaxis.title = old.yaxis.title;
+      this.layout = this.getProcessedLayout();
+      this.layout.shapes = this.annotations.shapes;
+      let traces = this.traces;
+      if (this.annotations.shapes.length > 0) {
+        traces = this.traces.concat(this.annotations.trace);
       }
+      Plotly.react(this.graphDiv, traces, this.layout, options);
 
-      Plotly.newPlot(this.graph, data, this.layout, options);
-
-      this.graph.on('plotly_click', data => {
+      this.graphDiv.on('plotly_click', data => {
+        if (data === undefined || data.points === undefined) {
+          return;
+        }
         for (let i = 0; i < data.points.length; i++) {
-          let idx = data.points[i].pointNumber;
-          let ts = this.trace.ts[idx];
+          const idx = data.points[i].pointNumber;
+          const ts = this.traces[0].ts[idx];
           // console.log( 'CLICK!!!', ts, data );
-          let msg =
-            data.points[i].x.toPrecision(4) + ', ' + data.points[i].y.toPrecision(4);
+          const msg = data.points[i].x.toPrecision(4) + ', ' + data.points[i].y.toPrecision(4);
           this.$rootScope.appEvent('alert-success', [
             msg,
             '@ ' + this.dashboard.formatDate(moment(ts)),
@@ -302,8 +456,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         }
       });
 
-      // if(false) {
-      //   this.graph.on('plotly_hover', (data, xxx) => {
+      // if(true) {
+      //   this.graphDiv.on('plotly_hover', (data, xxx) => {
       //     console.log( 'HOVER!!!', data, xxx, this.mouse );
       //     if(data.points.length>0) {
       //       var idx = 0;
@@ -314,16 +468,20 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       //       body += pt.x + ', '+pt.y;
       //       body += "</center>";
 
-      //       this.$tooltip.html( body ).place_tt( this.mouse.pageX + 10, this.mouse.pageY );
+      //       //this.$tooltip.html( body ).place_tt( this.mouse.pageX + 10, this.mouse.pageY );
       //     }
       //   }).on('plotly_unhover', (data) => {
-      //     this.$tooltip.detach();
+      //     //this.$tooltip.detach();
       //   });
       // }
 
-      this.graph.on('plotly_selected', data => {
+      this.graphDiv.on('plotly_selected', data => {
+        if (data === undefined || data.points === undefined) {
+          return;
+        }
+
         if (data.points.length === 0) {
-          console.log('Nothign Selected', data);
+          console.log('Nothing Selected', data);
           return;
         }
 
@@ -333,8 +491,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         let max = Number.MIN_SAFE_INTEGER;
 
         for (let i = 0; i < data.points.length; i++) {
-          let idx = data.points[i].pointNumber;
-          let ts = this.trace.ts[idx];
+          const found = data.points[i];
+          const idx = found.pointNumber;
+          const ts = found.fullData.x[idx];
           min = Math.min(min, ts);
           max = Math.max(max, ts);
         }
@@ -343,413 +502,302 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         min -= 1000;
         max += 1000;
 
-        let range = {from: moment.utc(min), to: moment.utc(max)};
+        const range = {from: moment.utc(min), to: moment.utc(max)};
 
         console.log('SELECTED!!!', min, max, data.points.length, range);
 
         this.timeSrv.setTime(range);
 
         // rebuild the graph after query
-        if (this.graph) {
-          Plotly.Plots.purge(this.graph);
-          this.graph.innerHTML = '';
-          this.initalized = false;
+        if (this.graphDiv) {
+          Plotly.Plots.purge(this.graphDiv);
+          this.graphDiv.innerHTML = '';
+          this.initialized = false;
         }
       });
+      this.initialized = true;
+    } else if (this.initialized) {
+      Plotly.redraw(this.graphDiv).then(() => {
+        this.renderingCompleted();
+      });
     } else {
-      Plotly.redraw(this.graph);
+      console.log('Not initialized yet!');
     }
-
-    if (this.sizeChanged && this.graph && this.layout) {
-      let rect = this.graph.getBoundingClientRect();
-      this.layout.width = rect.width;
-      this.layout.height = this.height;
-      Plotly.Plots.resize(this.graph);
-    }
-    this.sizeChanged = false;
-    this.initalized = true;
   }
 
   onDataSnapshotLoad(snapshot) {
     this.onDataReceived(snapshot);
   }
 
+  _hadAnno = false;
+
   onDataReceived(dataList) {
-    this.trace.x = [];
-    this.trace.y = [];
-    this.trace.z = [];
-
-    this.data = {};
-    if (dataList.length < 1) {
-      console.log('No data', dataList);
-    } else {
-      let dmapping = {
-        x: null,
-        y: null,
-        z: null,
-      };
-
-      //   console.log( "plotly data", dataList);
-      let cfg = this.panel.pconfig;
-      let mapping = cfg.mapping;
-      let key = {
-        name: '@time',
-        type: 'ms',
-        missing: 0,
-        idx: -1,
-        points: [],
-      };
-      let idx = {
-        name: '@index',
-        type: 'number',
-        missing: 0,
-        idx: -1,
-        points: [],
-      };
-      this.data[key.name] = key;
-      this.data[idx.name] = idx;
-      for (let i = 0; i < dataList.length; i++) {
-        if ('table' === dataList[i].type) {
-          const table = dataList[i];
-          if (i > 0) {
-            throw {message: 'Multiple tables not (yet) supported'};
+    const finfo: SeriesWrapper[] = [];
+    let seriesHash = '/';
+    if (dataList && dataList.length > 0) {
+      const useRefID = dataList.length === this.panel.targets.length;
+      dataList.forEach((series, sidx) => {
+        let refId = '';
+        if (useRefID) {
+          refId = _.get(this.panel, 'targets[' + sidx + '].refId');
+          if (!refId) {
+            refId = String.fromCharCode('A'.charCodeAt(0) + sidx);
           }
-
-          for (let k = 0; k < table.rows.length; k++) {
-            idx.points.push(k);
+        }
+        if (series.columns) {
+          for (let i = 0; i < series.columns.length; i++) {
+            finfo.push(new SeriesWrapperTable(refId, series, i));
           }
-
-          for (let j = 0; j < table.columns.length; j++) {
-            const col = table.columns[j];
-            let val = {
-              name: col.text,
-              type: col.type,
-              missing: 0,
-              idx: j,
-              points: [],
-            };
-            if (j == 0 && val.type === 'time') {
-              // InfluxDB time
-              val = key; // will overwrite the time field
-            }
-
-            if (!val.type) {
-              val.type = 'number';
-            }
-            for (let k = 0; k < table.rows.length; k++) {
-              val.points.push(table.rows[k][j]);
-            }
-            this.data[val.name] = val;
-          }
+          finfo.push(new SeriesWrapperTableRow(refId, series));
+        } else if (series.target) {
+          finfo.push(new SeriesWrapperSeries(refId, series, 'value'));
+          finfo.push(new SeriesWrapperSeries(refId, series, 'time'));
+          finfo.push(new SeriesWrapperSeries(refId, series, 'index'));
         } else {
-          let datapoints: any[] = dataList[i].datapoints;
-          if (datapoints.length > 0) {
-            let val = {
-              name: dataList[i].target,
-              type: 'number',
-              missing: 0,
-              idx: i,
-              points: [],
-            };
-            if (_.isString(datapoints[0][0])) {
-              val.type = 'string';
-            } else if (_.isBoolean(datapoints[0][0])) {
-              val.type = 'boolean';
-            }
+          console.error('Unsupported Series response', sidx, series);
+        }
+      });
+    }
+    this.seriesByKey.clear();
+    finfo.forEach(s => {
+      s.getAllKeys().forEach(k => {
+        this.seriesByKey.set(k, s);
+        seriesHash += '$' + k;
+      });
+    });
+    this.series = finfo;
 
-            // Set the default mapping values
-            if (i === 0) {
-              dmapping.x = val.name;
-            } else if (i === 1) {
-              dmapping.y = val.name;
-            } else if (i === 2) {
-              dmapping.z = val.name;
-            }
+    // Now Process the loaded data
+    const hchanged = this.seriesHash !== seriesHash;
+    if (hchanged && this.editor) {
+      EditorHelper.updateMappings(this);
+      this.editor.selectTrace(this.editor.traceIndex);
+      this.editor.onConfigChanged();
+    }
 
-            this.data[val.name] = val;
-            if (key.points.length === 0) {
-              for (let j = 0; j < datapoints.length; j++) {
-                key.points.push(datapoints[j][1]);
-                val.points.push(datapoints[j][0]);
-                idx.points.push(j);
-              }
-            } else {
-              for (let j = 0; j < datapoints.length; j++) {
-                if (j >= key.points.length) {
-                  break;
-                }
-                // Make sure it is from the same timestamp
-                if (key.points[j] === datapoints[j][1]) {
-                  val.points.push(datapoints[j][0]);
-                } else {
-                  val.missing = val.missing + 1;
-                }
-              }
+    if (hchanged || !this.initialized) {
+      this.onConfigChanged();
+      this.seriesHash = seriesHash;
+    }
+
+    // Support Annotations
+    let annotationPromise = Promise.resolve();
+    if (!this.cfg.showAnnotations || this.is3d()) {
+      this.annotations.clear();
+      if (this.layout) {
+        if (this.layout.shapes) {
+          this.onConfigChanged();
+        }
+        this.layout.shapes = [];
+      }
+    } else {
+      annotationPromise = this.annotationsSrv
+        .getAnnotations({
+          dashboard: this.dashboard,
+          panel: this.panel,
+          range: this.range,
+        })
+        .then(results => {
+          const hasAnno = this.annotations.update(results);
+          if (this.layout) {
+            if (hasAnno !== this._hadAnno) {
+              this.onConfigChanged();
             }
+            this.layout.shapes = this.annotations.shapes;
           }
-        }
-      }
+          this._hadAnno = hasAnno;
+        });
+    }
 
-      // Maybe overwrite?
-      if (!mapping.x) {
-        mapping.x = dmapping.x;
-      }
-      if (!mapping.y) {
-        mapping.y = dmapping.y;
-      }
-      if (!mapping.z) {
-        mapping.z = dmapping.z;
-      }
+    // Load the real data changes
+    annotationPromise.then(() => {
+      this._updateTraceData();
+      this.render();
+    });
+  }
 
-      // console.log( "GOT", this.data, mapping );
-
-      let dX = this.data[mapping.x];
-      let dY = this.data[mapping.y];
-      let dZ = null;
-      let dC = null;
-      let dS = null;
-      let dT = null;
-
-      if (!dX) {
-        throw {message: 'Unable to find X: ' + mapping.x};
-      }
-      if (!dY) {
-        dY = dX;
-        dX = '@time';
-      }
-
-      this.trace.ts = key.points;
-      this.trace.x = dX.points;
-      this.trace.y = dY.points;
-
-      if (cfg.settings.type === 'scatter3d') {
-        dZ = this.data[mapping.z];
-        if (!dZ) {
-          throw {message: 'Unable to find Z: ' + mapping.z};
-        }
-        this.layout.scene.xaxis.title = dX.name;
-        this.layout.scene.yaxis.title = dY.name;
-        this.layout.scene.zaxis.title = dZ.name;
-
-        this.trace.z = dZ.points;
-        console.log('3D', this.layout);
-      } else {
-        this.layout.xaxis.title = dX.name;
-        this.layout.yaxis.title = dY.name;
-      }
-
-      this.trace.marker = $.extend(true, {}, cfg.settings.marker);
-      this.trace.line = $.extend(true, {}, cfg.settings.line);
-
-      if (mapping.size) {
-        dS = this.data[mapping.size];
-        if (!dS) {
-          throw {message: 'Unable to find Size: ' + mapping.size};
-        }
-        this.trace.marker.size = dS.points;
-      }
-
-      // Set the marker colors
-      if (cfg.settings.color_option === 'ramp') {
-        if (!mapping.color) {
-          mapping.color = idx.name;
-        }
-        dC = this.data[mapping.color];
-        if (!dC) {
-          throw {message: 'Unable to find Color: ' + mapping.color};
-        }
-        this.trace.marker.color = dC.points;
+  __addCopyPath(trace: any, key: string, path: string) {
+    if (key) {
+      trace.__set.push({
+        key: key,
+        path: path,
+      });
+      const s: SeriesWrapper = this.seriesByKey.get(key);
+      if (!s) {
+        this.dataWarnings.push('Unable to find: ' + key + ' for ' + trace.name + ' // ' + path);
       }
     }
-    this.render();
+  }
+
+  // This will update all trace settings *except* the data
+  _updateTracesFromConfigs() {
+    this.dataWarnings = [];
+
+    // Make sure we have a trace
+    if (this.cfg.traces == null || this.cfg.traces.length < 1) {
+      this.cfg.traces = [_.cloneDeep(PlotlyPanelCtrl.defaultTrace)];
+    }
+
+    const is3D = this.is3d();
+    this.traces = this.cfg.traces.map((tconfig, idx) => {
+      const config = this.deepCopyWithTemplates(tconfig) || {};
+      _.defaults(config, PlotlyPanelCtrl.defaults);
+      const mapping = config.mapping;
+
+      const trace: any = {
+        name: config.name || EditorHelper.createTraceName(idx),
+        type: this.cfg.settings.type,
+        mode: 'markers+lines', // really depends on config settings
+        __set: [], // { key:? property:? }
+      };
+
+      let mode = '';
+      if (config.show.markers) {
+        mode += '+markers';
+        trace.marker = config.settings.marker;
+
+        delete trace.marker.sizemin;
+        delete trace.marker.sizemode;
+        delete trace.marker.sizeref;
+
+        if (config.settings.color_option === 'ramp') {
+          this.__addCopyPath(trace, mapping.color, 'marker.color');
+        } else {
+          delete trace.marker.colorscale;
+          delete trace.marker.showscale;
+        }
+      }
+
+      if (config.show.lines) {
+        mode += '+lines';
+        trace.line = config.settings.line;
+      }
+
+      // Set the text
+      this.__addCopyPath(trace, mapping.text, 'text');
+      this.__addCopyPath(trace, mapping.x, 'x');
+      this.__addCopyPath(trace, mapping.y, 'y');
+
+      if (is3D) {
+        this.__addCopyPath(trace, mapping.z, 'z');
+      }
+
+      // Set the trace mode
+      if (mode) {
+        trace.mode = mode.substring(1);
+      }
+      return trace;
+    });
+  }
+
+  // Fills in the required data into the trace values
+  _updateTraceData(force = false): boolean {
+    if (!this.series) {
+      // console.log('NO Series data yet!');
+      return false;
+    }
+
+    if (force || !this.traces) {
+      this._updateTracesFromConfigs();
+    } else if (this.traces.length !== this.cfg.traces.length) {
+      console.log(
+        'trace number mismatch.  Found: ' +
+          this.traces.length +
+          ', expect: ' +
+          this.cfg.traces.length
+      );
+      this._updateTracesFromConfigs();
+    }
+
+    // Use zero when the metric value is missing
+    // Plotly gets lots of errors when the values are missing
+    let zero: any = [];
+    this.traces.forEach(trace => {
+      if (trace.__set) {
+        trace.__set.forEach(v => {
+          const s = this.seriesByKey.get(v.key);
+          let vals: any[] = zero;
+          if (s) {
+            vals = s.toArray();
+            if (vals && vals.length > zero.length) {
+              zero = Array.from(Array(3), () => 0);
+            }
+          } else {
+            if (!this.error) {
+              this.error = '';
+            }
+            this.error += 'Unable to find: ' + v.key + ' (using zeros).  ';
+          }
+          if (!vals) {
+            vals = zero;
+          }
+          _.set(trace, v.path, vals);
+        });
+      }
+    });
+
+    //console.log('SetDATA', this.traces);
+    return true;
   }
 
   onConfigChanged() {
-    if (this.graph && this.initalized) {
-      Plotly.Plots.purge(this.graph);
-      this.graph.innerHTML = '';
-      this.initalized = false;
+    // Force reloading the traces
+    this._updateTraceData(true);
+
+    if (!Plotly) {
+      return;
     }
 
-    let cfg = this.panel.pconfig;
-    this.trace.type = cfg.settings.type;
-    this.trace.mode = cfg.settings.mode;
-
-    let axis = [this.panel.pconfig.layout.xaxis, this.panel.pconfig.layout.yaxis];
-    for (let i = 0; i < axis.length; i++) {
-      if (axis[i].rangemode === 'between') {
-        if (axis[i].range == null) {
-          axis[i].range = [0, null];
+    // Check if the plotly library changed
+    loadIfNecessary(this.cfg).then(res => {
+      if (res) {
+        if (Plotly) {
+          Plotly.purge(this.graphDiv);
         }
-      } else {
-        axis[i].range = null;
+        Plotly = res;
       }
-    }
-    this.refresh();
+
+      // Updates the layout and redraw
+      if (this.initialized && this.graphDiv) {
+        if (!this.cfg.showAnnotations) {
+          this.annotations.clear();
+        }
+
+        const s = this.cfg.settings;
+        const options = {
+          showLink: false,
+          displaylogo: false,
+          displayModeBar: s.displayModeBar,
+          modeBarButtonsToRemove: ['sendDataToCloud'], //, 'select2d', 'lasso2d']
+        };
+        this.layout = this.getProcessedLayout();
+        this.layout.shapes = this.annotations.shapes;
+        let traces = this.traces;
+        if (this.annotations.shapes.length > 0) {
+          traces = this.traces.concat(this.annotations.trace);
+        }
+        console.log('ConfigChanged (traces)', traces);
+        Plotly.react(this.graphDiv, traces, this.layout, options);
+      }
+
+      this.render(); // does not query again!
+    });
+  }
+
+  is3d() {
+    return this.cfg.settings.type === 'scatter3d';
   }
 
   link(scope, elem, attrs, ctrl) {
-    this.graph = elem.find('.plotly-spot')[0];
-    this.initalized = false;
+    this.graphDiv = elem.find('.plotly-spot')[0];
+    this.initialized = false;
     elem.on('mousemove', evt => {
       this.mouse = evt;
     });
-  }
 
-  //---------------------------
-
-  getSymbolSegs() {
-    let txt = [
-      'circle',
-      'circle-open',
-      'circle-dot',
-      'circle-open-dot',
-      'square',
-      'square-open',
-      'square-dot',
-      'square-open-dot',
-      'diamond',
-      'diamond-open',
-      'diamond-dot',
-      'diamond-open-dot',
-      'cross',
-      'cross-open',
-      'cross-dot',
-      'cross-open-dot',
-      'x',
-      'x-open',
-      'x-dot',
-      'x-open-dot',
-      'triangle-up',
-      'triangle-up-open',
-      'triangle-up-dot',
-      'triangle-up-open-dot',
-      'triangle-down',
-      'triangle-down-open',
-      'triangle-down-dot',
-      'triangle-down-open-dot',
-      'triangle-left',
-      'triangle-left-open',
-      'triangle-left-dot',
-      'triangle-left-open-dot',
-      'triangle-right',
-      'triangle-right-open',
-      'triangle-right-dot',
-      'triangle-right-open-dot',
-      'triangle-ne',
-      'triangle-ne-open',
-      'triangle-ne-dot',
-      'triangle-ne-open-dot',
-      'triangle-se',
-      'triangle-se-open',
-      'triangle-se-dot',
-      'triangle-se-open-dot',
-      'triangle-sw',
-      'triangle-sw-open',
-      'triangle-sw-dot',
-      'triangle-sw-open-dot',
-      'triangle-nw',
-      'triangle-nw-open',
-      'triangle-nw-dot',
-      'triangle-nw-open-dot',
-      'pentagon',
-      'pentagon-open',
-      'pentagon-dot',
-      'pentagon-open-dot',
-      'hexagon',
-      'hexagon-open',
-      'hexagon-dot',
-      'hexagon-open-dot',
-      'hexagon2',
-      'hexagon2-open',
-      'hexagon2-dot',
-      'hexagon2-open-dot',
-      'octagon',
-      'octagon-open',
-      'octagon-dot',
-      'octagon-open-dot',
-      'star',
-      'star-open',
-      'star-dot',
-      'star-open-dot',
-      'hexagram',
-      'hexagram-open',
-      'hexagram-dot',
-      'hexagram-open-dot',
-      'star-triangle-up',
-      'star-triangle-up-open',
-      'star-triangle-up-dot',
-      'star-triangle-up-open-dot',
-      'star-triangle-down',
-      'star-triangle-down-open',
-      'star-triangle-down-dot',
-      'star-triangle-down-open-dot',
-      'star-square',
-      'star-square-open',
-      'star-square-dot',
-      'star-square-open-dot',
-      'star-diamond',
-      'star-diamond-open',
-      'star-diamond-dot',
-      'star-diamond-open-dot',
-      'diamond-tall',
-      'diamond-tall-open',
-      'diamond-tall-dot',
-      'diamond-tall-open-dot',
-      'diamond-wide',
-      'diamond-wide-open',
-      'diamond-wide-dot',
-      'diamond-wide-open-dot',
-      'hourglass',
-      'hourglass-open',
-      'bowtie',
-      'bowtie-open',
-      'circle-cross',
-      'circle-cross-open',
-      'circle-x',
-      'circle-x-open',
-      'square-cross',
-      'square-cross-open',
-      'square-x',
-      'square-x-open',
-      'diamond-cross',
-      'diamond-cross-open',
-      'diamond-x',
-      'diamond-x-open',
-      'cross-thin',
-      'cross-thin-open',
-      'x-thin',
-      'x-thin-open',
-      'asterisk',
-      'asterisk-open',
-      'hash',
-      'hash-open',
-      'hash-dot',
-      'hash-open-dot',
-      'y-up',
-      'y-up-open',
-      'y-down',
-      'y-down-open',
-      'y-left',
-      'y-left-open',
-      'y-right',
-      'y-right-open',
-      'line-ew',
-      'line-ew-open',
-      'line-ns',
-      'line-ns-open',
-      'line-ne',
-      'line-ne-open',
-      'line-nw',
-      'line-nw-open',
-    ];
-
-    let segs = [];
-    _.forEach(txt, val => {
-      segs.push(this.uiSegmentSrv.newSegment(val));
-    });
-    return this.$q.when(segs);
+    //let p = $(this.graphDiv).parent().parent()[0];
+    //console.log( 'PLOT', this.graphDiv, p );
   }
 }
 
-export {PlotlyPanelCtrl as PanelCtrl};
+export {PlotlyPanelCtrl, PlotlyPanelCtrl as PanelCtrl};

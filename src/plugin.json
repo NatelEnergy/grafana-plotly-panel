@@ -8,7 +8,7 @@
     "author": {
       "name": "Natel Energy"
     },
-    "keywords": [ "plotly", "scatter", "panel" ],
+    "keywords": ["plotly", "scatter", "panel"],
     "logos": {
       "small": "img/plotly_logo.svg",
       "large": "img/plotly_logo.svg"
@@ -19,10 +19,10 @@
       {"name": "Natel Energy", "url": "http://www.natelenergy.com/"}
     ],
     "screenshots": [
-      { "name": "Scatter",     "path": "img/screenshot-scatter.png"    },
-      { "name": "Scatter 2D",  "path": "img/screenshot-scatter-1.png"  },
-      { "name": "Scatter 3D",  "path": "img/screenshot-scatter-3d.png" },
-      { "name": "Options",     "path": "img/screenshot-options.png"    }
+      {"name": "Scatter", "path": "img/screenshot-scatter.png"},
+      {"name": "Scatter 2D", "path": "img/screenshot-scatter-1.png"},
+      {"name": "Scatter 3D", "path": "img/screenshot-scatter-3d.png"},
+      {"name": "Options", "path": "img/screenshot-options.png"}
     ],
     "version": "%VERSION%",
     "updated": "%TODAY%"
@@ -30,6 +30,6 @@
 
   "dependencies": {
     "grafanaVersion": "4.x.x",
-    "plugins": [ ]
+    "plugins": []
   }
 }
