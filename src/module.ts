@@ -424,7 +424,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
     const isLayoutChanged = !_.isEqual(this.layout, this.getProcessedLayout());
     if (!this.initialized || isLayoutChanged) {
-      this.plotlyReact();
+      this.createOrUpdatePlot();
 
       this.graphDiv.on('plotly_click', data => {
         if (data === undefined || data.points === undefined) {
@@ -726,7 +726,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     return true;
   }
 
-  plotlyReact() {
+  createOrUpdatePlot(): void {
     const s = this.cfg.settings;
 
     const options = {
@@ -768,7 +768,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         if (!this.cfg.showAnnotations) {
           this.annotations.clear();
         }
-        this.plotlyReact();
+        this.createOrUpdatePlot();
       }
 
       this.render(); // does not query again!
