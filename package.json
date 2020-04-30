@@ -37,7 +37,7 @@
     "printWidth": 100
   },
   "dependencies": {
-    "jquery": "^3.2.1",
+    "jquery": "^3.5.0",
     "lodash": "^4.17.10",
     "moment": "^2.22.1",
     "plotly.js": "^1.41",
