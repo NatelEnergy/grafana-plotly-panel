@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "jquery": "^3.2.1",
-    "lodash": "^4.17.10",
+    "lodash": "^4.17.19",
     "moment": "^2.22.1",
     "plotly.js": "^1.41",
     "scriptjs": "^2.5.9"
