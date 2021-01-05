@@ -578,7 +578,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       });
       this.initialized = true;
     } else if (this.initialized) {
-      Plotly.redraw(this.graphDiv);
+      Plotly.redraw(this.graphDiv).then(() => {
+        this.renderingCompleted();
+      });
     } else {
       console.log('Not initialized yet!');
     }
