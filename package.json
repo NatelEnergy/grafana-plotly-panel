@@ -1,6 +1,6 @@
 {
   "name": "natel-plotly-panel",
-  "version": "0.0.7-dev",
+  "version": "0.0.7",
   "description": "Plot.ly Panel Plugin for Grafana",
   "scripts": {
     "build": "webpack --config webpack.config.prod.js",
