@@ -16,7 +16,7 @@
     "links": [
       {"name": "Plot.ly", "url": "https://plot.ly/javascript/"},
       {"name": "Project Page", "url": "https://github.com/Sinodun/grafana-plotly-panel"},
-      {"name": "Sinodun", "url": "http://www.sinodun.com/"}
+      {"name": "Sinodun", "url": "http://www.sinodun.com/"},
       {"name": "Natel Energy", "url": "http://www.natelenergy.com/"}
     ],
     "screenshots": [
