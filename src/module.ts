@@ -279,8 +279,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   onInitEditMode() {
     this.editor = new EditorHelper(this);
-    this.addEditorTab('Display', 'public/plugins/natel-plotly-panel/partials/tab_display.html', 2);
-    this.addEditorTab('Traces', 'public/plugins/natel-plotly-panel/partials/tab_traces.html', 3);
+    this.addEditorTab('Display', 'public/plugins/sinodun-natel-plotly-panel/partials/tab_display.html', 2);
+    this.addEditorTab('Traces', 'public/plugins/sinodun-natel-plotly-panel/partials/tab_traces.html', 3);
     //  this.editorTabIndex = 1;
     this.onConfigChanged(); // Sets up the axis info
 
