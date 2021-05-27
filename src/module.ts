@@ -422,23 +422,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       return;
     }
 
-    if (!this.initialized) {
-      const s = this.cfg.settings;
-
-      const options = {
-        showLink: false,
-        displaylogo: false,
-        displayModeBar: s.displayModeBar,
-        modeBarButtonsToRemove: ['sendDataToCloud'], //, 'select2d', 'lasso2d']
-      };
-
-      this.layout = this.getProcessedLayout();
-      this.layout.shapes = this.annotations.shapes;
-      let traces = this.traces;
-      if (this.annotations.shapes.length > 0) {
-        traces = this.traces.concat(this.annotations.trace);
-      }
-      Plotly.react(this.graphDiv, traces, this.layout, options);
+    const isLayoutChanged = !_.isEqual(this.layout, this.getProcessedLayout());
+    if (!this.initialized || isLayoutChanged) {
+      this.createOrUpdatePlot();
 
       this.graphDiv.on('plotly_click', data => {
         if (data === undefined || data.points === undefined) {
@@ -740,6 +726,26 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     return true;
   }
 
+  createOrUpdatePlot(): void {
+    const s = this.cfg.settings;
+
+    const options = {
+      showLink: false,
+      displaylogo: false,
+      displayModeBar: s.displayModeBar,
+      modeBarButtonsToRemove: ['sendDataToCloud'], //, 'select2d', 'lasso2d']
+    };
+
+    this.layout = this.getProcessedLayout();
+    this.layout.shapes = this.annotations.shapes;
+    let traces = this.traces;
+    if (this.annotations.shapes.length > 0) {
+      traces = this.traces.concat(this.annotations.trace);
+    }
+
+    Plotly.react(this.graphDiv, traces, this.layout, options);
+  }
+
   onConfigChanged() {
     // Force reloading the traces
     this._updateTraceData(true);
@@ -762,22 +768,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         if (!this.cfg.showAnnotations) {
           this.annotations.clear();
         }
-
-        const s = this.cfg.settings;
-        const options = {
-          showLink: false,
-          displaylogo: false,
-          displayModeBar: s.displayModeBar,
-          modeBarButtonsToRemove: ['sendDataToCloud'], //, 'select2d', 'lasso2d']
-        };
-        this.layout = this.getProcessedLayout();
-        this.layout.shapes = this.annotations.shapes;
-        let traces = this.traces;
-        if (this.annotations.shapes.length > 0) {
-          traces = this.traces.concat(this.annotations.trace);
-        }
-        console.log('ConfigChanged (traces)', traces);
-        Plotly.react(this.graphDiv, traces, this.layout, options);
+        this.createOrUpdatePlot();
       }
 
       this.render(); // does not query again!
