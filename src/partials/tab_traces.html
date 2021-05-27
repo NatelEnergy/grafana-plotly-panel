@@ -155,6 +155,46 @@
         </div>
 
         <div class="gf-form" ng-if="ctrl.editor.trace.settings.color_option != 'solid'">
+          <label class="gf-form-label width-7">- Range</label>
+          <div class="gf-form-select-wrapper max-width-14">
+            <select class="gf-form-input" 
+              ng-model="ctrl.editor.trace.settings.marker.cauto" 
+              ng-change="ctrl.editor.onColorChanged()">
+              <option ng-value="true">Auto</option>
+              <option nb-value="false">Between</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="gf-form" ng-if="ctrl.editor.trace.settings.marker.cauto != true && ctrl.editor.trace.settings.color_option != 'solid'">
+          <label class="gf-form-label width-7">-- Min</label>
+          <input class="gf-form-input width-10"
+            placeholder="min" 
+            type="number"
+            ng-model="ctrl.editor.trace.settings.marker.cmin" 
+            ng-blur="ctrl.editor.onColorChanged()"
+          />
+        </div>
+        <div class="gf-form" ng-if="ctrl.editor.trace.settings.marker.cauto != true && ctrl.editor.trace.settings.color_option != 'solid'">
+          <label class="gf-form-label width-7">-- Max</label>
+          <input class="gf-form-input width-10"
+            placeholder="max" 
+            type="number"
+            ng-model="ctrl.editor.trace.settings.marker.cmax" 
+            ng-blur="ctrl.editor.onColorChanged()"
+          />
+        </div>
+        <div class="gf-form" ng-if="ctrl.editor.trace.settings.marker.cauto == true && ctrl.editor.trace.settings.color_option != 'solid'">
+          <label class="gf-form-label width-7">-- Mid</label>
+          <input class="gf-form-input width-10"
+            placeholder="mid" 
+            type="number"
+            ng-model="ctrl.editor.trace.settings.marker.cmid" 
+            ng-blur="ctrl.editor.onColorChanged()"
+          />
+        </div>
+
+        <div class="gf-form" ng-if="ctrl.editor.trace.settings.color_option != 'solid'">
           <label class="gf-form-label width-7">- Scale</label>
           <div class="gf-form-select-wrapper max-width-14">
             <select class="gf-form-input" ng-model="ctrl.editor.trace.settings.marker.colorscale" ng-change="ctrl.onConfigChanged()">
@@ -255,7 +295,40 @@
           get-options="ctrl.editor.getSeriesSegs(true)" 
           on-change="ctrl.editor.onTextMetricChanged()"></metric-segment>
       </div>
-      
+
+      <div class="gf-form" ng-if="ctrl.editor.trace.mapping.text">
+        <label class="gf-form-label width-7">Type</label>
+        <div class="gf-form-select-wrapper max-width-14">
+          <select class="gf-form-input"
+            ng-model="ctrl.editor.trace.settings.hover.type"
+            ng-change="ctrl.editor.onColorChanged()">
+            <option value="">None</option>
+            <option value="Date">Date</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="gf-form" ng-if="ctrl.editor.trace.mapping.text">
+        <label class="gf-form-label width-7">Align</label>
+        <div class="gf-form-select-wrapper max-width-14">
+          <select class="gf-form-input"
+            ng-model="ctrl.editor.trace.settings.hover.hoverlabel.align"
+            ng-change="ctrl.editor.onColorChanged()">
+            <option value="">Auto</option>
+            <option value="left">Left</option>
+            <option value="right">Right</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="gf-form" ng-if="ctrl.editor.trace.mapping.text">
+        <label class="gf-form-label width-7">Template</label>
+        <textarea class="gf-form-textarea"
+          ng-model="ctrl.editor.trace.settings.hover.hovertemplate"
+          ng-blur="ctrl.editor.onColorChanged()">
+        </textarea>
+      </div>
+
       <div class="gf-form" ng-if="ctrl.editor.trace.mapping.text">
         <label class="gf-form-label width-7">Show</label>
         <div class="gf-form-select-wrapper max-width-14">
