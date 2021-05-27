@@ -9,10 +9,34 @@
           ng-change="ctrl.editor.onConfigChanged()">
           <option value="scatter">Scatter</option>
           <option value="scatter3d">Scatter (3d)</option>
-          <!--
           <option value="bar">Bar</option>
+          <!--
           <option value="histogram">Histogram</option>
           -->
+        </select>
+      </div>
+    </div>
+
+    <div class="gf-form" ng-if="ctrl.cfg.settings.type === 'bar'">
+      <label class="gf-form-label width-7">- Orientation</label>
+      <div class="gf-form-select-wrapper max-width-14">
+        <select class="gf-form-input"
+                ng-model="ctrl.cfg.settings.orientation"
+                ng-change="ctrl.onConfigChanged()">
+          <option value="v">Vertical</option>
+          <option value="h">Horizontal</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="gf-form" ng-if="ctrl.cfg.settings.type === 'bar'">
+      <label class="gf-form-label width-7">- Mode</label>
+      <div class="gf-form-select-wrapper max-width-14">
+        <select class="gf-form-input"
+                ng-model="ctrl.cfg.layout.barmode"
+                ng-change="ctrl.onConfigChanged()">
+          <option value="group">Grouped</option>
+          <option value="stack">Stacked</option>
         </select>
       </div>
     </div>
@@ -67,20 +91,37 @@
       
     <gf-form-switch 
       class="gf-form" 
+      label="Auto trace" 
+      label-class="gf-form-label width-7" 
+      checked="ctrl.cfg.settings.autotrace" 
+      on-change="ctrl.editor.onConfigChanged()"></gf-form-switch>
+
+    <gf-form-switch 
+      class="gf-form" 
       label="Legend" 
       label-class="gf-form-label width-7" 
       checked="ctrl.cfg.layout.showlegend" 
       on-change="ctrl.editor.onConfigChanged()"></gf-form-switch>
 
     <div class="gf-form" ng-if="ctrl.cfg.layout.showlegend">
-        <label class="gf-form-label width-7">- Orientation</label>
-        <div class="gf-form-select-wrapper max-width-14">
-          <select class="gf-form-input" ng-model="ctrl.cfg.layout.legend.orientation" ng-change="ctrl.onConfigChanged()">
-            <option value="h">Horizontal</option>
-            <option value="v">Vertical</option>
-          </select>
-        </div>
+      <label class="gf-form-label width-7">- Orientation</label>
+      <div class="gf-form-select-wrapper max-width-14">
+        <select class="gf-form-input" ng-model="ctrl.cfg.layout.legend.orientation" ng-change="ctrl.onConfigChanged()">
+          <option value="h">Horizontal</option>
+          <option value="v">Vertical</option>
+        </select>
       </div>
+    </div>
+
+    <div class="gf-form" ng-if="ctrl.cfg.layout.showlegend">
+      <label class="gf-form-label width-7">- Order</label>
+      <div class="gf-form-select-wrapper max-width-14">
+        <select class="gf-form-input" ng-model="ctrl.cfg.layout.legend.traceorder" ng-change="ctrl.onConfigChanged()">
+          <option value="normal">Normal</option>
+          <option value="reversed">Reversed</option>
+        </select>
+      </div>
+    </div>
   </div>
 
   <div ng-repeat="axis in ctrl.editor.axis" class="section gf-form-group">
@@ -104,6 +145,8 @@
           <option value="linear">Linear</option>
           <option value="log">Log</option>
           <option value="date">Date</option>
+          <option value="category">Category</option>
+          <option value="multicategory">Multicategory</option>
         </select>
       </div>
     </div>
@@ -141,8 +184,62 @@
       />
     </div>
 
-    <gf-form-switch class="gf-form" label="Show Grid:" label-class="gf-form-label width-7" checked="axis.layout.showgrid" on-change="ctrl.onConfigChanged()"></gf-form-switch>
-    <gf-form-switch class="gf-form" label="Zero Line:" label-class="gf-form-label width-7" checked="axis.layout.zeroline" on-change="ctrl.onConfigChanged()"></gf-form-switch>
+    <gf-form-switch class="gf-form" label="Show Grid" label-class="gf-form-label width-7" checked="axis.layout.showgrid" on-change="ctrl.onConfigChanged()"></gf-form-switch>
+    <gf-form-switch class="gf-form" label="Zero Line" label-class="gf-form-label width-7" checked="axis.layout.zeroline" on-change="ctrl.onConfigChanged()"></gf-form-switch>
+
+    <div class="gf-form">
+      <label class="gf-form-label width-7">Tick angle</label>
+      <input class="gf-form-input width-10"
+        placeholder="0" 
+        type="number"
+        ng-model="axis.layout.tickangle" 
+        ng-change="ctrl.onConfigChanged()"
+      />
+    </div>
+
+    <div class="gf-form">
+      <label class="gf-form-label width-7">Tick margin</label>
+      <input class="gf-form-input width-10"
+        placeholder="0" 
+        type="number"
+        ng-model="axis.layout.tickmargin" 
+        ng-change="ctrl.onConfigChanged()"
+      />
+    </div>
+
+    <gf-form-switch class="gf-form" label="Auto tick" label-class="gf-form-label width-7" checked="axis.layout.autotick" on-change="ctrl.onConfigChanged()"></gf-form-switch>
+    
+    <div class="gf-form" ng-if="!axis.layout.autotick">
+      <label class="gf-form-label width-7">- Location</label>
+      <div class="gf-form-select-wrapper max-width-14">
+        <select class="gf-form-input" 
+          ng-model="axis.layout.ticks" 
+          ng-change="ctrl.editor.onConfigChanged()">
+          <option value="outside">Outside</option>
+          <option value="inside">Inside</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="gf-form" ng-if="!axis.layout.autotick">
+      <label class="gf-form-label width-7">- Start</label>
+      <input class="gf-form-input width-10"
+        placeholder="0"
+        type="number"
+        ng-model="axis.layout.tick0" 
+        ng-change="ctrl.onConfigChanged()"
+      />
+    </div>
+
+    <div class="gf-form" ng-if="!axis.layout.autotick">
+      <label class="gf-form-label width-7">- Interval</label>
+      <input class="gf-form-input width-10"
+        placeholder="1"
+        type="number"
+        ng-model="axis.layout.dtick" 
+        ng-change="ctrl.onConfigChanged()"
+      />
+    </div>
   </div>
 
 </div>

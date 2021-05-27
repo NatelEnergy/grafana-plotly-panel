@@ -15,10 +15,24 @@ Works with grafana 4, 5, and 6
 ![Screenshot of scatter plot](https://raw.githubusercontent.com/NatelEnergy/grafana-plotly-panel/master/src/img/screenshot-multiple-trace.png)
 ![Screenshot of 3d scatter plot](https://raw.githubusercontent.com/NatelEnergy/grafana-plotly-panel/master/src/img/screenshot-scatter-3d.png)
 ![Screenshot of the options screen](https://raw.githubusercontent.com/NatelEnergy/grafana-plotly-panel/master/src/img/screenshot-options-new.png)
+![Screenshot of horizontal bar chart](https://raw.githubusercontent.com/NatelEnergy/grafana-plotly-panel/master/src/img/screenshot-hbar-single-trace.png)
+![Screenshot of horizontal bar chart](https://raw.githubusercontent.com/NatelEnergy/grafana-plotly-panel/master/src/img/screenshot-hbar-multi-trace.png)
+![Screenshot of stacked vertical bar chart](https://raw.githubusercontent.com/NatelEnergy/grafana-plotly-panel/master/src/img/screenshot-vbar-stacked-auto-trace.png)
+
+### Auto-trace
+
+Sometimes the number and identity of the traces on a plot varies depending
+on a property of the data being plotted. Auto-trace mode allows traces
+to be constructed from the query result. The query must return exactly
+3 columns. The column contents must be:
+
+1. The trace name. This must be a string.
+1. An X value for the named trace.
+1. The corresponding Y value.
 
 ### Building
 
-To complie, run:
+To compile, run:
 
 ```
 npm install -g yarn

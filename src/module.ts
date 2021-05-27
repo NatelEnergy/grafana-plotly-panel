@@ -63,6 +63,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         },
         showscale: false,
       },
+      barmarker: {
+        color: '#33B5E5',
+        width: 1,
+      },
       color_option: 'ramp',
     },
   };
@@ -83,34 +87,73 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       settings: {
         type: 'scatter',
         displayModeBar: false,
+        orientation: 'v',
+        autotrace: false,
       },
       layout: {
+        barmode: 'group',
         showlegend: false,
         legend: {
           orientation: 'h',
+          traceorder: 'normal',
+          font: {
+            family: 'Roboto, Helvetica, Arial, sans-serif',
+            size: 11,
+          },
         },
         dragmode: 'lasso', // (enumerated: "zoom" | "pan" | "select" | "lasso" | "orbit" | "turntable" )
         hovermode: 'closest',
         font: {
-          family: '"Open Sans", Helvetica, Arial, sans-serif',
+          family: 'Roboto, Helvetica, Arial, sans-serif',
+          size: 10.8,
         },
         xaxis: {
           showgrid: true,
           zeroline: false,
           type: 'auto',
-          rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" )
+          rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" ),
+          tickangle: 0,
+          tickmargin: 30,
+          autotick: true,
+          ticks: 'outside',
+          tick0: 0,
+          dtick: 1,
+          titlefont: {
+            family: 'Roboto, Helvetica, Arial, sans-serif',
+            size: 12,
+          },
         },
         yaxis: {
           showgrid: true,
           zeroline: false,
           type: 'linear',
           rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" ),
+          tickangle: 0,
+          tickmargin: 45,
+          autotick: true,
+          ticks: 'outside',
+          tick0: 0,
+          dtick: 1,
+          titlefont: {
+            family: 'Roboto, Helvetica, Arial, sans-serif',
+            size: 12,
+          },
         },
         zaxis: {
           showgrid: true,
           zeroline: false,
           type: 'linear',
-          rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" )
+          rangemode: 'normal', // (enumerated: "normal" | "tozero" | "nonnegative" ),
+          tickangle: 0,
+          tickmargin: 30,
+          autotick: true,
+          ticks: 'outside',
+          tick0: 0,
+          dtick: 1,
+          titlefont: {
+            family: 'Roboto, Helvetica, Arial, sans-serif',
+            size: 12,
+          },
         },
       },
     },
@@ -121,6 +164,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   series: SeriesWrapper[];
   seriesByKey: Map<string, SeriesWrapper> = new Map();
   seriesHash = '?';
+  seriesIsTimeseries = true;
 
   traces: any[]; // The data sent directly to Plotly -- with a special __copy element
   layout: any; // The layout used by Plotly
@@ -235,8 +279,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   onInitEditMode() {
     this.editor = new EditorHelper(this);
-    this.addEditorTab('Display', 'public/plugins/natel-plotly-panel/partials/tab_display.html', 2);
-    this.addEditorTab('Traces', 'public/plugins/natel-plotly-panel/partials/tab_traces.html', 3);
+    this.addEditorTab('Display', 'public/plugins/sinodun-natel-plotly-panel/partials/tab_display.html', 2);
+    this.addEditorTab('Traces', 'public/plugins/sinodun-natel-plotly-panel/partials/tab_traces.html', 3);
     //  this.editorTabIndex = 1;
     this.onConfigChanged(); // Sets up the axis info
 
@@ -324,6 +368,12 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       layout.yaxis = {};
     }
 
+    // If tickangle is 0, remove it to enable default behaviour,
+    // which is to use 0 if it fits and otherwise 90.
+    if (layout.tickangle === 0) {
+      delete layout.tickangle;
+    }
+
     // Fixed scales
     if (this.cfg.fixScale) {
       if ('x' === this.cfg.fixScale) {
@@ -371,16 +421,22 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         }
       }
 
-      const isDate = layout.xaxis.type === 'date';
       layout.margin = {
-        l: layout.yaxis.title ? 50 : 35,
+        l: layout.yaxis.tickmargin,
         r: 5,
         t: 0,
-        b: layout.xaxis.title ? 65 : isDate ? 40 : 30,
+        b: layout.xaxis.tickmargin,
         pad: 2,
       };
 
+      // Add a bit more margin if there is an axis title.
+      if (layout.xaxis.title)
+        layout.margin.b += 25;
+      if (layout.yaxis.title)
+        layout.margin.l += 25;
+
       // Set the range to the query window
+      const isDate = layout.xaxis.type === 'date';
       if (isDate && !layout.xaxis.range) {
         const range = this.timeSrv.timeRange();
         layout.xaxis.range = [range.from.valueOf(), range.to.valueOf()];
@@ -480,6 +536,11 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
           return;
         }
 
+        if (!this.seriesIsTimeseries) {
+          console.log('Not timeseries data, time zoom disabled');
+          return;
+        }
+
         if (data.points.length === 0) {
           console.log('Nothing Selected', data);
           return;
@@ -533,15 +594,52 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   onDataReceived(dataList) {
     const finfo: SeriesWrapper[] = [];
+    const autotrace = this.cfg.settings.autotrace;
     let seriesHash = '/';
+    let autotraceDataSeries = {};
     if (dataList && dataList.length > 0) {
+      if (autotrace) {
+        // Check input is of expected form.
+        dataList.forEach((series, sidx) => {
+          if (series.columns && series.columns.length === 3 && series.type === 'table') {
+            series.rows.forEach((val) => {
+              const sname = val[0];
+              if (!(sname in autotraceDataSeries)) {
+                autotraceDataSeries[sname] = {
+                  columns: series.columns,
+                  rows: [],
+                  type: 'table',
+                  name: sname,
+                }
+              };
+              autotraceDataSeries[sname].rows.push(val);
+            });
+          } else {
+            console.error('Autotrace needs table input with 3 columns', sidx, series);
+            throw new Error('Autotrace needs table input with 3 columns');
+          }
+        });
+
+        let autotraceDataList: any = [];
+        for (var key in autotraceDataSeries) {
+          autotraceDataList.push(autotraceDataSeries[key]);
+        }
+        this._updateAutoTraces(autotraceDataSeries);
+        dataList = autotraceDataList;
+      }
+
       const useRefID = dataList.length === this.panel.targets.length;
+      this.seriesIsTimeseries = true;
       dataList.forEach((series, sidx) => {
         let refId = '';
-        if (useRefID) {
-          refId = _.get(this.panel, 'targets[' + sidx + '].refId');
-          if (!refId) {
-            refId = String.fromCharCode('A'.charCodeAt(0) + sidx);
+        if (autotrace) {
+          refId = series.name;
+        } else {
+          if (useRefID) {
+            refId = _.get(this.panel, 'targets[' + sidx + '].refId');
+            if (!refId) {
+              refId = String.fromCharCode('A'.charCodeAt(0) + sidx);
+            }
           }
         }
         if (series.columns) {
@@ -556,6 +654,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         } else {
           console.error('Unsupported Series response', sidx, series);
         }
+        if (series.type === 'table')
+          this.seriesIsTimeseries = false;
       });
     }
     this.seriesByKey.clear();
@@ -631,6 +731,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   // This will update all trace settings *except* the data
   _updateTracesFromConfigs() {
+    // If we're in autotrace mode, trace creation happens elsewhere.
+    if (this.cfg.settings.autotrace)
+      return;
+
     this.dataWarnings = [];
 
     // Make sure we have a trace
@@ -639,6 +743,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     }
 
     const is3D = this.is3d();
+    const isBar = this.isBar();
     this.traces = this.cfg.traces.map((tconfig, idx) => {
       const config = this.deepCopyWithTemplates(tconfig) || {};
       _.defaults(config, PlotlyPanelCtrl.defaults);
@@ -647,30 +752,43 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       const trace: any = {
         name: config.name || EditorHelper.createTraceName(idx),
         type: this.cfg.settings.type,
-        mode: 'markers+lines', // really depends on config settings
+        orientation: this.cfg.settings.orientation,
         __set: [], // { key:? property:? }
       };
 
-      let mode = '';
-      if (config.show.markers) {
-        mode += '+markers';
-        trace.marker = config.settings.marker;
+      if (isBar) {
+        trace.marker = config.settings.barmarker;
+      } else {
+        let mode = '';
+        if (config.show.markers) {
+          mode += '+markers';
+          trace.marker = config.settings.marker;
 
-        delete trace.marker.sizemin;
-        delete trace.marker.sizemode;
-        delete trace.marker.sizeref;
+          delete trace.marker.sizemin;
+          delete trace.marker.sizemode;
+          delete trace.marker.sizeref;
 
-        if (config.settings.color_option === 'ramp') {
-          this.__addCopyPath(trace, mapping.color, 'marker.color');
-        } else {
-          delete trace.marker.colorscale;
-          delete trace.marker.showscale;
+          if (config.settings.color_option === 'ramp') {
+            this.__addCopyPath(trace, mapping.color, 'marker.color');
+          } else {
+            delete trace.marker.colorscale;
+            delete trace.marker.showscale;
+          }
         }
-      }
 
-      if (config.show.lines) {
-        mode += '+lines';
-        trace.line = config.settings.line;
+        if (config.show.lines) {
+          mode += '+lines';
+          trace.line = config.settings.line;
+        }
+
+        if (is3D) {
+          this.__addCopyPath(trace, mapping.z, 'z');
+        }
+
+        // Set the trace mode
+        if (mode) {
+          trace.mode = mode.substring(1);
+        }
       }
 
       // Set the text
@@ -678,28 +796,52 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this.__addCopyPath(trace, mapping.x, 'x');
       this.__addCopyPath(trace, mapping.y, 'y');
 
-      if (is3D) {
-        this.__addCopyPath(trace, mapping.z, 'z');
-      }
-
-      // Set the trace mode
-      if (mode) {
-        trace.mode = mode.substring(1);
-      }
       return trace;
     });
+  }
+
+  // Autotrace. Recreate the traces to those found in the data.
+  _updateAutoTraces(series) {
+    this.dataWarnings = [];
+
+    delete this.traces;
+
+    this.traces = [];
+
+    for (var key in series) {
+      const trace: any = {
+        name: key,
+        type: this.cfg.settings.type,
+        orientation: this.cfg.settings.orientation,
+        __set: [], // { key:? property:? }
+      };
+
+      // Set the text
+      this.__addCopyPath(trace, key + '/' + series[key].columns[1].text, 'x');
+      this.__addCopyPath(trace, key + '/' + series[key].columns[2].text, 'y');
+      if (trace.orientation === 'v')
+        this.__addCopyPath(trace, key + '/' + series[key].columns[2].text, 'text');
+      else
+        this.__addCopyPath(trace, key + '/' + series[key].columns[1].text, 'text');
+
+      this.traces.push(trace);
+    }
+
+    if (this.traces.length < 1) {
+      this.traces = [_.cloneDeep(PlotlyPanelCtrl.defaultTrace)];
+    }
   }
 
   // Fills in the required data into the trace values
   _updateTraceData(force = false): boolean {
     if (!this.series) {
-      // console.log('NO Series data yet!');
+      // console.log('No series data yet!');
       return false;
     }
 
     if (force || !this.traces) {
       this._updateTracesFromConfigs();
-    } else if (this.traces.length !== this.cfg.traces.length) {
+    } else if (!this.cfg.settings.autotrace && this.traces.length !== this.cfg.traces.length) {
       console.log(
         'trace number mismatch.  Found: ' +
           this.traces.length +
@@ -776,7 +918,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         if (this.annotations.shapes.length > 0) {
           traces = this.traces.concat(this.annotations.trace);
         }
-        console.log('ConfigChanged (traces)', traces);
         Plotly.react(this.graphDiv, traces, this.layout, options);
       }
 
@@ -786,6 +927,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   is3d() {
     return this.cfg.settings.type === 'scatter3d';
+  }
+
+  isBar() {
+    return this.cfg.settings.type === 'bar';
   }
 
   link(scope, elem, attrs, ctrl) {

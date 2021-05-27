@@ -126,7 +126,7 @@ export class SeriesWrapperTable extends SeriesWrapper {
 
     const col = table.columns[index];
     if (!col) {
-      throw new Error('Unkonwn Column: ' + index);
+      throw new Error('Unknown Column: ' + index);
     }
 
     this.name = col.text;

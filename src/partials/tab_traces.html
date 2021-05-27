@@ -4,7 +4,7 @@
   </div>
 </div>
 
-<div class="edit-tab-with-sidemenu">
+<div class="edit-tab-with-sidemenu" ng-if="!ctrl.cfg.settings.autotrace">
   <aside class="edit-sidemenu-aside" style="min-width: 100px">
     <ul class="edit-sidemenu">
       <li
@@ -62,7 +62,7 @@
       </div>
     </div>
 
-    <div class="section gf-form-group">
+    <div class="section gf-form-group" ng-if="ctrl.cfg.settings.type !== 'bar'">
       <h5 class="section-heading">Markers</h5>
       <gf-form-switch 
         class="gf-form" 
@@ -185,7 +185,7 @@
       </div>
     </div>
 
-    <div class="section gf-form-group" ng-if="ctrl.cfg.settings.mode !== 'markers'">
+    <div class="section gf-form-group" ng-if="ctrl.cfg.settings.type !== 'bar' && ctrl.cfg.settings.mode !== 'markers'">
       <h5 class="section-heading">Lines</h5>
       <gf-form-switch 
         class="gf-form" 
@@ -241,6 +241,20 @@
               ng-change="ctrl.onConfigChanged()" />
           </span>
         </div>
+      </div>
+    </div>
+
+    <div class="section gf-form-group" ng-if="ctrl.cfg.settings.type === 'bar'">
+      <h5 class="section-heading">Bars</h5>
+      <div class="gf-form">
+        <label class="gf-form-label width-7">Color</label>
+        <input type="text" placeholder="text" ng-model="ctrl.editor.trace.settings.marker.color" class="gf-form-input width-10"
+               ng-blur="ctrl.onConfigChanged()" />
+        <span class="gf-form-label">
+          <spectrum-picker 
+            ng-model="ctrl.editor.trace.settings.barmarker.color"
+            ng-change="ctrl.onConfigChanged()" />
+        </span>
       </div>
     </div>
 
