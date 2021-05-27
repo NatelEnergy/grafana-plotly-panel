@@ -1,5 +1,5 @@
 {
-  "name": "natel-plotly-panel",
+  "name": "sinodun-natel-plotly-panel",
   "version": "0.0.7-dev",
   "description": "Plot.ly Panel Plugin for Grafana",
   "scripts": {

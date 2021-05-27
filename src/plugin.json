@@ -1,21 +1,22 @@
 {
   "type": "panel",
-  "name": "Plotly",
-  "id": "natel-plotly-panel",
+  "name": "Plotly (Sinodun)",
+  "id": "sinodun-natel-plotly-panel",
 
   "info": {
-    "description": "Scatter plots and more",
+    "description": "Bar charts, scatter plots and more",
     "author": {
-      "name": "Natel Energy"
+      "name": "Sinodun and Natel Energy"
     },
-    "keywords": ["plotly", "scatter", "panel"],
+      "keywords": ["plotly", "scatter", "bar", "panel"],
     "logos": {
       "small": "img/plotly_logo.svg",
       "large": "img/plotly_logo.svg"
     },
     "links": [
       {"name": "Plot.ly", "url": "https://plot.ly/javascript/"},
-      {"name": "Project Page", "url": "https://github.com/NatelEnergy/grafana-plotly-panel"},
+      {"name": "Project Page", "url": "https://github.com/Sinodun/grafana-plotly-panel"},
+      {"name": "Sinodun", "url": "http://www.sinodun.com/"}
       {"name": "Natel Energy", "url": "http://www.natelenergy.com/"}
     ],
     "screenshots": [
