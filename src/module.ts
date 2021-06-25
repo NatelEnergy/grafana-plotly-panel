@@ -63,6 +63,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         },
         showscale: false,
       },
+      size_option: 'fixed',
       color_option: 'ramp',
     },
   };
@@ -656,9 +657,13 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         mode += '+markers';
         trace.marker = config.settings.marker;
 
-        delete trace.marker.sizemin;
-        delete trace.marker.sizemode;
-        delete trace.marker.sizeref;
+        if (config.settings.size_option === 'proportional') {
+          this.__addCopyPath(trace, mapping.size, 'marker.size');
+        } else {
+          delete trace.marker.sizemin;
+          delete trace.marker.sizemode;
+          delete trace.marker.sizeref;
+        }
 
         if (config.settings.color_option === 'ramp') {
           this.__addCopyPath(trace, mapping.color, 'marker.color');
@@ -688,6 +693,23 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       }
       return trace;
     });
+  }
+
+  // Terminate trace initialisation, once data are set
+  _postUpdateTrace(trace: any) {
+    if (trace.marker.sizemax) {	
+	  trace.marker.sizeref = this._max(trace.marker.size) / (2 * trace.marker.sizemax);
+    }	
+  }
+
+  _max(array: number[]): number {
+	let max = 0;
+	for (let v of array) {
+	  if (v > max) {
+		max = v;
+	  }
+	}
+	return max;
   }
 
   // Fills in the required data into the trace values
@@ -732,6 +754,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
             vals = zero;
           }
           _.set(trace, v.path, vals);
+    	  this._postUpdateTrace(trace);
         });
       }
     });

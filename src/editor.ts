@@ -41,6 +41,10 @@ export class EditorHelper {
     ctrl.cfg.traces.forEach(trace => {
       _.defaults(trace, PlotlyPanelCtrl.defaultTrace);
       const mapping = trace.mapping;
+      if (!mapping.size) {
+        mapping.size = defaultMappings.first;
+        changed = true;
+      }
       if (!mapping.color) {
         mapping.color = defaultMappings.first;
         changed = true;
@@ -272,6 +276,19 @@ export class EditorHelper {
   onTextMetricChanged(sss: any) {
     const seg = this.mapping.text;
     this.updateSegMapping(seg.value, 'text', true);
+    this.onConfigChanged();
+  }
+
+  getSizeSegments(): any[] {
+    if (this.trace.settings.size_option === 'proportional') {
+      return [this.mapping.size];
+    }
+    return [];
+  }
+
+  onSizeChanged() {
+    const seg = this.mapping.size;
+    this.updateSegMapping(seg.value, 'size', true);
     this.onConfigChanged();
   }
 
